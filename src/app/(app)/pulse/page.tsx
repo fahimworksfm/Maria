@@ -3,6 +3,7 @@ import { requireCoupled } from "@/lib/couple";
 import { supabaseServer } from "@/lib/supabase/server";
 import { sendToUser, pushEnabled } from "@/lib/push";
 import PulseClient from "./PulseClient";
+import PulseButton from "./PulseButton";
 
 export default async function PulsePage() {
   const me = await requireCoupled();
@@ -71,16 +72,16 @@ export default async function PulsePage() {
 
       <PulseClient publicKey={process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ?? ""} pushConfigured={pushEnabled()} />
 
-      <form action={sendPulse} className="card p-5 space-y-3 text-center">
+      <form action={sendPulse} className="card p-6 space-y-4 text-center">
         <p className="muted">Send a pulse to {partnerName}.</p>
-        <input className="input text-center" name="message" placeholder="Optional message (under 60 chars)" maxLength={60} />
-        <button
-          className="btn btn-primary cta-glow text-2xl py-6 px-10 rounded-full mx-auto"
-          type="submit"
-          style={{ animation: "phone-float 3.5s ease-in-out infinite" }}
-        >
-          💗 Pulse
-        </button>
+        <PulseButton />
+        <input
+          className="input text-center"
+          name="message"
+          placeholder="Add a tiny message (optional)"
+          maxLength={60}
+        />
+        <p className="muted text-xs">Tap the heart. Their phone will buzz.</p>
       </form>
 
       <section className="space-y-2">

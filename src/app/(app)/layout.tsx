@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { requireMe } from "@/lib/couple";
 import { redirect } from "next/navigation";
+import BottomNav from "@/components/BottomNav";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const me = await requireMe();
@@ -19,8 +20,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           </nav>
         </div>
       </header>
-      <main className="flex-1 max-w-3xl w-full mx-auto px-4 pb-32 pt-4">{children}</main>
-      <footer className="max-w-3xl w-full mx-auto px-4 pb-20 text-xs text-muted flex gap-3 justify-center">
+      <main className="flex-1 max-w-3xl w-full mx-auto px-4 pt-4 pb-nav">{children}</main>
+      <footer className="max-w-3xl w-full mx-auto px-4 pb-28 text-xs text-muted flex gap-3 justify-center">
         <Link href="/terms" className="hover:text-ink">Terms</Link>
         <span>·</span>
         <Link href="/privacy" className="hover:text-ink">Privacy</Link>
@@ -31,34 +32,33 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   );
 }
 
-function BottomNav() {
-  const items: Array<{ href: string; label: string }> = [
-    { href: "/home", label: "Home" },
-    { href: "/journal", label: "Journal" },
-    { href: "/pulse", label: "Pulse" },
-    { href: "/vault", label: "Vault" },
-    { href: "/profile", label: "Me" },
-  ];
-  return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-bg/90 backdrop-blur border-t border-line">
-      <div className="max-w-3xl mx-auto px-2 py-2 grid grid-cols-5 text-center text-xs">
-        {items.map((it) => (
-          <Link key={it.href} href={it.href} className="py-2 rounded-md hover:bg-panel2">
-            {it.label}
-          </Link>
-        ))}
-      </div>
-    </nav>
-  );
-}
-
 function PWAInstaller() {
-  return (
-    <script
-      // Register service worker for PWA install + basic offline shell.
-      dangerouslySetInnerHTML={{
-        __html: `if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('/sw.js').catch(()=>{});});}`,
-      }}
-    />
-  );
+  // Register SW, actively check for updates on each load, and reload the page
+  // when a new SW takes control (so users always see the latest UI).
+  const script = `
+    if ('serviceWorker' in navigator) {
+      var refreshing = false;
+      navigator.serviceWorker.addEventListener('controllerchange', function () {
+        if (refreshing) return;
+        refreshing = true;
+        window.location.reload();
+      });
+      window.addEventListener('load', function () {
+        navigator.serviceWorker.register('/sw.js').then(function (reg) {
+          try { reg.update(); } catch (e) {}
+          reg.addEventListener('updatefound', function () {
+            var nw = reg.installing;
+            if (!nw) return;
+            nw.addEventListener('statechange', function () {
+              if (nw.state === 'installed' && navigator.serviceWorker.controller) {
+                // A new SW is installed and there's already a controller —
+                // it'll take over via clients.claim() and trigger controllerchange.
+              }
+            });
+          });
+        }).catch(function () {});
+      });
+    }
+  `;
+  return <script dangerouslySetInnerHTML={{ __html: script }} />;
 }

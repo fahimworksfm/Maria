@@ -46,15 +46,19 @@ export default async function Home() {
 
   const [
     { count: memoriesCount },
-    { data: pendingJournal },
+    { data: todaysJournal },
     { count: bucketOpen },
     { count: unreadPulses },
   ] = await Promise.all([
     supabase.from("memories").select("id", { count: "exact", head: true }).eq("couple_id", me.coupleId),
-    supabase.from("journal_entries").select("id, prompt").eq("couple_id", me.coupleId).eq("prompt_date", today).limit(1),
+    supabase.from("journal_entries").select("author_id").eq("couple_id", me.coupleId).eq("prompt_date", today),
     supabase.from("bucket_items").select("id", { count: "exact", head: true }).eq("couple_id", me.coupleId).is("completed_at", null),
     supabase.from("nudges").select("id", { count: "exact", head: true }).eq("to_user", me.userId).is("read_at", null),
   ]);
+
+  const journalAnswered = todaysJournal?.length ?? 0;
+  const youAnswered = (todaysJournal ?? []).some((e) => e.author_id === me.userId);
+  const journalLabel = journalAnswered === 0 ? "Not yet" : journalAnswered === 2 ? "Both ✓" : youAnswered ? "You done" : "Partner done";
 
   return (
     <div className="space-y-6">
@@ -64,10 +68,10 @@ export default async function Home() {
         <p className="muted">Welcome back{me.displayName ? `, ${me.displayName}` : ""}.</p>
         <h1 className="h1 mt-1">Your space.</h1>
         <div className="mt-4 grid grid-cols-4 gap-3 text-center text-sm">
-          <Stat label="Memories" value={memoriesCount ?? 0} />
-          <Stat label="Open dreams" value={bucketOpen ?? 0} />
-          <Stat label="Prompt" value={pendingJournal && pendingJournal.length ? "Open" : "Tap"} />
-          <Stat label="Pulses" value={unreadPulses ?? 0} highlight={(unreadPulses ?? 0) > 0} />
+          <Stat href="/memories" label="Memories" value={memoriesCount ?? 0} />
+          <Stat href="/bucket-list" label="Open dreams" value={bucketOpen ?? 0} />
+          <Stat href="/journal" label="Today's prompt" value={journalLabel} highlight={journalAnswered === 2} />
+          <Stat href="/pulse" label="Pulses" value={unreadPulses ?? 0} highlight={(unreadPulses ?? 0) > 0} />
         </div>
       </section>
 
@@ -84,12 +88,15 @@ export default async function Home() {
   );
 }
 
-function Stat({ label, value, highlight }: { label: string; value: string | number; highlight?: boolean }) {
+function Stat({ href, label, value, highlight }: { href: string; label: string; value: string | number; highlight?: boolean }) {
   return (
-    <div className={`bg-panel2 border border-line rounded-lg py-2 ${highlight ? "ring-1 ring-accent/60" : ""}`}>
-      <div className={`text-xl font-display ${highlight ? "headline-gradient" : ""}`}>{value}</div>
-      <div className="muted text-xs">{label}</div>
-    </div>
+    <Link
+      href={href}
+      className={`block bg-panel2 border border-line rounded-lg py-2 px-1 transition active:scale-95 hover:bg-panel ${highlight ? "ring-1 ring-accent/60" : ""}`}
+    >
+      <div className={`text-base font-display leading-tight ${highlight ? "headline-gradient" : ""}`}>{value}</div>
+      <div className="muted text-[10px] mt-0.5">{label}</div>
+    </Link>
   );
 }
 

@@ -1,6 +1,6 @@
 // Tether service worker: app-shell precache + push handler.
 
-const CACHE = "tether-v2";
+const CACHE = "tether-v3";
 const SHELL = ["/", "/manifest.webmanifest", "/icon.svg"];
 
 self.addEventListener("install", (event) => {
