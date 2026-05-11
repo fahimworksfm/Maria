@@ -106,7 +106,7 @@ export default async function Landing() {
         {/* Features */}
         <section className="px-6 max-w-6xl mx-auto py-16">
           <p className="muted text-center fade-up">What&apos;s inside</p>
-          <h2 className="text-3xl sm:text-4xl font-display text-center mt-2 fade-up d1">Fifteen tiny apps. One quiet space.</h2>
+          <h2 className="text-3xl sm:text-4xl font-display text-center mt-2 fade-up d1">A dozen tiny apps. One quiet space.</h2>
           <div className="mt-10 grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {FEATURES.map((f, i) => (
               <div key={f.title} className={`glass glass-hover p-5 fade-up d${(i % 6) + 1}`}>
@@ -134,7 +134,7 @@ export default async function Landing() {
         {/* Final CTA */}
         <section className="px-6 max-w-3xl mx-auto py-20 text-center">
           <h2 className="text-4xl sm:text-5xl font-display fade-up">Ready to start your space?</h2>
-          <p className="muted mt-4 fade-up d1">Two minutes to set up. One invite code to share.</p>
+          <p className="muted mt-4 fade-up d1">One sign-up. One link to send. You&apos;re paired.</p>
           <div className="mt-8 flex justify-center gap-3 fade-up d2">
             <Link className="btn btn-primary cta-glow text-base px-6 py-3" href="/signup">Create your Tether</Link>
           </div>

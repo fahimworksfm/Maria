@@ -1,35 +1,115 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { supabaseServer } from "@/lib/supabase/server";
+import { supabaseAdmin } from "@/lib/supabase/admin";
+import { randomInviteCode } from "@/lib/crypto";
 
-export default function SignupPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
+export default function SignupPage({ searchParams }: { searchParams: Promise<{ error?: string; code?: string }> }) {
   return <SignupInner searchParamsP={searchParams} />;
 }
 
-async function SignupInner({ searchParamsP }: { searchParamsP: Promise<{ error?: string }> }) {
+async function SignupInner({ searchParamsP }: { searchParamsP: Promise<{ error?: string; code?: string }> }) {
   const sp = await searchParamsP;
+  const code = sp.code?.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 6) || null;
+
+  // If a code is present, look up the inviter for a friendly header.
+  let inviter: { name: string | null } | null = null;
+  if (code) {
+    const admin = supabaseAdmin();
+    const { data: couple } = await admin
+      .from("couples")
+      .select("id")
+      .eq("invite_code", code)
+      .maybeSingle();
+    if (couple) {
+      const { data: members } = await admin
+        .from("profiles")
+        .select("display_name")
+        .eq("couple_id", couple.id)
+        .limit(1);
+      inviter = { name: members?.[0]?.display_name ?? null };
+    }
+  }
 
   async function signUp(formData: FormData) {
     "use server";
     const email = String(formData.get("email") || "").trim();
     const password = String(formData.get("password") || "");
     const display = String(formData.get("display_name") || "").trim();
+    const codeIn = String(formData.get("code") || "").trim().toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 6) || null;
+
     const supabase = await supabaseServer();
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: { data: { display_name: display } },
     });
-    if (error) redirect(`/signup?error=${encodeURIComponent(error.message)}`);
-    redirect("/pair");
+    if (error) {
+      const params = new URLSearchParams({ error: error.message });
+      if (codeIn) params.set("code", codeIn);
+      redirect(`/signup?${params.toString()}`);
+    }
+    const user = data.user;
+    if (!user) {
+      // Email confirmation must be off in Supabase. If it isn't, the user
+      // won't have a session yet — direct them to sign in after confirming.
+      redirect("/login?error=Check+your+email+to+confirm,+then+sign+in.");
+    }
+
+    const admin = supabaseAdmin();
+    // The auth trigger creates the profile row; this upsert ensures the
+    // display_name is present and survives any trigger timing.
+    await admin
+      .from("profiles")
+      .upsert({ user_id: user.id, display_name: display || null }, { onConflict: "user_id" });
+
+    if (codeIn) {
+      // Auto-join the existing couple via invite code.
+      const { data: couple } = await admin
+        .from("couples")
+        .select("id")
+        .eq("invite_code", codeIn)
+        .maybeSingle();
+      if (!couple) redirect("/pair?error=Invite+code+not+found");
+      const { count } = await admin
+        .from("profiles")
+        .select("user_id", { count: "exact", head: true })
+        .eq("couple_id", couple.id);
+      if ((count ?? 0) >= 2) redirect("/pair?error=That+couple+is+full");
+      await admin.from("profiles").update({ couple_id: couple.id }).eq("user_id", user.id);
+      redirect("/home");
+    }
+
+    // Otherwise: auto-create a couple for this user.
+    const newCode = randomInviteCode();
+    const { data: newCouple, error: cErr } = await admin
+      .from("couples")
+      .insert({ invite_code: newCode })
+      .select("id")
+      .single();
+    if (cErr || !newCouple) redirect(`/pair?error=${encodeURIComponent(cErr?.message ?? "Failed to create space")}`);
+    await admin.from("profiles").update({ couple_id: newCouple.id }).eq("user_id", user.id);
+    redirect("/pair/invite");
   }
 
   return (
     <main className="min-h-screen flex items-center justify-center p-6">
       <div className="card p-6 w-full max-w-sm">
-        <h1 className="h1 mb-1">Tether</h1>
-        <p className="muted mb-6">Create your account.</p>
+        {inviter ? (
+          <>
+            <h1 className="h1 mb-1">You&apos;re invited</h1>
+            <p className="muted mb-6">
+              {inviter.name ? `${inviter.name} wants` : "Someone wants"} to share a Tether with you. Create your account to join.
+            </p>
+          </>
+        ) : (
+          <>
+            <h1 className="h1 mb-1">Tether</h1>
+            <p className="muted mb-6">Create your account. Your space is ready in a click.</p>
+          </>
+        )}
         <form action={signUp} className="space-y-3">
+          {code && <input type="hidden" name="code" value={code} />}
           <div>
             <label className="label">Your name</label>
             <input className="input" name="display_name" type="text" required />
@@ -51,10 +131,12 @@ async function SignupInner({ searchParamsP }: { searchParamsP: Promise<{ error?:
               <Link href="/privacy" className="underline text-ink">Privacy Policy</Link>.
             </span>
           </label>
-          <button className="btn btn-primary w-full" type="submit">Create account</button>
+          <button className="btn btn-primary w-full cta-glow" type="submit">
+            {code ? "Create account & join" : "Create my space"}
+          </button>
         </form>
         <p className="muted text-center mt-6">
-          Already paired? <Link className="text-ink underline" href="/login">Sign in</Link>
+          Already have an account? <Link className="text-ink underline" href="/login">Sign in</Link>
         </p>
       </div>
     </main>
