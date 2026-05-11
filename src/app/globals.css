@@ -1,0 +1,53 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+html, body {
+  background: #0b0b10;
+  color: #e9e9f0;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+@layer components {
+  .card {
+    @apply bg-panel border border-line rounded-xl2 shadow-soft;
+  }
+  .card-hover {
+    @apply transition hover:bg-panel2;
+  }
+  .input {
+    @apply w-full bg-panel2 border border-line rounded-lg px-3 py-2 text-ink placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-accent/50;
+  }
+  .btn {
+    @apply inline-flex items-center justify-center px-4 py-2 rounded-lg border border-line bg-panel2 hover:bg-panel text-ink text-sm font-medium transition disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .btn-primary {
+    @apply bg-accent text-bg border-accent hover:bg-accent/90;
+  }
+  .btn-ghost {
+    @apply bg-transparent border-transparent hover:bg-panel2;
+  }
+  .pill {
+    @apply inline-flex items-center px-2 py-0.5 rounded-full text-xs border border-line bg-panel2 text-muted;
+  }
+  .label {
+    @apply text-xs uppercase tracking-wider text-muted mb-1 block;
+  }
+  .h1 {
+    @apply text-2xl font-display;
+  }
+  .h2 {
+    @apply text-xl font-display;
+  }
+  .muted {
+    @apply text-muted text-sm;
+  }
+}
