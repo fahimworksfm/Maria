@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { requireCoupled } from "@/lib/couple";
 import { supabaseServer } from "@/lib/supabase/server";
+import InstallPrompt from "@/components/InstallPrompt";
 
 type Tile = {
   href: string;
@@ -57,6 +58,7 @@ export default async function Home() {
 
   return (
     <div className="space-y-6">
+      <InstallPrompt variant="banner" />
       <section className="card p-5 relative overflow-hidden">
         <div className="absolute -top-20 -right-20 w-60 h-60 rounded-full bg-accent/20 blur-3xl pointer-events-none" />
         <p className="muted">Welcome back{me.displayName ? `, ${me.displayName}` : ""}.</p>

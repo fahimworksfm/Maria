@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import "./landing.css";
 import { supabaseServer } from "@/lib/supabase/server";
+import InstallPrompt from "@/components/InstallPrompt";
 
 export const metadata = { title: "Tether — a private space for two" };
 
@@ -138,6 +139,11 @@ export default async function Landing() {
           <div className="mt-8 flex justify-center gap-3 fade-up d2">
             <Link className="btn btn-primary cta-glow text-base px-6 py-3" href="/signup">Create your Tether</Link>
           </div>
+        </section>
+
+        {/* Install prompt — only renders on phone, hides if installed/dismissed */}
+        <section className="px-6 max-w-2xl mx-auto pb-12">
+          <InstallPrompt />
         </section>
 
         <footer className="px-6 py-10 max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-4 border-t border-line/50 text-xs text-muted">

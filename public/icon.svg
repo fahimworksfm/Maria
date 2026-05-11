@@ -1,11 +1,57 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
   <defs>
-    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#f97373"/>
-      <stop offset="100%" stop-color="#f9c873"/>
+    <linearGradient id="tcord" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#ff8e8e"/>
+      <stop offset="55%" stop-color="#f9c873"/>
+      <stop offset="100%" stop-color="#c89cff"/>
     </linearGradient>
+    <radialGradient id="td1" cx="35%" cy="35%" r="70%">
+      <stop offset="0%" stop-color="#ffb2b2"/>
+      <stop offset="100%" stop-color="#ff6a6a"/>
+    </radialGradient>
+    <radialGradient id="td2" cx="35%" cy="35%" r="70%">
+      <stop offset="0%" stop-color="#e0c0ff"/>
+      <stop offset="100%" stop-color="#9a6cee"/>
+    </radialGradient>
+    <radialGradient id="tbg" cx="50%" cy="30%" r="85%">
+      <stop offset="0%" stop-color="#1a1a24"/>
+      <stop offset="100%" stop-color="#08080d"/>
+    </radialGradient>
+    <filter id="tg" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="8" result="b"/>
+      <feMerge>
+        <feMergeNode in="b"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
   </defs>
-  <rect width="512" height="512" rx="96" fill="#0b0b10"/>
-  <path d="M180 270c-30 0-60-22-60-58 0-32 24-58 56-58 26 0 44 14 56 32h0c12-18 30-32 56-32 32 0 56 26 56 58 0 36-30 58-60 58-26 0-48-12-66-30-18 18-40 30-66 30z" fill="url(#g)"/>
-  <circle cx="256" cy="356" r="14" fill="url(#g)"/>
+
+  <rect width="512" height="512" rx="112" fill="url(#tbg)"/>
+
+  <g filter="url(#tg)">
+    <!-- the tether: a flowing cord between two anchors -->
+    <path
+      d="M 152 360
+         C 180 248, 220 220, 256 256
+         C 292 292, 332 264, 360 152"
+      fill="none"
+      stroke="url(#tcord)"
+      stroke-width="36"
+      stroke-linecap="round"
+    />
+
+    <!-- two anchor knots / endpoints -->
+    <circle cx="152" cy="360" r="46" fill="url(#td1)"/>
+    <circle cx="360" cy="152" r="46" fill="url(#td2)"/>
+  </g>
+
+  <!-- soft highlight on the cord -->
+  <path
+    d="M 168 332 C 196 240, 232 220, 252 240"
+    fill="none"
+    stroke="#ffffff"
+    stroke-opacity="0.18"
+    stroke-width="8"
+    stroke-linecap="round"
+  />
 </svg>
