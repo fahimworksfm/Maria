@@ -126,7 +126,7 @@ export default async function Landing() {
             <div className="mt-8 grid sm:grid-cols-3 gap-4 text-center">
               <Guarantee title="Couple-scoped" body="Your data lives inside a couple container only the two of you can read. Enforced at the database, not just the app." />
               <Guarantee title="PIN-locked vault" body="Gift planning is private to its owner — your partner can&apos;t read it even if they&apos;re logged in on your phone." />
-              <Guarantee title="No ads, no resale" body="We don&apos;t monetize your memories. Built as a personal project. Bring your own free Supabase + Groq keys." />
+              <Guarantee title="No ads, no resale" body="We don&apos;t monetize your memories. Ever." />
             </div>
           </div>
         </section>
