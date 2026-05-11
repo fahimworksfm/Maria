@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { supabaseServer } from "@/lib/supabase/server";
 import { requireCoupled } from "@/lib/couple";
@@ -21,8 +22,10 @@ export default async function InvitePage() {
     .select("user_id", { count: "exact", head: true })
     .eq("couple_id", me.coupleId);
 
-  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000").replace(/\/$/, "");
-  const inviteUrl = `${siteUrl}/join/${couple.invite_code}`;
+  const h = await headers();
+  const host = h.get("x-forwarded-host") ?? h.get("host") ?? "localhost:3000";
+  const proto = h.get("x-forwarded-proto") ?? (host.startsWith("localhost") ? "http" : "https");
+  const inviteUrl = `${proto}://${host}/join/${couple.invite_code}`;
 
   return (
     <main className="min-h-screen flex items-center justify-center p-6">
