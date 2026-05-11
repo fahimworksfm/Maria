@@ -1,11 +1,12 @@
 import { redirect } from "next/navigation";
 import { supabaseServer } from "@/lib/supabase/server";
+import { supabaseAdmin } from "@/lib/supabase/admin";
 import { requireMe } from "@/lib/couple";
 import { randomInviteCode } from "@/lib/crypto";
 
 export default async function PairPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
   const me = await requireMe();
-  if (me.coupleId) redirect("/");
+  if (me.coupleId) redirect("/home");
   const sp = await searchParams;
 
   async function createCouple(formData: FormData) {
@@ -14,14 +15,19 @@ export default async function PairPage({ searchParams }: { searchParams: Promise
     const supabase = await supabaseServer();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) redirect("/login");
+    // Use admin client to bootstrap: at this moment the user is authenticated
+    // but not yet a couple member, so RLS would block them from creating
+    // and reading back the row they need to own. Service-role bypasses RLS;
+    // we still gate on auth.getUser() above.
+    const admin = supabaseAdmin();
     const code = randomInviteCode();
-    const { data: couple, error: cErr } = await supabase
+    const { data: couple, error: cErr } = await admin
       .from("couples")
       .insert({ name, invite_code: code })
       .select("id")
       .single();
     if (cErr || !couple) redirect(`/pair?error=${encodeURIComponent(cErr?.message ?? "Could not create couple")}`);
-    const { error: pErr } = await supabase
+    const { error: pErr } = await admin
       .from("profiles")
       .update({ couple_id: couple.id })
       .eq("user_id", user.id);
@@ -37,26 +43,26 @@ export default async function PairPage({ searchParams }: { searchParams: Promise
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) redirect("/login");
 
-    const { data: couple, error } = await supabase
+    const admin = supabaseAdmin();
+    const { data: couple, error } = await admin
       .from("couples")
       .select("id")
       .eq("invite_code", code)
       .maybeSingle();
     if (error || !couple) redirect(`/pair?error=${encodeURIComponent("No couple with that code")}`);
 
-    // Enforce 2-person limit
-    const { count } = await supabase
+    const { count } = await admin
       .from("profiles")
       .select("user_id", { count: "exact", head: true })
       .eq("couple_id", couple.id);
     if ((count ?? 0) >= 2) redirect("/pair?error=That+couple+is+full");
 
-    const { error: uErr } = await supabase
+    const { error: uErr } = await admin
       .from("profiles")
       .update({ couple_id: couple.id })
       .eq("user_id", user.id);
     if (uErr) redirect(`/pair?error=${encodeURIComponent(uErr.message)}`);
-    redirect("/");
+    redirect("/home");
   }
 
   return (
