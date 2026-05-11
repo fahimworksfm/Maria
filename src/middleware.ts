@@ -3,7 +3,7 @@ import { createServerClient, type CookieOptions } from "@supabase/ssr";
 
 type CookieItem = { name: string; value: string; options?: CookieOptions };
 
-const PUBLIC_PATHS = ["/login", "/signup", "/auth", "/manifest.webmanifest", "/sw.js", "/icon.svg", "/favicon.ico"];
+const PUBLIC_PATHS = ["/", "/login", "/signup", "/terms", "/privacy", "/auth", "/manifest.webmanifest", "/sw.js", "/icon.svg", "/favicon.ico"];
 
 export async function middleware(request: NextRequest) {
   const response = NextResponse.next({ request });
@@ -38,7 +38,7 @@ export async function middleware(request: NextRequest) {
 
   if (user && (path === "/login" || path === "/signup")) {
     const url = request.nextUrl.clone();
-    url.pathname = "/";
+    url.pathname = "/home";
     return NextResponse.redirect(url);
   }
 

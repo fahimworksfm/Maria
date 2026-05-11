@@ -43,6 +43,14 @@ async function SignupInner({ searchParamsP }: { searchParamsP: Promise<{ error?:
             <input className="input" name="password" type="password" autoComplete="new-password" minLength={8} required />
           </div>
           {sp.error && <p className="text-accent text-sm">{sp.error}</p>}
+          <label className="flex items-start gap-2 text-xs muted">
+            <input type="checkbox" name="agree" required className="mt-0.5" />
+            <span>
+              I&apos;m 18 or older and I agree to the{" "}
+              <Link href="/terms" className="underline text-ink">Terms</Link> and{" "}
+              <Link href="/privacy" className="underline text-ink">Privacy Policy</Link>.
+            </span>
+          </label>
           <button className="btn btn-primary w-full" type="submit">Create account</button>
         </form>
         <p className="muted text-center mt-6">

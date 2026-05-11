@@ -16,6 +16,52 @@ body {
   font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }
 
+.headline-gradient {
+  background: linear-gradient(120deg, #f97373 0%, #f9c873 50%, #a87bff 100%);
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shine 8s ease-in-out infinite;
+}
+@keyframes shine {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+.cta-glow {
+  position: relative;
+  overflow: hidden;
+}
+.cta-glow::before {
+  content: "";
+  position: absolute; inset: -2px;
+  background: linear-gradient(120deg, #f97373, #f9c873, #a87bff, #f97373);
+  background-size: 300% 300%;
+  border-radius: inherit;
+  filter: blur(8px);
+  opacity: 0.5;
+  z-index: -1;
+  animation: shine 6s linear infinite;
+}
+
+@keyframes phone-float {
+  0%, 100% { transform: rotate(-3deg) translateY(0); }
+  50%      { transform: rotate(-3deg) translateY(-10px); }
+}
+
+.sparkle {
+  position: fixed;
+  pointer-events: none;
+  font-size: 24px;
+  animation: sparkle 1.4s ease-out forwards;
+  z-index: 1000;
+}
+@keyframes sparkle {
+  0%   { opacity: 1; transform: translate(0,0) scale(0.6) rotate(0deg); }
+  100% { opacity: 0; transform: translate(var(--dx,0), var(--dy,-80px)) scale(1.4) rotate(180deg); }
+}
+
 @layer components {
   .card {
     @apply bg-panel border border-line rounded-xl2 shadow-soft;

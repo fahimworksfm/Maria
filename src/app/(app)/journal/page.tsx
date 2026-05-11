@@ -2,6 +2,7 @@ import { revalidatePath } from "next/cache";
 import { requireCoupled } from "@/lib/couple";
 import { supabaseServer } from "@/lib/supabase/server";
 import { aiEnabled, chat } from "@/lib/groq";
+import Confetti from "@/components/Confetti";
 
 export default async function JournalPage() {
   const me = await requireCoupled();
@@ -81,6 +82,7 @@ export default async function JournalPage() {
         )}
       </section>
 
+      {bothAnswered && <Confetti trigger={today} once={`journal-${today}`} />}
       {bothAnswered && (
         <section className="card p-5 space-y-4">
           <h3 className="label">Today, revealed</h3>
