@@ -3,6 +3,8 @@ import { requireCoupled } from "@/lib/couple";
 import { supabaseServer } from "@/lib/supabase/server";
 import { BUCKET, signedUrl, userScopedPath } from "@/lib/media";
 import LocalTime from "@/components/LocalTime";
+import VoiceRecorder from "@/components/VoiceRecorder";
+import DeleteButton from "@/components/DeleteButton";
 
 export default async function VoiceLettersPage() {
   const me = await requireCoupled();
@@ -54,8 +56,8 @@ export default async function VoiceLettersPage() {
         <p className="muted">Record on your phone, upload here. Optional unlock date.</p>
       </header>
 
-      <form action={upload} className="card p-4 space-y-2" encType="multipart/form-data">
-        <input className="input" name="audio" type="file" accept="audio/*" required />
+      <form action={upload} className="card p-4 space-y-3" encType="multipart/form-data">
+        <VoiceRecorder name="audio" />
         <textarea className="input" name="transcript" rows={2} placeholder="Transcript (optional)" />
         <div className="grid grid-cols-2 gap-2">
           <input className="input" name="unlock_at" type="datetime-local" />
@@ -81,7 +83,10 @@ export default async function VoiceLettersPage() {
               ) : null}
               {!locked && r.transcript && <p className="text-sm whitespace-pre-wrap">{r.transcript}</p>}
               {r.author_id === me.userId && (
-                <form action={remove}><input type="hidden" name="id" value={r.id} /><button className="btn btn-ghost text-xs" type="submit">Delete</button></form>
+                <form action={remove}>
+                  <input type="hidden" name="id" value={r.id} />
+                  <DeleteButton confirmText="Delete this voice letter? It can't be undone." />
+                </form>
               )}
             </article>
           );

@@ -9,16 +9,9 @@ export default async function JournalPage() {
   const supabase = await supabaseServer();
   const today = new Date().toISOString().slice(0, 10);
 
-  // Today's prompt: either the one already in use, or generate one and use it for both.
-  const { data: existingToday } = await supabase
-    .from("journal_entries")
-    .select("prompt")
-    .eq("couple_id", me.coupleId)
-    .eq("prompt_date", today)
-    .limit(1)
-    .maybeSingle();
-
-  const prompt = existingToday?.prompt ?? (await pickPromptForToday(me.coupleId));
+  // Today's prompt: persisted in daily_prompts so it doesn't regenerate per visit
+  // (saves Groq calls and keeps the prompt stable until at least one partner answers).
+  const prompt = await ensurePromptForToday(me.coupleId, today);
 
   // Both partners' answers for today
   const { data: todays } = await supabase
@@ -126,6 +119,22 @@ function groupByDate<T extends { prompt_date: string }>(rows: T[]): Record<strin
   const out: Record<string, T[]> = {};
   for (const r of rows) (out[r.prompt_date] ||= []).push(r);
   return out;
+}
+
+async function ensurePromptForToday(coupleId: string, today: string): Promise<string> {
+  const supabase = await supabaseServer();
+  const { data: existing } = await supabase
+    .from("daily_prompts")
+    .select("prompt")
+    .eq("couple_id", coupleId)
+    .eq("prompt_date", today)
+    .maybeSingle();
+  if (existing?.prompt) return existing.prompt;
+  const prompt = await pickPromptForToday(coupleId);
+  await supabase
+    .from("daily_prompts")
+    .upsert({ couple_id: coupleId, prompt_date: today, prompt }, { onConflict: "couple_id,prompt_date" });
+  return prompt;
 }
 
 async function pickPromptForToday(coupleId: string): Promise<string> {

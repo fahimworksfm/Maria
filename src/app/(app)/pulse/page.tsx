@@ -99,7 +99,13 @@ export default async function PulsePage() {
             <span className="muted text-xs"><LocalTime iso={n.created_at} mode="relative" /></span>
           </div>
         ))}
-        {(recent ?? []).length === 0 && <p className="muted">No pulses yet.</p>}
+        {(recent ?? []).length === 0 && (
+          <div className="card p-5 text-center space-y-1">
+            <div className="text-3xl">💗</div>
+            <p className="font-display text-base">Send your first pulse.</p>
+            <p className="muted text-sm">Tap the heart above. Their phone will buzz.</p>
+          </div>
+        )}
       </section>
     </div>
   );

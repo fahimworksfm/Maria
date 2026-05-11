@@ -74,7 +74,14 @@ export default async function BucketListPage() {
         {open.map((it) => (
           <Row key={it.id} item={it} toggleDone={toggleDone} deleteItem={deleteItem} />
         ))}
-        {open.length === 0 && <p className="muted">All caught up.</p>}
+        {open.length === 0 && done.length === 0 && (
+          <div className="card p-5 text-center space-y-1">
+            <div className="text-3xl">🌍</div>
+            <p className="font-display text-base">What&apos;s the first dream?</p>
+            <p className="muted text-sm">A trip, a project, a habit, a quiet plan. Add one above.</p>
+          </div>
+        )}
+        {open.length === 0 && done.length > 0 && <p className="muted">All caught up.</p>}
       </section>
 
       <section className="space-y-2">

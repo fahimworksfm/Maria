@@ -22,6 +22,14 @@ export default async function GratitudePage() {
   }
 
   const items = rows ?? [];
+  const { data: partner } = await supabase
+    .from("profiles")
+    .select("display_name")
+    .neq("user_id", me.userId)
+    .limit(1)
+    .maybeSingle();
+  const partnerName = partner?.display_name ?? "partner";
+
   return (
     <div className="space-y-6">
       <header><h1 className="h1">Gratitude Tree</h1><p className="muted">A leaf grows for each thanks.</p></header>
@@ -35,15 +43,23 @@ export default async function GratitudePage() {
         <button className="btn btn-primary w-full" type="submit">Plant a leaf</button>
       </form>
 
-      <section className="space-y-1">
-        <h3 className="label">Recent ({items.length})</h3>
-        {items.slice(0, 30).map((g) => (
-          <div key={g.id} className="card p-3 text-sm">
-            <span className="muted text-xs mr-2">{g.author_id === me.userId ? "You" : "Partner"}</span>
-            {g.text}
-          </div>
-        ))}
-      </section>
+      {items.length === 0 ? (
+        <div className="card p-5 text-center space-y-1">
+          <div className="text-3xl">🌱</div>
+          <p className="font-display text-base">An empty tree, waiting.</p>
+          <p className="muted text-sm">Plant a small thing and watch it grow.</p>
+        </div>
+      ) : (
+        <section className="space-y-1">
+          <h3 className="label">Recent ({items.length})</h3>
+          {items.slice(0, 30).map((g) => (
+            <div key={g.id} className="card p-3 text-sm">
+              <span className="muted text-xs mr-2">by {g.author_id === me.userId ? "you" : partnerName}</span>
+              {g.text}
+            </div>
+          ))}
+        </section>
+      )}
     </div>
   );
 }

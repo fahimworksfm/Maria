@@ -2,6 +2,7 @@ import { revalidatePath } from "next/cache";
 import { requireCoupled } from "@/lib/couple";
 import { supabaseServer } from "@/lib/supabase/server";
 import { BUCKET, signedUrl, userScopedPath } from "@/lib/media";
+import DeleteButton from "@/components/DeleteButton";
 
 type Memory = {
   id: string;
@@ -29,6 +30,15 @@ export default async function MemoriesPage() {
   const items: Array<Memory & { signed: string | null }> = await Promise.all(
     (rows ?? []).map(async (m) => ({ ...m, signed: m.media_url ? await signedUrl(supabase, m.media_url) : null }))
   );
+
+  // Partner name for "by Maria" attribution
+  const { data: partner } = await supabase
+    .from("profiles")
+    .select("display_name")
+    .neq("user_id", me.userId)
+    .limit(1)
+    .maybeSingle();
+  const partnerName = partner?.display_name ?? "partner";
 
   async function addMemory(formData: FormData) {
     "use server";
@@ -104,7 +114,13 @@ export default async function MemoriesPage() {
       </form>
 
       <section className="space-y-3">
-        {items.length === 0 && <p className="muted">Nothing here yet. Add your first memory above.</p>}
+        {items.length === 0 && (
+          <div className="card p-6 text-center space-y-2">
+            <div className="text-3xl">💌</div>
+            <p className="font-display text-lg">Drop your first moment.</p>
+            <p className="muted text-sm">A photo, a voice note, a sentence — anything you&apos;d want to remember.</p>
+          </div>
+        )}
         {items.map((m) => (
           <article key={m.id} className="card p-4 space-y-2">
             <div className="flex items-baseline justify-between gap-2">
@@ -117,12 +133,15 @@ export default async function MemoriesPage() {
             )}
             {m.signed && m.media_type === "audio" && <audio controls src={m.signed} className="w-full" />}
             {m.signed && m.media_type === "video" && <video controls src={m.signed} className="w-full rounded-lg" />}
-            <div className="flex justify-between items-center pt-1">
-              <span className="muted text-xs">{m.location_name}</span>
+            <div className="flex justify-between items-center pt-1 text-xs">
+              <span className="muted">
+                {m.location_name && <span>{m.location_name} · </span>}
+                <span>by {m.author_id === me.userId ? "you" : partnerName}</span>
+              </span>
               {m.author_id === me.userId && (
                 <form action={deleteMemory}>
                   <input type="hidden" name="id" value={m.id} />
-                  <button className="btn btn-ghost text-xs" type="submit">Delete</button>
+                  <DeleteButton confirmText="Delete this memory? It can't be undone." />
                 </form>
               )}
             </div>

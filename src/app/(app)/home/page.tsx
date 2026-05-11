@@ -49,30 +49,49 @@ export default async function Home() {
     { data: todaysJournal },
     { count: bucketOpen },
     { count: unreadPulses },
+    { data: annivs },
+    { data: partner },
   ] = await Promise.all([
     supabase.from("memories").select("id", { count: "exact", head: true }).eq("couple_id", me.coupleId),
     supabase.from("journal_entries").select("author_id").eq("couple_id", me.coupleId).eq("prompt_date", today),
     supabase.from("bucket_items").select("id", { count: "exact", head: true }).eq("couple_id", me.coupleId).is("completed_at", null),
     supabase.from("nudges").select("id", { count: "exact", head: true }).eq("to_user", me.userId).is("read_at", null),
+    supabase.from("anniversaries").select("name, on_date, recurring").eq("couple_id", me.coupleId),
+    supabase.from("profiles").select("display_name").neq("user_id", me.userId).limit(1).maybeSingle(),
   ]);
 
   const journalAnswered = todaysJournal?.length ?? 0;
   const youAnswered = (todaysJournal ?? []).some((e) => e.author_id === me.userId);
-  const journalLabel = journalAnswered === 0 ? "Not yet" : journalAnswered === 2 ? "Both ✓" : youAnswered ? "You done" : "Partner done";
+  const partnerName = partner?.display_name ?? "your partner";
+
+  const todayCard = pickToday({
+    unreadPulses: unreadPulses ?? 0,
+    youAnswered,
+    journalAnswered,
+    annivs: annivs ?? [],
+    partnerName,
+  });
 
   return (
     <div className="space-y-6">
       <InstallPrompt variant="banner" />
       <section className="card p-5 relative overflow-hidden">
-        <div className="absolute -top-20 -right-20 w-60 h-60 rounded-full bg-accent/20 blur-3xl pointer-events-none" />
+        <div className="absolute -top-24 -right-20 w-72 h-72 rounded-full bg-accent/20 blur-3xl pointer-events-none" />
         <p className="muted">Welcome back{me.displayName ? `, ${me.displayName}` : ""}.</p>
-        <h1 className="h1 mt-1">Your space.</h1>
-        <div className="mt-4 grid grid-cols-4 gap-3 text-center text-sm">
-          <Stat href="/memories" label="Memories" value={memoriesCount ?? 0} />
-          <Stat href="/bucket-list" label="Open dreams" value={bucketOpen ?? 0} />
-          <Stat href="/journal" label="Today's prompt" value={journalLabel} highlight={journalAnswered === 2} />
-          <Stat href="/pulse" label="Pulses" value={unreadPulses ?? 0} highlight={(unreadPulses ?? 0) > 0} />
+        <div className="mt-1 flex items-baseline gap-2">
+          <span className="text-2xl">{todayCard.emoji}</span>
+          <h1 className="h1">{todayCard.headline}</h1>
         </div>
+        <p className="muted text-sm mt-2">{todayCard.subtext}</p>
+        <Link href={todayCard.href} className="btn btn-primary cta-glow inline-block mt-4">
+          {todayCard.cta}
+        </Link>
+      </section>
+
+      <section className="grid grid-cols-3 gap-2 text-center">
+        <Stat href="/memories" label="Memories" value={memoriesCount ?? 0} />
+        <Stat href="/bucket-list" label="Open dreams" value={bucketOpen ?? 0} />
+        <Stat href="/pulse" label="Pulses" value={unreadPulses ?? 0} highlight={(unreadPulses ?? 0) > 0} />
       </section>
 
       <Section title="Shared">
@@ -86,6 +105,94 @@ export default async function Home() {
       </Section>
     </div>
   );
+}
+
+type Anniv = { name: string; on_date: string; recurring: boolean };
+type Card = { emoji: string; headline: string; subtext: string; cta: string; href: string };
+
+function pickToday(input: {
+  unreadPulses: number;
+  youAnswered: boolean;
+  journalAnswered: number;
+  annivs: Anniv[];
+  partnerName: string;
+}): Card {
+  const today = new Date();
+  const todayMD = `${today.getMonth() + 1}-${today.getDate()}`;
+  const upcoming = input.annivs
+    .map((a) => {
+      const [y, m, d] = a.on_date.split("-").map(Number);
+      const md = `${m}-${d}`;
+      const occurs = new Date(today.getFullYear(), m! - 1, d!);
+      let days = Math.round((occurs.getTime() - new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime()) / 86_400_000);
+      if (days < 0 && a.recurring) {
+        const next = new Date(today.getFullYear() + 1, m! - 1, d!);
+        days = Math.round((next.getTime() - new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime()) / 86_400_000);
+      }
+      return { name: a.name, days, md, y };
+    })
+    .filter((a) => a.days >= 0)
+    .sort((a, b) => a.days - b.days);
+
+  const todays = upcoming.filter((a) => a.md === todayMD);
+  if (todays.length > 0) {
+    return {
+      emoji: "🎉",
+      headline: `It's ${todays[0]!.name}.`,
+      subtext: "Today is the day. Make it count.",
+      cta: "Open Anniversary Compass",
+      href: "/anniversaries",
+    };
+  }
+
+  if (input.unreadPulses > 0) {
+    return {
+      emoji: "💗",
+      headline: `${input.partnerName} sent ${input.unreadPulses} pulse${input.unreadPulses > 1 ? "s" : ""}.`,
+      subtext: "Open Pulse to see and reply.",
+      cta: "View pulses",
+      href: "/pulse",
+    };
+  }
+
+  if (!input.youAnswered) {
+    return {
+      emoji: "📔",
+      headline: "Today's prompt is waiting.",
+      subtext: input.journalAnswered === 1 ? `${input.partnerName} already answered. Your turn.` : "Both of you answer, then it's revealed together.",
+      cta: "Answer the prompt",
+      href: "/journal",
+    };
+  }
+
+  if (input.journalAnswered === 2) {
+    const soon = upcoming.find((a) => a.days <= 7);
+    if (soon) {
+      return {
+        emoji: "🧭",
+        headline: `${soon.name} in ${soon.days} day${soon.days === 1 ? "" : "s"}.`,
+        subtext: "Plan something small. They'll remember.",
+        cta: "Open Anniversary Compass",
+        href: "/anniversaries",
+      };
+    }
+    return {
+      emoji: "🌱",
+      headline: "Plant a leaf?",
+      subtext: "Both of you answered today's prompt. Add a small gratitude to round out the day.",
+      cta: "Open Gratitude Tree",
+      href: "/gratitude",
+    };
+  }
+
+  // You answered, partner hasn't yet
+  return {
+    emoji: "💌",
+    headline: `Waiting on ${input.partnerName}.`,
+    subtext: "Your answer is locked in. Drop a memory or send a pulse while you wait.",
+    cta: "Send a pulse",
+    href: "/pulse",
+  };
 }
 
 function Stat({ href, label, value, highlight }: { href: string; label: string; value: string | number; highlight?: boolean }) {

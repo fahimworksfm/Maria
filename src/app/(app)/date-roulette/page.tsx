@@ -172,7 +172,13 @@ export default async function DateRoulettePage() {
               </form>
             </li>
           ))}
-          {ideas && ideas.length === 0 && <p className="muted">No ideas yet — generate or add one above.</p>}
+          {ideas && ideas.length === 0 && (
+            <div className="card p-5 text-center space-y-1">
+              <div className="text-3xl">🎯</div>
+              <p className="font-display text-base">Spin nothing? No fun.</p>
+              <p className="muted text-sm">Generate five with AI above, or drop your own idea in.</p>
+            </div>
+          )}
         </ul>
       </section>
     </div>
