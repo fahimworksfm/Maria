@@ -2,6 +2,7 @@ import { revalidatePath } from "next/cache";
 import { requireCoupled } from "@/lib/couple";
 import { supabaseServer } from "@/lib/supabase/server";
 import { BUCKET, signedUrl, userScopedPath } from "@/lib/media";
+import LocalTime from "@/components/LocalTime";
 
 export default async function VoiceLettersPage() {
   const me = await requireCoupled();
@@ -71,7 +72,7 @@ export default async function VoiceLettersPage() {
               <div className="muted text-xs">
                 {r.is_private ? "Private · " : ""}
                 {r.author_id === me.userId ? "You" : "Partner"}
-                {r.unlock_at ? ` · unlocks ${new Date(r.unlock_at).toLocaleString()}` : ""}
+                {r.unlock_at ? <> · unlocks <LocalTime iso={r.unlock_at} mode="absolute" /></> : ""}
               </div>
               {locked ? (
                 <p className="text-sm muted">🔒 Sealed until the unlock date.</p>

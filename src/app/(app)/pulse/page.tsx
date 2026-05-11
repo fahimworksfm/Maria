@@ -4,6 +4,7 @@ import { supabaseServer } from "@/lib/supabase/server";
 import { sendToUser, pushEnabled } from "@/lib/push";
 import PulseClient from "./PulseClient";
 import PulseButton from "./PulseButton";
+import LocalTime from "@/components/LocalTime";
 
 export default async function PulsePage() {
   const me = await requireCoupled();
@@ -95,7 +96,7 @@ export default async function PulsePage() {
               </div>
               {n.message && <p className="muted text-sm">{n.message}</p>}
             </div>
-            <span className="muted text-xs">{new Date(n.created_at).toLocaleString()}</span>
+            <span className="muted text-xs"><LocalTime iso={n.created_at} mode="relative" /></span>
           </div>
         ))}
         {(recent ?? []).length === 0 && <p className="muted">No pulses yet.</p>}
