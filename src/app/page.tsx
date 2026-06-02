@@ -7,8 +7,19 @@ import InstallPrompt from "@/components/InstallPrompt";
 export const metadata = { title: "Tether — a private space for two" };
 
 export default async function Landing() {
-  const supabase = await supabaseServer();
-  const { data: { user } } = await supabase.auth.getUser();
+  // Best-effort: if the user is already signed in, send them to the app. But never
+  // let a slow/unreachable Supabase block the public landing page from rendering.
+  let user = null;
+  try {
+    const supabase = await supabaseServer();
+    const result = await Promise.race([
+      supabase.auth.getUser(),
+      new Promise<{ data: { user: null } }>((resolve) => setTimeout(() => resolve({ data: { user: null } }), 1500)),
+    ]);
+    user = result.data.user;
+  } catch {
+    user = null;
+  }
   if (user) redirect("/home");
 
   return (
