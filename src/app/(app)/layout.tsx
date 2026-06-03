@@ -2,6 +2,7 @@ import Link from "next/link";
 import { requireMe } from "@/lib/couple";
 import { redirect } from "next/navigation";
 import BottomNav from "@/components/BottomNav";
+import PushRegistration from "@/components/PushRegistration";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const me = await requireMe();
@@ -28,6 +29,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       </footer>
       <BottomNav />
       <PWAInstaller />
+      <PushRegistration vapidKey={process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ?? ""} />
     </div>
   );
 }

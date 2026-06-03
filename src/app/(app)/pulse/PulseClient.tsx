@@ -79,6 +79,8 @@ export default function PulseClient({ publicKey, pushConfigured }: Props) {
         const data = await res.json().catch(() => ({}));
         throw new Error(data.error || "Subscribe failed");
       }
+      // Clear any prior opt-out so the layout keeps the subscription fresh.
+      try { localStorage.removeItem("tether-push-optout"); } catch { /* ignore */ }
       setStatus("enabled");
       setInfo("Notifications enabled on this device.");
     } catch (e) {
@@ -91,6 +93,8 @@ export default function PulseClient({ publicKey, pushConfigured }: Props) {
   async function disable() {
     setErr(null); setInfo(null); setBusy(true);
     try {
+      // Remember the explicit opt-out so the layout doesn't auto-resubscribe.
+      try { localStorage.setItem("tether-push-optout", "1"); } catch { /* ignore */ }
       const reg = await navigator.serviceWorker.ready;
       const sub = await reg.pushManager.getSubscription();
       if (sub) {

@@ -1,0 +1,31 @@
+name: Daily anniversary push
+
+# Hits the secret-protected anniversary endpoint once a day. The endpoint finds
+# anniversaries/birthdays happening today or in 3 days and sends Web Push to the
+# right partner(s). Requires repo secret CRON_SECRET (same value set in Vercel).
+# Note: GitHub disables scheduled workflows after 60 days with no repo commits.
+
+on:
+  schedule:
+    - cron: "0 13 * * *" # daily at 13:00 UTC (~8–9am US Eastern)
+  workflow_dispatch: {}
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger anniversary check
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          if [ -z "$CRON_SECRET" ]; then
+            echo "CRON_SECRET repo secret is not set; skipping."
+            exit 0
+          fi
+          code=$(curl -s -o /tmp/body -w "%{http_code}" --max-time 60 \
+            -H "Authorization: Bearer $CRON_SECRET" \
+            "https://tether-us.vercel.app/api/cron/anniversaries")
+          echo "HTTP $code"
+          cat /tmp/body || true
+          echo
+          test "$code" = "200"

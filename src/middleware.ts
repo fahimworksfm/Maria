@@ -3,7 +3,7 @@ import { createServerClient, type CookieOptions } from "@supabase/ssr";
 
 type CookieItem = { name: string; value: string; options?: CookieOptions };
 
-const PUBLIC_PATHS = ["/", "/login", "/signup", "/join", "/terms", "/privacy", "/auth", "/api/keepalive", "/manifest.webmanifest", "/sw.js", "/icon.svg", "/favicon.ico"];
+const PUBLIC_PATHS = ["/", "/login", "/signup", "/join", "/terms", "/privacy", "/auth", "/api/keepalive", "/api/cron", "/manifest.webmanifest", "/sw.js", "/icon.svg", "/favicon.ico"];
 
 export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
