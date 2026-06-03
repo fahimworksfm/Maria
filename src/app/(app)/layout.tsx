@@ -5,6 +5,7 @@ import { supabaseServer } from "@/lib/supabase/server";
 import BottomNav from "@/components/BottomNav";
 import PushRegistration from "@/components/PushRegistration";
 import PartnerPresence from "@/components/PartnerPresence";
+import OfflineStatus from "@/components/OfflineStatus";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const me = await requireMe();
@@ -45,6 +46,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       <BottomNav />
       <PWAInstaller />
       <PushRegistration vapidKey={process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ?? ""} />
+      <OfflineStatus />
     </div>
   );
 }

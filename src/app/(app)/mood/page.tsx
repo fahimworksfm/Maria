@@ -2,6 +2,7 @@ import { revalidatePath } from "next/cache";
 import { requireCoupled } from "@/lib/couple";
 import { supabaseServer } from "@/lib/supabase/server";
 import RealtimeRefresh from "@/components/RealtimeRefresh";
+import MoodForm from "@/components/MoodForm";
 
 const MOODS = ["😞", "😕", "🙂", "😊", "🤩"];
 
@@ -58,22 +59,12 @@ export default async function MoodPage() {
         <p className="muted">A tap for today.</p>
       </header>
 
-      <form action={save} className="card p-5 space-y-3">
-        <div className="grid grid-cols-5 gap-2">
-          {MOODS.map((emoji, i) => (
-            <label key={i} className="cursor-pointer">
-              <input type="radio" name="mood" value={i + 1} defaultChecked={todayMine?.mood === i + 1} className="peer sr-only" />
-              <div className="text-3xl text-center py-3 rounded-lg border border-line bg-panel2 peer-checked:bg-accent peer-checked:text-bg">{emoji}</div>
-            </label>
-          ))}
-        </div>
-        <textarea className="input" name="note" rows={2} placeholder="A line about today (optional)" defaultValue={todayMine?.note ?? ""} />
-        <label className="flex items-center gap-2 text-sm">
-          <input type="checkbox" name="share" defaultChecked={todayMine?.share_with_partner ?? true} />
-          Share with partner
-        </label>
-        <button className="btn btn-primary w-full" type="submit">Save</button>
-      </form>
+      <MoodForm
+        action={save}
+        initialMood={todayMine?.mood ?? null}
+        initialNote={todayMine?.note ?? ""}
+        initialShare={todayMine?.share_with_partner ?? true}
+      />
 
       <section>
         <h3 className="label">Your last 30 days</h3>

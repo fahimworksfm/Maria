@@ -1,6 +1,7 @@
 import { revalidatePath } from "next/cache";
 import { requireCoupled } from "@/lib/couple";
 import { supabaseServer } from "@/lib/supabase/server";
+import GratitudeForm from "@/components/GratitudeForm";
 
 export default async function GratitudePage() {
   const me = await requireCoupled();
@@ -38,10 +39,7 @@ export default async function GratitudePage() {
         <Tree count={items.length} leaves={items.slice(0, 40).map((g, i) => ({ idx: i, text: g.text, mine: g.author_id === me.userId }))} />
       </div>
 
-      <form action={add} className="card p-4 space-y-2">
-        <textarea className="input" name="text" rows={2} placeholder="A small thing you're grateful for, about them or with them" required />
-        <button className="btn btn-primary w-full" type="submit">Plant a leaf</button>
-      </form>
+      <GratitudeForm action={add} />
 
       {items.length === 0 ? (
         <div className="card p-5 text-center space-y-1">
