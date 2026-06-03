@@ -5,6 +5,7 @@ import { sendToUser, pushEnabled } from "@/lib/push";
 import PulseClient from "./PulseClient";
 import PulseButton from "./PulseButton";
 import LocalTime from "@/components/LocalTime";
+import RealtimeRefresh from "@/components/RealtimeRefresh";
 
 export default async function PulsePage() {
   const me = await requireCoupled();
@@ -66,6 +67,7 @@ export default async function PulsePage() {
 
   return (
     <div className="space-y-6">
+      <RealtimeRefresh table="nudges" coupleId={me.coupleId} />
       <header>
         <h1 className="h1">Pulse</h1>
         <p className="muted">A wordless &quot;thinking of you.&quot; Their phone buzzes.</p>

@@ -457,3 +457,21 @@ create policy "storage_couple_write" on storage.objects for insert to authentica
 drop policy if exists "storage_owner_delete" on storage.objects;
 create policy "storage_owner_delete" on storage.objects for delete to authenticated
   using (bucket_id = 'tether-media' and (storage.foldername(name))[1] = auth.uid()::text);
+
+-- =============================================================================
+-- Realtime: add tables to the supabase_realtime publication so the client can
+-- subscribe to postgres_changes. Idempotent. RLS still governs which rows each
+-- subscriber receives.
+-- =============================================================================
+do $$
+declare t text;
+begin
+  foreach t in array array['nudges','journal_entries','mood_checkins'] loop
+    if not exists (
+      select 1 from pg_publication_tables
+      where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = t
+    ) then
+      execute format('alter publication supabase_realtime add table public.%I', t);
+    end if;
+  end loop;
+end $$;

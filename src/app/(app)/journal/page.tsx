@@ -3,6 +3,7 @@ import { requireCoupled } from "@/lib/couple";
 import { supabaseServer } from "@/lib/supabase/server";
 import { aiEnabled, chat } from "@/lib/groq";
 import Confetti from "@/components/Confetti";
+import RealtimeRefresh from "@/components/RealtimeRefresh";
 
 export default async function JournalPage() {
   const me = await requireCoupled();
@@ -56,6 +57,7 @@ export default async function JournalPage() {
 
   return (
     <div className="space-y-6">
+      <RealtimeRefresh table="journal_entries" coupleId={me.coupleId} />
       <header>
         <h1 className="h1">Journal</h1>
         <p className="muted">Both answer. Both reveal together.</p>

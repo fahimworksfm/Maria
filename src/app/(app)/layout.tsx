@@ -1,18 +1,33 @@
 import Link from "next/link";
 import { requireMe } from "@/lib/couple";
 import { redirect } from "next/navigation";
+import { supabaseServer } from "@/lib/supabase/server";
 import BottomNav from "@/components/BottomNav";
 import PushRegistration from "@/components/PushRegistration";
+import PartnerPresence from "@/components/PartnerPresence";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const me = await requireMe();
   if (!me.coupleId) redirect("/pair");
 
+  const supabase = await supabaseServer();
+  const { data: partner } = await supabase
+    .from("profiles")
+    .select("display_name")
+    .eq("couple_id", me.coupleId)
+    .neq("user_id", me.userId)
+    .limit(1)
+    .maybeSingle();
+  const partnerName = partner?.display_name ?? "Partner";
+
   return (
     <div className="min-h-screen flex flex-col">
       <header className="sticky top-0 z-20 bg-bg/80 backdrop-blur border-b border-line">
         <div className="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between">
-          <Link href="/home" className="font-display text-xl">Tether</Link>
+          <div className="flex items-center gap-3">
+            <Link href="/home" className="font-display text-xl">Tether</Link>
+            <PartnerPresence coupleId={me.coupleId} myUserId={me.userId} partnerName={partnerName} />
+          </div>
           <nav className="flex items-center gap-1 text-sm">
             <Link className="btn btn-ghost px-2" href="/profile">{me.displayName ?? "Me"}</Link>
             <form action="/auth/signout" method="post">

@@ -1,6 +1,7 @@
 import { revalidatePath } from "next/cache";
 import { requireCoupled } from "@/lib/couple";
 import { supabaseServer } from "@/lib/supabase/server";
+import RealtimeRefresh from "@/components/RealtimeRefresh";
 
 const MOODS = ["😞", "😕", "🙂", "😊", "🤩"];
 
@@ -51,6 +52,7 @@ export default async function MoodPage() {
 
   return (
     <div className="space-y-6">
+      <RealtimeRefresh table="mood_checkins" coupleId={me.coupleId} />
       <header>
         <h1 className="h1">Mood</h1>
         <p className="muted">A tap for today.</p>
