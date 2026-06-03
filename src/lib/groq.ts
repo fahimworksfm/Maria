@@ -38,3 +38,21 @@ export async function chatJson<T>(opts: ChatOptions): Promise<T> {
   const raw = await chat({ ...opts, json: true });
   return JSON.parse(raw) as T;
 }
+
+/**
+ * Rewrites a note kindly, non-blaming, first person, under 25 words. Used by the
+ * Repair Log so the author can choose between their original and a softened
+ * version. Returns the softened text (trimmed, quote-stripped).
+ */
+export async function softenNote(text: string): Promise<string> {
+  const trimmed = text.trim();
+  if (!trimmed) return "";
+  const out = await chat({
+    system:
+      "You gently rewrite something a person wants to say to their partner after a disagreement. Make it kind, non-blaming, and in the first person ('I felt…', not 'you always…'). Keep their real meaning and voice — don't make it saccharine or therapy-speak. Strictly under 25 words. Return only the rewritten sentence, no quotes, no preamble.",
+    user: trimmed,
+    temperature: 0.6,
+    maxTokens: 80,
+  });
+  return out.trim().replace(/^["']|["']$/g, "");
+}
