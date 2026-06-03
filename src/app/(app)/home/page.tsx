@@ -15,6 +15,7 @@ type Tile = {
 };
 
 const TILES: Tile[] = [
+  { emoji: "🧵", href: "/timeline", title: "Timeline", desc: "Your whole story, woven together.", zone: "shared" },
   { emoji: "💌", href: "/memories", title: "Memory Jar", desc: "Photos, notes, and moments.", zone: "shared" },
   { emoji: "📔", href: "/journal", title: "Journal", desc: "A daily prompt for two.", zone: "shared" },
   { emoji: "🎯", href: "/date-roulette", title: "Date Roulette", desc: "Spin up a plan for tonight.", zone: "shared" },
