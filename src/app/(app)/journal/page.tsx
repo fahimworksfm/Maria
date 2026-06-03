@@ -155,17 +155,57 @@ async function pickPromptForToday(coupleId: string): Promise<string> {
   if (!aiEnabled()) return fallback;
   try {
     const supabase = await supabaseServer();
-    const { data: recent } = await supabase
-      .from("journal_entries")
-      .select("prompt")
-      .eq("couple_id", coupleId)
-      .order("prompt_date", { ascending: false })
-      .limit(14);
+    const [{ data: recent }, { data: mems }, { data: annivs }] = await Promise.all([
+      supabase
+        .from("journal_entries")
+        .select("prompt")
+        .eq("couple_id", coupleId)
+        .order("prompt_date", { ascending: false })
+        .limit(14),
+      supabase
+        .from("memories")
+        .select("title, happened_on, created_at")
+        .eq("couple_id", coupleId)
+        .order("happened_on", { ascending: false, nullsFirst: false })
+        .order("created_at", { ascending: false })
+        .limit(3),
+      supabase
+        .from("anniversaries")
+        .select("name, on_date, recurring")
+        .eq("couple_id", coupleId),
+    ]);
+
     const seen = (recent ?? []).map((r) => `- ${r.prompt}`).join("\n");
+
+    // Build optional "real life" context: recent memory titles + next upcoming date.
+    const memoryTitles = (mems ?? [])
+      .map((m) => (m.title ?? "").trim())
+      .filter((t) => t.length > 0)
+      .slice(0, 3);
+    const upcoming = nextUpcomingAnniversary(annivs ?? []);
+
+    const hasContext = memoryTitles.length > 0 || Boolean(upcoming);
+    // ~1 in 3 days, invite the model to gently reference real life (only when we have any).
+    const referenceRealLife = hasContext && Math.random() < 0.34;
+
+    let system =
+      "You write daily journal prompts for couples. Prompts should be warm, specific, emotionally open, never cheesy, never preachy, never list-style, under 18 words, and end with a question mark.";
+    let user = `Write today's prompt. Do not repeat any of these recent prompts:\n${seen}\n\nReturn only the prompt, no quotes, no preamble.`;
+
+    if (referenceRealLife) {
+      const bits: string[] = [];
+      if (memoryTitles.length) bits.push(`Recent moments: ${memoryTitles.join("; ")}`);
+      if (upcoming) bits.push(`Coming up: ${upcoming.name} in ${upcoming.days} day${upcoming.days === 1 ? "" : "s"}`);
+      system +=
+        " You may gently reference one detail from the couple's real life provided below if it fits naturally — lightly, as a touchstone, never forced and never inventing facts beyond what's given.";
+      user =
+        `Write today's prompt, gently referencing one of these real details if it fits naturally:\n${bits.join("\n")}\n\n` +
+        `Do not repeat any of these recent prompts:\n${seen}\n\nReturn only the prompt, no quotes, no preamble.`;
+    }
+
     const text = await chat({
-      system:
-        "You write daily journal prompts for couples. Prompts should be warm, specific, emotionally open, never cheesy, never preachy, never list-style, under 18 words, and end with a question mark.",
-      user: `Write today's prompt. Do not repeat any of these recent prompts:\n${seen}\n\nReturn only the prompt, no quotes, no preamble.`,
+      system,
+      user,
       temperature: 0.9,
       maxTokens: 80,
     });
@@ -174,6 +214,30 @@ async function pickPromptForToday(coupleId: string): Promise<string> {
   } catch {
     return fallback;
   }
+}
+
+// Nearest future occurrence among the couple's anniversaries (recurring rolls to next year).
+function nextUpcomingAnniversary(
+  annivs: Array<{ name: string; on_date: string; recurring: boolean }>
+): { name: string; days: number } | null {
+  const now = new Date();
+  const startToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  let best: { name: string; days: number } | null = null;
+  for (const a of annivs) {
+    const parts = a.on_date.split("-").map(Number);
+    const m = parts[1];
+    const d = parts[2];
+    if (!m || !d) continue;
+    let occurs = new Date(now.getFullYear(), m - 1, d);
+    let days = Math.round((occurs.getTime() - startToday) / 86_400_000);
+    if (days < 0 && a.recurring) {
+      occurs = new Date(now.getFullYear() + 1, m - 1, d);
+      days = Math.round((occurs.getTime() - startToday) / 86_400_000);
+    }
+    if (days < 0) continue;
+    if (!best || days < best.days) best = { name: a.name, days };
+  }
+  return best;
 }
 
 function pickRandom<T>(arr: T[]): T {
