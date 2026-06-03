@@ -64,7 +64,7 @@ export default async function Landing() {
 
           {/* Phone mockup */}
           <div className="flex justify-center fade-up d3">
-            <div className="phone">
+            <div className="phone" aria-hidden="true">
               <div className="phone-screen">
                 <div className="phone-slides">
                   <div className="phone-slide">
@@ -122,7 +122,7 @@ export default async function Landing() {
           <div className="mt-10 grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {FEATURES.map((f, i) => (
               <div key={f.title} className={`glass glass-hover p-5 fade-up d${(i % 6) + 1}`}>
-                <div className="text-2xl mb-2">{f.icon}</div>
+                <div className="text-2xl mb-2" aria-hidden="true">{f.icon}</div>
                 <h3 className="font-medium">{f.title}</h3>
                 <p className="muted text-sm mt-1">{f.desc}</p>
               </div>

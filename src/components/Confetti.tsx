@@ -7,6 +7,8 @@ const EMOJI = ["💖", "✨", "💞", "💘", "🌟", "💕", "🎉"];
 export default function Confetti({ trigger, once }: { trigger: string | number | boolean | null; once?: string }) {
   useEffect(() => {
     if (!trigger) return;
+    // Respect reduced-motion: skip the celebratory burst entirely.
+    if (typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
     if (once) {
       const key = `tether-confetti:${once}`;
       try {

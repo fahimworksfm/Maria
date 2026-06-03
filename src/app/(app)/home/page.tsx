@@ -101,7 +101,7 @@ export default async function Home() {
           <StreakLine days={streak} />
         </div>
         <div className="mt-1 flex items-baseline gap-2">
-          <span className="text-2xl">{todayCard.emoji}</span>
+          <span className="text-2xl" aria-hidden="true">{todayCard.emoji}</span>
           <h1 className="h1">{todayCard.headline}</h1>
         </div>
         <p className="muted text-sm mt-2">{todayCard.subtext}</p>
@@ -258,7 +258,7 @@ function Grid({ tiles }: { tiles: Tile[] }) {
     <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
       {tiles.map((t) => (
         <Link key={t.href} href={t.href} className="card card-hover p-4 block">
-          <div className="text-xl mb-1">{t.emoji}</div>
+          <div className="text-xl mb-1" aria-hidden="true">{t.emoji}</div>
           <div className="font-medium text-sm">{t.title}</div>
           <div className="muted text-xs mt-1">{t.desc}</div>
         </Link>

@@ -1,4 +1,6 @@
-/* Landing page animations & graphics */
+/* Landing page graphics. Decorative motion is gated behind
+   prefers-reduced-motion: no-preference — reduced-motion users get the static
+   end-state (content visible, gradients still, no drifting/floating). */
 
 .landing-bg {
   position: fixed;
@@ -10,7 +12,6 @@
     radial-gradient(ellipse 90% 60% at 50% 100%, rgba(180,120,255,0.16), transparent 60%),
     #0b0b10;
   background-size: 200% 200%;
-  animation: gradient-shift 18s ease-in-out infinite;
 }
 
 @keyframes gradient-shift {
@@ -32,7 +33,6 @@
   height: 36vw;
   border-radius: 50%;
   mix-blend-mode: screen;
-  animation: drift 22s ease-in-out infinite;
 }
 .aurora-blob.a { background: #f97373; top: 10%; left: 10%; animation-delay: 0s; }
 .aurora-blob.b { background: #f9c873; top: 50%; left: 60%; animation-delay: -7s; }
@@ -44,7 +44,7 @@
   66%      { transform: translate(-6vw, 8vh) scale(0.95); }
 }
 
-/* Floating hearts */
+/* Floating hearts — invisible by default; only float under no-preference */
 .heart-field {
   position: fixed;
   inset: 0;
@@ -58,7 +58,6 @@
   color: rgba(249, 115, 115, 0.5);
   filter: drop-shadow(0 0 12px rgba(249,115,115,0.4));
   font-size: 1.5rem;
-  animation: rise linear infinite;
   opacity: 0;
 }
 @keyframes rise {
@@ -68,8 +67,8 @@
   100% { transform: translateY(-110vh) scale(1.2) rotate(360deg); opacity: 0; }
 }
 
-/* Reveal on scroll-ish; we just use a staggered fade-up on mount */
-.fade-up { opacity: 0; transform: translateY(20px); animation: fadeUp .9s ease forwards; }
+/* Reveal: static-visible by default so reduced-motion users see content. */
+.fade-up { opacity: 1; transform: none; }
 .fade-up.d1 { animation-delay: .1s; }
 .fade-up.d2 { animation-delay: .25s; }
 .fade-up.d3 { animation-delay: .4s; }
@@ -78,17 +77,17 @@
 .fade-up.d6 { animation-delay: .85s; }
 
 @keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* Headline gradient */
+/* Headline gradient — static gradient by default; shimmers under no-preference */
 .headline-gradient {
   background: linear-gradient(120deg, #f97373 0%, #f9c873 50%, #a87bff 100%);
   background-size: 200% 200%;
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
-  animation: shine 8s ease-in-out infinite;
 }
 @keyframes shine {
   0%, 100% { background-position: 0% 50%; }
@@ -125,7 +124,6 @@
   padding: 14px;
   overflow: hidden;
   transform: rotate(-3deg);
-  animation: phone-float 7s ease-in-out infinite;
 }
 @keyframes phone-float {
   0%, 100% { transform: rotate(-3deg) translateY(0); }
@@ -155,12 +153,12 @@
   position: absolute; inset: 0;
   padding: 44px 14px 14px;
   opacity: 0;
-  animation: slide-cycle 18s infinite;
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
-.phone-slide:nth-child(1) { animation-delay: 0s; }
+/* Reduced-motion fallback: show the first slide, no cycling. */
+.phone-slide:nth-child(1) { opacity: 1; animation-delay: 0s; }
 .phone-slide:nth-child(2) { animation-delay: 6s; }
 .phone-slide:nth-child(3) { animation-delay: 12s; }
 @keyframes slide-cycle {
@@ -187,20 +185,7 @@
   margin-right: 4px;
 }
 
-/* Sparkle effect for in-app celebrations */
-.sparkle {
-  position: fixed;
-  pointer-events: none;
-  font-size: 24px;
-  animation: sparkle 1.4s ease-out forwards;
-  z-index: 1000;
-}
-@keyframes sparkle {
-  0%   { opacity: 1; transform: translate(0,0) scale(0.6) rotate(0deg); }
-  100% { opacity: 0; transform: translate(var(--dx,0), var(--dy,-80px)) scale(1.4) rotate(180deg); }
-}
-
-/* Press glow on CTAs */
+/* Press glow on CTAs — static by default */
 .cta-glow {
   position: relative;
   overflow: hidden;
@@ -214,5 +199,16 @@
   filter: blur(8px);
   opacity: 0.5;
   z-index: -1;
-  animation: shine 6s linear infinite;
+}
+
+/* ---- Decorative motion only when the user hasn't asked to reduce it ---- */
+@media (prefers-reduced-motion: no-preference) {
+  .landing-bg { animation: gradient-shift 18s ease-in-out infinite; }
+  .aurora-blob { animation: drift 22s ease-in-out infinite; }
+  .heart-field span { animation: rise linear infinite; }
+  .fade-up { opacity: 0; transform: translateY(20px); animation: fadeUp .9s ease forwards; }
+  .headline-gradient { animation: shine 8s ease-in-out infinite; }
+  .phone { animation: phone-float 7s ease-in-out infinite; }
+  .phone-slide { animation: slide-cycle 18s infinite; }
+  .cta-glow::before { animation: shine 6s linear infinite; }
 }

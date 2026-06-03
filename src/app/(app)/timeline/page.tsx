@@ -153,7 +153,7 @@ export default async function TimelinePage() {
 
       {groups.length === 0 ? (
         <div className="card p-6 text-center space-y-2">
-          <div className="text-3xl">🧵</div>
+          <div className="text-3xl" aria-hidden="true">🧵</div>
           <p className="font-display text-lg">Your story starts here.</p>
           <p className="muted text-sm">Add a memory, answer a prompt, or plant a gratitude — it&apos;ll all gather on this thread.</p>
         </div>
@@ -167,7 +167,7 @@ export default async function TimelinePage() {
               {group.items.map((it) => (
                 <li key={it.id}>
                   <Link href={it.href} className="card card-hover p-4 flex gap-3 items-start">
-                    <span className="text-2xl leading-none mt-0.5">{it.icon}</span>
+                    <span className="text-2xl leading-none mt-0.5" aria-hidden="true">{it.icon}</span>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-baseline justify-between gap-2">
                         <span className="label !mb-0">{it.label}</span>

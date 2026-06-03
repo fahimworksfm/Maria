@@ -30,6 +30,7 @@ export default function BottomNav() {
               <span
                 className="text-[26px] leading-none transition-transform"
                 style={{ transform: active ? "scale(1.12)" : "scale(1)" }}
+                aria-hidden="true"
               >
                 {it.icon}
               </span>
