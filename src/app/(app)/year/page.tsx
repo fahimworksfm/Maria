@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { requireCoupled } from "@/lib/couple";
 import { supabaseServer } from "@/lib/supabase/server";
 import { aiEnabled, chat } from "@/lib/groq";
@@ -55,6 +56,12 @@ export default async function YearPage({ searchParams }: { searchParams: Promise
       {narrative && (
         <article className="card p-5 whitespace-pre-wrap text-sm leading-relaxed">{narrative}</article>
       )}
+
+      <Link href={`/year/book?year=${year}`} className="card card-hover p-5 block text-center">
+        <div className="text-3xl mb-1">📖</div>
+        <div className="font-display text-lg">Make the book</div>
+        <div className="muted text-sm mt-1">Lay {year} out as a printable A5 keepsake — memories, photos, and journal entries. Save it as a PDF.</div>
+      </Link>
     </div>
   );
 }
