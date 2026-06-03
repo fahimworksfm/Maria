@@ -3,6 +3,8 @@ import { requireCoupled } from "@/lib/couple";
 import { supabaseServer } from "@/lib/supabase/server";
 import InstallPrompt from "@/components/InstallPrompt";
 import RealtimeRefresh from "@/components/RealtimeRefresh";
+import StreakLine from "@/components/StreakLine";
+import { getTogetherStreak } from "@/lib/streak";
 
 const MOOD_EMOJI = ["😞", "😕", "🙂", "😊", "🤩"];
 
@@ -68,6 +70,8 @@ export default async function Home() {
     supabase.from("mood_signals").select("mood, from_user").eq("couple_id", me.coupleId).eq("on_date", today).neq("from_user", me.userId).maybeSingle(),
   ]);
 
+  const streak = await getTogetherStreak(supabase, me.coupleId);
+
   const journalAnswered = todaysJournal?.length ?? 0;
   const youAnswered = (todaysJournal ?? []).some((e) => e.author_id === me.userId);
   const partnerName = partner?.display_name ?? "your partner";
@@ -92,7 +96,10 @@ export default async function Home() {
       <InstallPrompt variant="banner" />
       <section className="card p-5 relative overflow-hidden">
         <div className="absolute -top-24 -right-20 w-72 h-72 rounded-full bg-accent/20 blur-3xl pointer-events-none" />
-        <p className="muted">Welcome back{me.displayName ? `, ${me.displayName}` : ""}.</p>
+        <div className="flex items-center justify-between gap-3">
+          <p className="muted">Welcome back{me.displayName ? `, ${me.displayName}` : ""}.</p>
+          <StreakLine days={streak} />
+        </div>
         <div className="mt-1 flex items-baseline gap-2">
           <span className="text-2xl">{todayCard.emoji}</span>
           <h1 className="h1">{todayCard.headline}</h1>

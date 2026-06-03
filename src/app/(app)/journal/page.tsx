@@ -4,11 +4,14 @@ import { supabaseServer } from "@/lib/supabase/server";
 import { aiEnabled, chat } from "@/lib/groq";
 import Confetti from "@/components/Confetti";
 import RealtimeRefresh from "@/components/RealtimeRefresh";
+import StreakLine from "@/components/StreakLine";
+import { getTogetherStreak } from "@/lib/streak";
 
 export default async function JournalPage() {
   const me = await requireCoupled();
   const supabase = await supabaseServer();
   const today = new Date().toISOString().slice(0, 10);
+  const streak = await getTogetherStreak(supabase, me.coupleId);
 
   // Today's prompt: persisted in daily_prompts so it doesn't regenerate per visit
   // (saves Groq calls and keeps the prompt stable until at least one partner answers).
@@ -59,7 +62,10 @@ export default async function JournalPage() {
     <div className="space-y-6">
       <RealtimeRefresh table="journal_entries" coupleId={me.coupleId} />
       <header>
-        <h1 className="h1">Journal</h1>
+        <div className="flex items-center justify-between gap-3">
+          <h1 className="h1">Journal</h1>
+          <StreakLine days={streak} />
+        </div>
         <p className="muted">Both answer. Both reveal together.</p>
       </header>
 
