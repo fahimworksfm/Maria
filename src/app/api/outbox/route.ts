@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { requireCoupled } from "@/lib/couple";
 import { supabaseServer } from "@/lib/supabase/server";
+import { applyMoodSignal } from "@/lib/mood-signal";
 
 // Replay target for offline writes. Applies a queued intent using the user's
 // own session (RLS + couple scoping enforced exactly like the server actions).
@@ -52,6 +53,7 @@ export async function POST(req: NextRequest) {
         { onConflict: "user_id,on_date" }
       );
       if (error) return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
+      await applyMoodSignal(supabase, { userId: me.userId, coupleId: me.coupleId, mood, onDate: on_date });
       return NextResponse.json({ ok: true });
     }
 

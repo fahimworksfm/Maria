@@ -2,6 +2,9 @@ import Link from "next/link";
 import { requireCoupled } from "@/lib/couple";
 import { supabaseServer } from "@/lib/supabase/server";
 import InstallPrompt from "@/components/InstallPrompt";
+import RealtimeRefresh from "@/components/RealtimeRefresh";
+
+const MOOD_EMOJI = ["😞", "😕", "🙂", "😊", "🤩"];
 
 type Tile = {
   href: string;
@@ -51,6 +54,7 @@ export default async function Home() {
     { count: unreadPulses },
     { data: annivs },
     { data: partner },
+    { data: partnerSignal },
   ] = await Promise.all([
     supabase.from("memories").select("id", { count: "exact", head: true }).eq("couple_id", me.coupleId),
     supabase.from("journal_entries").select("author_id").eq("couple_id", me.coupleId).eq("prompt_date", today),
@@ -58,11 +62,18 @@ export default async function Home() {
     supabase.from("nudges").select("id", { count: "exact", head: true }).eq("to_user", me.userId).is("read_at", null),
     supabase.from("anniversaries").select("name, on_date, recurring").eq("couple_id", me.coupleId),
     supabase.from("profiles").select("display_name").neq("user_id", me.userId).limit(1).maybeSingle(),
+    // Partner's "heavy day" empathy signal for today (RLS-visible; carries the
+    // score only if they opted to share it).
+    supabase.from("mood_signals").select("mood, from_user").eq("couple_id", me.coupleId).eq("on_date", today).neq("from_user", me.userId).maybeSingle(),
   ]);
 
   const journalAnswered = todaysJournal?.length ?? 0;
   const youAnswered = (todaysJournal ?? []).some((e) => e.author_id === me.userId);
   const partnerName = partner?.display_name ?? "your partner";
+
+  const partnerHeavyDay = Boolean(partnerSignal);
+  const partnerMoodEmoji =
+    partnerSignal && typeof partnerSignal.mood === "number" ? MOOD_EMOJI[partnerSignal.mood - 1] : null;
 
   const todayCard = pickToday({
     unreadPulses: unreadPulses ?? 0,
@@ -70,10 +81,13 @@ export default async function Home() {
     journalAnswered,
     annivs: annivs ?? [],
     partnerName,
+    partnerHeavyDay,
+    partnerMoodEmoji,
   });
 
   return (
     <div className="space-y-6">
+      <RealtimeRefresh table="mood_signals" coupleId={me.coupleId} />
       <InstallPrompt variant="banner" />
       <section className="card p-5 relative overflow-hidden">
         <div className="absolute -top-24 -right-20 w-72 h-72 rounded-full bg-accent/20 blur-3xl pointer-events-none" />
@@ -116,6 +130,8 @@ function pickToday(input: {
   journalAnswered: number;
   annivs: Anniv[];
   partnerName: string;
+  partnerHeavyDay: boolean;
+  partnerMoodEmoji: string | null;
 }): Card {
   const today = new Date();
   const todayMD = `${today.getMonth() + 1}-${today.getDate()}`;
@@ -142,6 +158,19 @@ function pickToday(input: {
       subtext: "Today is the day. Make it count.",
       cta: "Open Anniversary Compass",
       href: "/anniversaries",
+    };
+  }
+
+  // Empathy loop: surface the partner's heavy day before everyday nudges.
+  if (input.partnerHeavyDay) {
+    return {
+      emoji: "🫂",
+      headline: `${input.partnerName} is having a heavy day.`,
+      subtext: input.partnerMoodEmoji
+        ? `They're feeling ${input.partnerMoodEmoji} today. A pulse might help — no pressure to fix it.`
+        : "A pulse might help — no pressure to fix it.",
+      cta: "Send a pulse",
+      href: "/pulse",
     };
   }
 

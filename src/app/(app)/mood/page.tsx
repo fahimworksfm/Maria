@@ -3,6 +3,7 @@ import { requireCoupled } from "@/lib/couple";
 import { supabaseServer } from "@/lib/supabase/server";
 import RealtimeRefresh from "@/components/RealtimeRefresh";
 import MoodForm from "@/components/MoodForm";
+import { applyMoodSignal, clearTodaySignal, readMoodPrefs } from "@/lib/mood-signal";
 
 const MOODS = ["😞", "😕", "🙂", "😊", "🤩"];
 
@@ -29,25 +30,55 @@ export default async function MoodPage() {
 
   const todayMine = (mine ?? []).find((m) => m.on_date === today);
 
+  const { data: ownProfile } = await supabase
+    .from("profiles")
+    .select("prefs")
+    .eq("user_id", me.userId)
+    .single();
+  const moodPrefs = readMoodPrefs(ownProfile?.prefs);
+
   async function save(formData: FormData) {
     "use server";
     const me = await requireCoupled();
     const supabase = await supabaseServer();
     const mood = Number(formData.get("mood"));
     if (!Number.isFinite(mood) || mood < 1 || mood > 5) return;
+    const onDate = new Date().toISOString().slice(0, 10);
     await supabase
       .from("mood_checkins")
       .upsert(
         {
           user_id: me.userId,
           couple_id: me.coupleId,
-          on_date: new Date().toISOString().slice(0, 10),
+          on_date: onDate,
           mood,
           note: String(formData.get("note") || "").trim() || null,
           share_with_partner: formData.get("share") === "on",
         },
         { onConflict: "user_id,on_date" }
       );
+    // Empathy loop: keep the partner-visible "heavy day" signal in sync.
+    await applyMoodSignal(supabase, { userId: me.userId, coupleId: me.coupleId, mood, onDate });
+    revalidatePath("/mood");
+  }
+
+  async function saveMoodPrefs(formData: FormData) {
+    "use server";
+    const me = await requireCoupled();
+    const supabase = await supabaseServer();
+    const moodSignal = formData.get("mood_signal") === "on";
+    const shareScore = formData.get("mood_share_score") === "on";
+    const { data: prof } = await supabase
+      .from("profiles")
+      .select("prefs")
+      .eq("user_id", me.userId)
+      .single();
+    const prefs = { ...((prof?.prefs as Record<string, unknown>) ?? {}), mood_signal: moodSignal, mood_share_score: shareScore };
+    await supabase.from("profiles").update({ prefs }).eq("user_id", me.userId);
+    // If they just turned the nudge off, retract today's signal immediately.
+    if (!moodSignal) {
+      await clearTodaySignal(supabase, me.userId, new Date().toISOString().slice(0, 10));
+    }
     revalidatePath("/mood");
   }
 
@@ -65,6 +96,25 @@ export default async function MoodPage() {
         initialNote={todayMine?.note ?? ""}
         initialShare={todayMine?.share_with_partner ?? true}
       />
+
+      <form action={saveMoodPrefs} className="card p-4 space-y-3">
+        <h3 className="label">When you&apos;re having a heavy day</h3>
+        <label className="flex items-start gap-2 text-sm">
+          <input type="checkbox" name="mood_signal" defaultChecked={moodPrefs.mood_signal} className="mt-0.5" />
+          <span>
+            Let your partner know
+            <span className="muted block text-xs">They&apos;ll see a gentle &quot;heavy day&quot; nudge so they can reach out — never a guilt trip.</span>
+          </span>
+        </label>
+        <label className="flex items-start gap-2 text-sm">
+          <input type="checkbox" name="mood_share_score" defaultChecked={moodPrefs.mood_share_score} className="mt-0.5" />
+          <span>
+            Include my exact mood
+            <span className="muted block text-xs">Off by default — they&apos;ll know it&apos;s a low day without seeing the number.</span>
+          </span>
+        </label>
+        <button className="btn w-full" type="submit">Save sharing settings</button>
+      </form>
 
       <section>
         <h3 className="label">Your last 30 days</h3>

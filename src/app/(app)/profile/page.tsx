@@ -28,7 +28,14 @@ export default async function ProfilePage() {
     "use server";
     const me = await requireCoupled();
     const supabase = await supabaseServer();
-    const prefs: Prefs = {
+    // Merge into existing prefs so we don't clobber other keys (e.g. mood_signal).
+    const { data: prof } = await supabase
+      .from("profiles")
+      .select("prefs")
+      .eq("user_id", me.userId)
+      .single();
+    const prefs = {
+      ...((prof?.prefs as Record<string, unknown>) ?? {}),
       wishlist: String(formData.get("wishlist") || "").trim(),
       sizes: String(formData.get("sizes") || "").trim(),
       favorites: String(formData.get("favorites") || "").trim(),

@@ -475,3 +475,40 @@ begin
     end if;
   end loop;
 end $$;
+
+-- =============================================================================
+-- Mood empathy loop: partner-visible "heavy day" signal (no score unless the
+-- user opts in via profiles.prefs.mood_share_score).
+-- =============================================================================
+create table if not exists mood_signals (
+  id uuid primary key default gen_random_uuid(),
+  couple_id uuid not null references couples(id) on delete cascade,
+  from_user uuid not null references auth.users(id) on delete cascade,
+  on_date date not null,
+  level text not null default 'low' check (level in ('low')),
+  mood int check (mood between 1 and 5),
+  created_at timestamptz not null default now(),
+  unique (from_user, on_date)
+);
+create index if not exists mood_signals_couple_idx on mood_signals(couple_id, on_date desc);
+
+alter table mood_signals enable row level security;
+
+drop policy if exists "mood_signals_select_couple" on mood_signals;
+create policy "mood_signals_select_couple" on mood_signals for select
+  using (couple_id = current_couple_id());
+
+drop policy if exists "mood_signals_write_self" on mood_signals;
+create policy "mood_signals_write_self" on mood_signals for all
+  using (from_user = auth.uid())
+  with check (from_user = auth.uid() and couple_id = current_couple_id());
+
+do $$
+begin
+  if not exists (
+    select 1 from pg_publication_tables
+    where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'mood_signals'
+  ) then
+    execute 'alter publication supabase_realtime add table public.mood_signals';
+  end if;
+end $$;
