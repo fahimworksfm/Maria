@@ -11,8 +11,11 @@ const config: Config = {
         line: "#2a2a36",
         ink: "#e9e9f0",
         muted: "#9a9aaa",
-        accent: "#f97373",
-        accent2: "#f9c873",
+        // Themeable accents — driven by --accent / --accent-2 / --accent-3
+        // (space-separated RGB channels). Opacity modifiers (bg-accent/20) work.
+        accent: "rgb(var(--accent) / <alpha-value>)",
+        accent2: "rgb(var(--accent-2) / <alpha-value>)",
+        accent3: "rgb(var(--accent-3) / <alpha-value>)",
       },
       fontFamily: {
         sans: ['ui-sans-serif', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'sans-serif'],

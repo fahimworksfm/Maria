@@ -539,3 +539,6 @@ drop policy if exists "repair_entries_write_self" on repair_entries;
 create policy "repair_entries_write_self" on repair_entries for all
   using (couple_id = current_couple_id())
   with check (couple_id = current_couple_id() and author_id = auth.uid());
+
+-- Couple-level accent theme (see src/lib/themes.ts).
+alter table couples add column if not exists theme text not null default 'coral';

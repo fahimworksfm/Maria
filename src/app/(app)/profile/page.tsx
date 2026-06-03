@@ -1,6 +1,8 @@
 import { revalidatePath } from "next/cache";
 import { requireCoupled } from "@/lib/couple";
 import { supabaseServer } from "@/lib/supabase/server";
+import { THEMES, DEFAULT_THEME } from "@/lib/themes";
+import ThemePicker from "@/components/ThemePicker";
 
 type Prefs = {
   wishlist?: string;
@@ -17,6 +19,21 @@ export default async function ProfilePage() {
     .select("display_name, birthday, prefs")
     .eq("user_id", me.userId)
     .single();
+  const { data: couple } = await supabase
+    .from("couples")
+    .select("theme")
+    .eq("id", me.coupleId)
+    .single();
+  const currentTheme = couple?.theme && THEMES[couple.theme] ? couple.theme : DEFAULT_THEME;
+
+  async function setTheme(key: string) {
+    "use server";
+    const me = await requireCoupled();
+    if (!THEMES[key]) return;
+    const supabase = await supabaseServer();
+    await supabase.from("couples").update({ theme: key }).eq("id", me.coupleId);
+    revalidatePath("/", "layout");
+  }
   const { data: partner } = await supabase
     .from("profiles")
     .select("display_name, birthday, prefs")
@@ -62,6 +79,14 @@ export default async function ProfilePage() {
         <h1 className="h1">My Preferences</h1>
         <p className="muted">You edit your own. Your partner can read it (so they can shop). The gift Vault is separate and private.</p>
       </header>
+
+      <section className="card p-4 space-y-3">
+        <div>
+          <h3 className="label">Your theme</h3>
+          <p className="muted text-xs">Sets the accent for both of you. Pick what feels like the two of you.</p>
+        </div>
+        <ThemePicker current={currentTheme} action={setTheme} />
+      </section>
 
       <form action={save} className="card p-4 space-y-3">
         <div>

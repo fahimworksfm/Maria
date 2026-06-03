@@ -6,23 +6,22 @@ import BottomNav from "@/components/BottomNav";
 import PushRegistration from "@/components/PushRegistration";
 import PartnerPresence from "@/components/PartnerPresence";
 import OfflineStatus from "@/components/OfflineStatus";
+import { getTheme, themeVars } from "@/lib/themes";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const me = await requireMe();
   if (!me.coupleId) redirect("/pair");
 
   const supabase = await supabaseServer();
-  const { data: partner } = await supabase
-    .from("profiles")
-    .select("display_name")
-    .eq("couple_id", me.coupleId)
-    .neq("user_id", me.userId)
-    .limit(1)
-    .maybeSingle();
+  const [{ data: partner }, { data: couple }] = await Promise.all([
+    supabase.from("profiles").select("display_name").eq("couple_id", me.coupleId).neq("user_id", me.userId).limit(1).maybeSingle(),
+    supabase.from("couples").select("theme").eq("id", me.coupleId).single(),
+  ]);
   const partnerName = partner?.display_name ?? "Partner";
+  const theme = getTheme(couple?.theme);
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div id="app-shell" className="min-h-screen flex flex-col" style={themeVars(theme) as React.CSSProperties}>
       <header className="sticky top-0 z-20 bg-bg/80 backdrop-blur border-b border-line">
         <div className="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
