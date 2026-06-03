@@ -62,7 +62,7 @@ export default async function PairPage({ searchParams }: { searchParams: Promise
       .update({ couple_id: couple.id })
       .eq("user_id", user.id);
     if (uErr) redirect(`/pair?error=${encodeURIComponent(uErr.message)}`);
-    redirect("/home");
+    redirect("/welcome");
   }
 
   return (

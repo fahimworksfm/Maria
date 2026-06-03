@@ -46,7 +46,7 @@ export default async function InvitePage() {
         </details>
 
         {(memberCount ?? 0) >= 2 ? (
-          <Link className="btn btn-primary w-full" href="/home">Both joined — go to your space</Link>
+          <Link className="btn btn-primary w-full" href="/welcome">Both joined — see your moment</Link>
         ) : (
           <Link className="btn w-full" href="/home">Go to your space</Link>
         )}

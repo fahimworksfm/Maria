@@ -77,7 +77,7 @@ async function SignupInner({ searchParamsP }: { searchParamsP: Promise<{ error?:
         .eq("couple_id", couple.id);
       if ((count ?? 0) >= 2) redirect("/pair?error=That+couple+is+full");
       await admin.from("profiles").update({ couple_id: couple.id }).eq("user_id", user.id);
-      redirect("/home");
+      redirect("/welcome");
     }
 
     // Otherwise: auto-create a couple for this user.

@@ -32,7 +32,7 @@ export default async function JoinByCode({ params }: { params: Promise<{ code: s
       .eq("couple_id", couple.id);
     if ((count ?? 0) >= 2) redirect("/pair?error=That+couple+is+full");
     await admin.from("profiles").update({ couple_id: couple.id }).eq("user_id", user.id);
-    redirect("/home");
+    redirect("/welcome");
   }
 
   // Not signed in: forward the code into the signup flow.

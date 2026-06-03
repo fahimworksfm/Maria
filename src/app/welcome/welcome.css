@@ -1,0 +1,92 @@
+/* Pairing celebration. Route-scoped (only loaded by /welcome). Reuses the
+   existing gradient tokens: accent #f97373, accent2 #f9c873, violet #a87bff. */
+
+.celebrate {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.75rem;
+  text-align: center;
+  padding: 2rem;
+  background:
+    radial-gradient(ellipse 70% 50% at 50% 38%, rgba(249, 115, 115, 0.14), transparent 60%),
+    radial-gradient(ellipse 60% 45% at 50% 70%, rgba(168, 123, 255, 0.12), transparent 60%),
+    #0b0b10;
+}
+
+.celebrate svg {
+  width: 200px;
+  height: 200px;
+}
+
+.cord {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: cord-draw 1.25s 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+@keyframes cord-draw {
+  to { stroke-dashoffset: 0; }
+}
+
+/* shine sweep that runs along the cord just after it's drawn */
+.shine {
+  stroke-dasharray: 0.12 0.88;
+  stroke-dashoffset: 1;
+  opacity: 0;
+  animation: cord-shine 0.9s 1.5s ease-out forwards;
+}
+@keyframes cord-shine {
+  0% { opacity: 0; stroke-dashoffset: 1; }
+  25% { opacity: 0.9; }
+  100% { opacity: 0; stroke-dashoffset: 0.12; }
+}
+
+.knot {
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
+  transform: scale(0.4);
+  animation: knot-pop 0.5s ease forwards;
+}
+.knot-a { animation-delay: 0.1s; }
+.knot-b { animation-delay: 1.35s; }
+@keyframes knot-pop {
+  to { opacity: 1; transform: scale(1); }
+}
+
+.cord-glow {
+  filter: drop-shadow(0 0 9px rgba(249, 200, 115, 0.35));
+}
+
+.celebrate .names {
+  opacity: 0;
+  transform: translateY(10px);
+  animation: names-in 0.9s 1.75s ease forwards;
+}
+@keyframes names-in {
+  to { opacity: 1; transform: none; }
+}
+
+.celebrate .kicker {
+  opacity: 0;
+  animation: names-in 0.9s 2.05s ease forwards;
+}
+
+/* JS-applied reduced state: jump straight to the final frame */
+.celebrate.reduced .cord { animation: none; stroke-dashoffset: 0; }
+.celebrate.reduced .knot { animation: none; opacity: 1; transform: scale(1); }
+.celebrate.reduced .shine { display: none; }
+.celebrate.reduced .names,
+.celebrate.reduced .kicker { animation: none; opacity: 1; transform: none; }
+
+/* Backstop for users who prefer reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .cord { animation: none; stroke-dashoffset: 0; }
+  .knot { animation: none; opacity: 1; transform: scale(1); }
+  .shine { display: none; }
+  .names, .kicker { animation: none; opacity: 1; transform: none; }
+}
