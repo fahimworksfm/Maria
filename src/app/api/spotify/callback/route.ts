@@ -52,11 +52,25 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.redirect(new URL("/songs?connected=1", url));
   } catch (err) {
-    const msg = err instanceof Error ? err.message : "Unknown error";
-    return redirectWithError(msg);
+    const raw = err instanceof Error ? err.message : "Unknown error";
+    return redirectWithError(friendlySpotifyError(raw));
   }
 
   function redirectWithError(message: string) {
     return NextResponse.redirect(new URL(`/songs?error=${encodeURIComponent(message)}`, url));
   }
+}
+
+// Turn raw Spotify API errors into a human sentence.
+function friendlySpotifyError(raw: string): string {
+  if (/\b403\b|forbidden/i.test(raw)) {
+    return "Spotify wouldn't let this account in. The app is in Development Mode — add your Spotify account's email under User Management in the Spotify dashboard, then try again.";
+  }
+  if (/\b401\b|unauthorized|invalid_grant/i.test(raw)) {
+    return "Spotify sign-in expired before we finished. Please tap Connect Spotify again.";
+  }
+  if (/\b429\b/.test(raw)) {
+    return "Spotify is rate-limiting right now. Give it a minute and try again.";
+  }
+  return "Couldn't connect Spotify. Please try again.";
 }
