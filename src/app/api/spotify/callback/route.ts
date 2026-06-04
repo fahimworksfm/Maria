@@ -19,10 +19,12 @@ export async function GET(req: NextRequest) {
   c.delete("spotify_oauth_state");
   if (!cookieState || cookieState !== state) return redirectWithError("State mismatch");
 
+  let step = "exchanging the code";
   try {
     const tokens = await exchangeCode(code);
     if (!tokens.refresh_token) return redirectWithError("No refresh token returned");
 
+    step = "reading your profile";
     const profile = await getMe(tokens.access_token);
 
     // If the couple already has a playlist, keep it. Otherwise create one.
@@ -35,6 +37,7 @@ export async function GET(req: NextRequest) {
 
     let playlistId = existing?.spotify_playlist_id ?? null;
     if (!playlistId) {
+      step = "creating the playlist";
       const playlist = await createPlaylist(tokens.access_token, profile.id, "Tether — Our Songs");
       playlistId = playlist.id;
     }
@@ -53,7 +56,8 @@ export async function GET(req: NextRequest) {
     return NextResponse.redirect(new URL("/songs?connected=1", url));
   } catch (err) {
     const raw = err instanceof Error ? err.message : "Unknown error";
-    return redirectWithError(friendlySpotifyError(raw));
+    console.error(`[spotify callback] failed while ${step}:`, raw);
+    return redirectWithError(friendlySpotifyError(raw, step));
   }
 
   function redirectWithError(message: string) {
@@ -62,15 +66,16 @@ export async function GET(req: NextRequest) {
 }
 
 // Turn raw Spotify API errors into a human sentence.
-function friendlySpotifyError(raw: string): string {
+function friendlySpotifyError(raw: string, step?: string): string {
+  const where = step ? ` (step: ${step})` : "";
   if (/\b403\b|forbidden/i.test(raw)) {
-    return "Spotify wouldn't let this account in. The app is in Development Mode — add your Spotify account's email under User Management in the Spotify dashboard, then try again.";
+    return `Spotify blocked this account${where}. In Development Mode only allow-listed users work — add your Spotify account's email under User Management in the Spotify dashboard, remove the app at spotify.com/account/apps, then reconnect. Changes can take a few minutes.`;
   }
   if (/\b401\b|unauthorized|invalid_grant/i.test(raw)) {
-    return "Spotify sign-in expired before we finished. Please tap Connect Spotify again.";
+    return `Spotify sign-in expired before we finished${where}. Please tap Connect Spotify again.`;
   }
   if (/\b429\b/.test(raw)) {
     return "Spotify is rate-limiting right now. Give it a minute and try again.";
   }
-  return "Couldn't connect Spotify. Please try again.";
+  return `Couldn't connect Spotify${where}. Please try again.`;
 }
