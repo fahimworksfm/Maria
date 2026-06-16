@@ -5,12 +5,13 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        bg: "#0b0b10",
-        panel: "#15151c",
-        panel2: "#1d1d27",
-        line: "#2a2a36",
-        ink: "#e9e9f0",
-        muted: "#9a9aaa",
+        // Warm editorial base — near-black with a hint of warmth, not cold blue-black.
+        bg: "#0c0a09",
+        panel: "#17120f",
+        panel2: "#201a15",
+        line: "#332a22",
+        ink: "#f1ece5",
+        muted: "#a99f93",
         // Themeable accents — driven by --accent / --accent-2 / --accent-3
         // (space-separated RGB channels). Opacity modifiers (bg-accent/20) work.
         accent: "rgb(var(--accent) / <alpha-value>)",
@@ -19,10 +20,12 @@ const config: Config = {
       },
       fontFamily: {
         sans: ['ui-sans-serif', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'sans-serif'],
-        display: ['ui-serif', 'Georgia', 'serif'],
+        display: ['"Fraunces Variable"', 'Fraunces', 'ui-serif', 'Georgia', 'serif'],
       },
       boxShadow: {
-        soft: "0 1px 0 rgba(255,255,255,0.04), 0 8px 24px rgba(0,0,0,0.35)",
+        // Warm, soft elevation with a faint top highlight (lit-from-above).
+        soft: "inset 0 1px 0 rgba(255,243,230,0.05), 0 1px 2px rgba(0,0,0,0.3), 0 12px 30px -12px rgba(0,0,0,0.55)",
+        lift: "inset 0 1px 0 rgba(255,243,230,0.06), 0 20px 50px -16px rgba(0,0,0,0.65)",
       },
       borderRadius: {
         xl2: "1.25rem",
