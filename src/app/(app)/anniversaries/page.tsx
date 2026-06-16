@@ -1,6 +1,7 @@
 import { revalidatePath } from "next/cache";
 import { requireCoupled } from "@/lib/couple";
 import { supabaseServer } from "@/lib/supabase/server";
+import SubmitButton from "@/components/SubmitButton";
 
 type Row = { id: string; name: string; on_date: string; kind: string; recurring: boolean };
 
@@ -86,7 +87,7 @@ export default async function AnniversariesPage() {
         <label className="flex items-center gap-2 text-sm">
           <input type="checkbox" name="recurring" defaultChecked /> Repeats every year
         </label>
-        <button className="btn btn-primary w-full" type="submit">Add</button>
+        <SubmitButton className="btn btn-primary w-full">Add</SubmitButton>
       </form>
 
       <section className="space-y-2">

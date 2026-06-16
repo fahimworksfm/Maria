@@ -2,6 +2,7 @@ import { revalidatePath } from "next/cache";
 import { requireCoupled } from "@/lib/couple";
 import { supabaseServer } from "@/lib/supabase/server";
 import { aiEnabled, chatJson } from "@/lib/groq";
+import SubmitButton from "@/components/SubmitButton";
 
 export default async function QuizPage() {
   const me = await requireCoupled();
@@ -107,9 +108,9 @@ export default async function QuizPage() {
 
       <section className="card p-4 space-y-3">
         <form action={generateQuestions}>
-          <button className="btn btn-primary w-full" type="submit" disabled={!aiEnabled()}>
+          <SubmitButton className="btn btn-primary w-full" disabled={!aiEnabled()} pendingLabel="Generating…">
             {aiEnabled() ? "Generate 6 questions with AI" : "Set GROQ_API_KEY to enable"}
-          </button>
+          </SubmitButton>
         </form>
         <form action={addQuestion} className="space-y-2">
           <input className="input" name="question" placeholder="Ask a question..." required />
@@ -117,7 +118,7 @@ export default async function QuizPage() {
             <option value="me">About me</option>
             <option value="partner">About my partner</option>
           </select>
-          <button className="btn w-full" type="submit">Add question</button>
+          <SubmitButton className="btn w-full">Add question</SubmitButton>
         </form>
       </section>
 
@@ -140,7 +141,7 @@ export default async function QuizPage() {
                 <form action={answer} className="space-y-2">
                   <input type="hidden" name="question_id" value={q.id} />
                   <input className="input" name="answer" placeholder={aboutMe ? "The truth" : "Your guess"} required />
-                  <button className="btn w-full" type="submit">Submit</button>
+                  <SubmitButton className="btn w-full">Submit</SubmitButton>
                 </form>
               )}
               {bothAnswered && (

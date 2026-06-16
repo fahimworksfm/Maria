@@ -3,6 +3,7 @@ import { requireCoupled } from "@/lib/couple";
 import { supabaseServer } from "@/lib/supabase/server";
 import { THEMES, DEFAULT_THEME } from "@/lib/themes";
 import ThemePicker from "@/components/ThemePicker";
+import SubmitButton from "@/components/SubmitButton";
 
 type Prefs = {
   wishlist?: string;
@@ -113,7 +114,7 @@ export default async function ProfilePage() {
           <label className="label">Allergies / dislikes</label>
           <textarea className="input" name="allergies" rows={2} defaultValue={myPrefs.allergies ?? ""} />
         </div>
-        <button className="btn btn-primary w-full" type="submit">Save</button>
+        <SubmitButton className="btn btn-primary w-full">Save</SubmitButton>
       </form>
 
       <section className="card p-4 space-y-2">

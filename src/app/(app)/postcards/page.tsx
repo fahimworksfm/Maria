@@ -2,6 +2,7 @@ import { revalidatePath } from "next/cache";
 import { requireCoupled } from "@/lib/couple";
 import { supabaseServer } from "@/lib/supabase/server";
 import { BUCKET, signedUrl, userScopedPath } from "@/lib/media";
+import SubmitButton from "@/components/SubmitButton";
 
 export default async function PostcardsPage() {
   const me = await requireCoupled();
@@ -61,7 +62,7 @@ export default async function PostcardsPage() {
         <input className="input" name="location" placeholder="Where are you? (e.g. Tokyo, the back garden)" />
         <input className="input" name="photo" type="file" accept="image/*" />
         <textarea className="input" name="note" rows={4} placeholder="Wish you were here..." required />
-        <button className="btn btn-primary w-full" type="submit">Send postcard</button>
+        <SubmitButton className="btn btn-primary w-full">Send postcard</SubmitButton>
       </form>
 
       <section className="space-y-4">

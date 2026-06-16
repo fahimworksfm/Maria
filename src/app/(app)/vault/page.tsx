@@ -7,6 +7,7 @@ import { supabaseAdmin } from "@/lib/supabase/admin";
 import { hashPin, verifyPin } from "@/lib/crypto";
 import { aiEnabled, chatJson } from "@/lib/groq";
 import { isVaultUnlocked, lockVault, unlockVault } from "@/lib/vault";
+import SubmitButton from "@/components/SubmitButton";
 
 export default async function VaultPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
   const me = await requireCoupled();
@@ -72,7 +73,7 @@ function SetupPinView({ error }: { error?: string }) {
           <input className="input" type="password" inputMode="numeric" name="confirm" autoComplete="new-password" required minLength={4} maxLength={12} />
         </div>
         {error && <p className="text-accent text-sm">{error}</p>}
-        <button className="btn btn-primary w-full" type="submit">Create vault</button>
+        <SubmitButton className="btn btn-primary w-full">Create vault</SubmitButton>
       </form>
       <p className="muted text-xs">Tether scopes vault rows to your user ID at the database level — your partner cannot read them even with the app open on their phone.</p>
     </div>
@@ -245,9 +246,9 @@ async function VaultInner() {
         <form action={suggestGifts} className="grid grid-cols-2 gap-2">
           <input className="input" name="occasion" placeholder="Occasion (e.g. birthday)" />
           <input className="input" name="budget" placeholder="Budget (e.g. $80)" />
-          <button className="btn btn-primary col-span-2" type="submit" disabled={!aiEnabled()}>
+          <SubmitButton className="btn btn-primary col-span-2" disabled={!aiEnabled()} pendingLabel="Generating…">
             {aiEnabled() ? "Suggest 5" : "Set GROQ_API_KEY to enable"}
-          </button>
+          </SubmitButton>
         </form>
       </section>
 
@@ -267,7 +268,7 @@ async function VaultInner() {
             <option value="bought">Bought</option>
             <option value="given">Given</option>
           </select>
-          <button className="btn w-full" type="submit">Save</button>
+          <SubmitButton className="btn w-full">Save</SubmitButton>
         </form>
       </section>
 

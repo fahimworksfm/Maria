@@ -2,6 +2,7 @@ import { revalidatePath } from "next/cache";
 import { requireCoupled } from "@/lib/couple";
 import { supabaseServer } from "@/lib/supabase/server";
 import { aiEnabled, chatJson } from "@/lib/groq";
+import SubmitButton from "@/components/SubmitButton";
 
 export default async function WatchlistPage() {
   const me = await requireCoupled();
@@ -96,7 +97,7 @@ export default async function WatchlistPage() {
           <input className="input" name="mood_tags" placeholder="Tags (comma)" />
         </div>
         <textarea className="input" name="notes" rows={2} placeholder="Notes" />
-        <button className="btn btn-primary w-full" type="submit">Add</button>
+        <SubmitButton className="btn btn-primary w-full">Add</SubmitButton>
       </form>
 
       <form action={suggest} className="card p-4 space-y-2">
@@ -105,9 +106,9 @@ export default async function WatchlistPage() {
           <input className="input" name="mood" placeholder="Mood (cozy, funny)" />
           <input className="input" name="max_min" type="number" placeholder="Max minutes" />
         </div>
-        <button className="btn w-full" type="submit" disabled={!aiEnabled()}>
+        <SubmitButton className="btn w-full" disabled={!aiEnabled()} pendingLabel="Generating…">
           {aiEnabled() ? "AI: pick from our list" : "Set GROQ_API_KEY to enable"}
-        </button>
+        </SubmitButton>
       </form>
 
       <section className="space-y-2">

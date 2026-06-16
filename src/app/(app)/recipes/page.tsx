@@ -2,6 +2,7 @@ import { revalidatePath } from "next/cache";
 import { requireCoupled } from "@/lib/couple";
 import { supabaseServer } from "@/lib/supabase/server";
 import { aiEnabled, chatJson } from "@/lib/groq";
+import SubmitButton from "@/components/SubmitButton";
 
 export default async function RecipesPage() {
   const me = await requireCoupled();
@@ -67,7 +68,7 @@ export default async function RecipesPage() {
       <form action={fromPantry} className="card p-4 space-y-2">
         <h3 className="label">AI: from pantry</h3>
         <textarea className="input" name="pantry" rows={2} placeholder="chicken, lemon, rice, eggs..." />
-        <button className="btn w-full" type="submit" disabled={!aiEnabled()}>{aiEnabled() ? "Suggest a recipe" : "Set GROQ_API_KEY to enable"}</button>
+        <SubmitButton className="btn w-full" disabled={!aiEnabled()} pendingLabel="Generating…">{aiEnabled() ? "Suggest a recipe" : "Set GROQ_API_KEY to enable"}</SubmitButton>
       </form>
 
       <form action={add} className="card p-4 space-y-2">
@@ -75,7 +76,7 @@ export default async function RecipesPage() {
         <textarea className="input" name="ingredients" rows={4} placeholder="One ingredient per line" />
         <textarea className="input" name="steps" rows={4} placeholder="Steps" />
         <input className="input" name="source_url" placeholder="Source URL (optional)" />
-        <button className="btn btn-primary w-full" type="submit">Save</button>
+        <SubmitButton className="btn btn-primary w-full">Save</SubmitButton>
       </form>
 
       <section className="space-y-3">

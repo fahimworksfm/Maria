@@ -2,6 +2,7 @@ import { revalidatePath } from "next/cache";
 import { requireCoupled } from "@/lib/couple";
 import { supabaseServer } from "@/lib/supabase/server";
 import { aiEnabled, chat } from "@/lib/groq";
+import SubmitButton from "@/components/SubmitButton";
 
 export default async function TravelPage({ searchParams }: { searchParams: Promise<{ plan_for?: string }> }) {
   const me = await requireCoupled();
@@ -68,7 +69,7 @@ export default async function TravelPage({ searchParams }: { searchParams: Promi
         </div>
         <textarea className="input" name="notes" rows={2} placeholder="Why here?" />
         <p className="muted text-xs">Tip: in Google/Apple Maps, long-press a place to copy its coordinates.</p>
-        <button className="btn btn-primary w-full" type="submit">Add pin</button>
+        <SubmitButton className="btn btn-primary w-full">Add pin</SubmitButton>
       </form>
 
       <form className="card p-4 space-y-2">

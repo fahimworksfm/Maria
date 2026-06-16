@@ -2,6 +2,7 @@ import { revalidatePath } from "next/cache";
 import { requireCoupled } from "@/lib/couple";
 import { supabaseServer } from "@/lib/supabase/server";
 import { aiEnabled, chatJson } from "@/lib/groq";
+import SubmitButton from "@/components/SubmitButton";
 
 function weekOf(date: Date): string {
   const d = new Date(date);
@@ -121,9 +122,9 @@ export default async function RandomActsPage() {
           <h3 className="label">This week ({thisWeek})</h3>
           {thisWeekItems.length === 0 && (
             <form action={generate}>
-              <button className="btn btn-primary text-sm" type="submit" disabled={!aiEnabled()}>
+              <SubmitButton className="btn btn-primary text-sm" disabled={!aiEnabled()} pendingLabel="Generating…">
                 {aiEnabled() ? "Generate with AI" : "Set GROQ_API_KEY"}
-              </button>
+              </SubmitButton>
             </form>
           )}
         </div>
@@ -146,7 +147,7 @@ export default async function RandomActsPage() {
               <option value="partner">For my partner</option>
               <option value="me">For me</option>
             </select>
-            <button className="btn" type="submit">Add</button>
+            <SubmitButton className="btn" pendingLabel="Saving…">Add</SubmitButton>
           </div>
         </form>
       </section>

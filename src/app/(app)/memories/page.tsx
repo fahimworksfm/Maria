@@ -3,6 +3,7 @@ import { requireCoupled } from "@/lib/couple";
 import { supabaseServer } from "@/lib/supabase/server";
 import { BUCKET, signedUrl, userScopedPath } from "@/lib/media";
 import DeleteButton from "@/components/DeleteButton";
+import SubmitButton from "@/components/SubmitButton";
 
 type Memory = {
   id: string;
@@ -110,7 +111,7 @@ export default async function MemoriesPage() {
           <label className="label">Photo, audio or video (optional)</label>
           <input className="input" name="media" type="file" accept="image/*,audio/*,video/*" />
         </div>
-        <button className="btn btn-primary w-full" type="submit">Save memory</button>
+        <SubmitButton className="btn btn-primary w-full">Save memory</SubmitButton>
       </form>
 
       <section className="space-y-3">

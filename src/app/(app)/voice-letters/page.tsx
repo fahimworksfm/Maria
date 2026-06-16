@@ -5,6 +5,7 @@ import { BUCKET, signedUrl, userScopedPath } from "@/lib/media";
 import LocalTime from "@/components/LocalTime";
 import VoiceRecorder from "@/components/VoiceRecorder";
 import DeleteButton from "@/components/DeleteButton";
+import SubmitButton from "@/components/SubmitButton";
 
 export default async function VoiceLettersPage() {
   const me = await requireCoupled();
@@ -63,7 +64,7 @@ export default async function VoiceLettersPage() {
           <input className="input" name="unlock_at" type="datetime-local" />
           <label className="flex items-center gap-2 text-sm"><input type="checkbox" name="is_private" /> Private (only for you)</label>
         </div>
-        <button className="btn btn-primary w-full" type="submit">Save letter</button>
+        <SubmitButton className="btn btn-primary w-full">Save letter</SubmitButton>
       </form>
 
       <section className="space-y-3">

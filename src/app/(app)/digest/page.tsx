@@ -2,6 +2,7 @@ import { revalidatePath } from "next/cache";
 import { requireCoupled } from "@/lib/couple";
 import { supabaseServer } from "@/lib/supabase/server";
 import { aiEnabled, chat } from "@/lib/groq";
+import SubmitButton from "@/components/SubmitButton";
 
 function startOfWeek(date: Date): Date {
   const d = new Date(date);
@@ -108,9 +109,9 @@ export default async function DigestPage({ searchParams }: { searchParams: Promi
         </>
       ) : (
         <form action={generate}>
-          <button className="btn btn-primary w-full" type="submit" disabled={!aiEnabled()}>
+          <SubmitButton className="btn btn-primary w-full" disabled={!aiEnabled()} pendingLabel="Generating…">
             {aiEnabled() ? "Generate this week's digest" : "Set GROQ_API_KEY to enable"}
-          </button>
+          </SubmitButton>
         </form>
       )}
     </div>

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { requireCoupled } from "@/lib/couple";
 import { supabaseServer } from "@/lib/supabase/server";
 import { aiEnabled, chat } from "@/lib/groq";
+import SubmitButton from "@/components/SubmitButton";
 
 export default async function YearPage({ searchParams }: { searchParams: Promise<{ year?: string; generate?: string }> }) {
   const me = await requireCoupled();
@@ -50,7 +51,7 @@ export default async function YearPage({ searchParams }: { searchParams: Promise
       <form>
         <input type="hidden" name="year" value={year} />
         <input type="hidden" name="generate" value="1" />
-        <button className="btn btn-primary w-full" type="submit" disabled={!aiEnabled()}>{aiEnabled() ? "Generate narrative" : "Set GROQ_API_KEY to enable"}</button>
+        <SubmitButton className="btn btn-primary w-full" disabled={!aiEnabled()} pendingLabel="Generating…">{aiEnabled() ? "Generate narrative" : "Set GROQ_API_KEY to enable"}</SubmitButton>
       </form>
 
       {narrative && (

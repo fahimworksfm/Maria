@@ -4,6 +4,7 @@ import { supabaseServer } from "@/lib/supabase/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { addToPlaylist, spotifyConfigured, tokenForCouple } from "@/lib/spotify";
 import SongSearch from "./SongSearch";
+import SubmitButton from "@/components/SubmitButton";
 
 export default async function SongsPage({ searchParams }: { searchParams: Promise<{ connected?: string; error?: string }> }) {
   const me = await requireCoupled();
@@ -114,7 +115,7 @@ export default async function SongsPage({ searchParams }: { searchParams: Promis
         <input className="input" name="artist" placeholder="Artist" />
         <input className="input" name="spotify_url" placeholder="Spotify URL (optional)" />
         <textarea className="input" name="why" rows={2} placeholder="Why this song made it in" />
-        <button className="btn w-full" type="submit">Save</button>
+        <SubmitButton className="btn w-full">Save</SubmitButton>
       </form>
 
       <section className="space-y-2">

@@ -3,6 +3,7 @@ import { requireCoupled } from "@/lib/couple";
 import { supabaseServer } from "@/lib/supabase/server";
 import { aiEnabled, chatJson } from "@/lib/groq";
 import AffirmationDeck from "./AffirmationDeck";
+import SubmitButton from "@/components/SubmitButton";
 
 const SEED = [
   "You are exactly the trouble I needed.",
@@ -80,8 +81,8 @@ export default async function AffirmationsPage() {
         <div className="card p-4 space-y-2 text-center">
           <p className="muted">The deck is empty.</p>
           <div className="flex gap-2 justify-center">
-            <form action={seedDefaults}><button className="btn" type="submit">Seed with starters</button></form>
-            <form action={seedFromAI}><button className="btn btn-primary" type="submit" disabled={!aiEnabled()}>{aiEnabled() ? "AI: write 8 cards" : "Set GROQ_API_KEY"}</button></form>
+            <form action={seedDefaults}><SubmitButton className="btn">Seed with starters</SubmitButton></form>
+            <form action={seedFromAI}><SubmitButton className="btn btn-primary" disabled={!aiEnabled()} pendingLabel="Generating…">{aiEnabled() ? "AI: write 8 cards" : "Set GROQ_API_KEY"}</SubmitButton></form>
           </div>
         </div>
       ) : (
@@ -91,11 +92,11 @@ export default async function AffirmationsPage() {
       <form action={add} className="card p-4 space-y-2">
         <h3 className="label">Add a card</h3>
         <textarea className="input" name="text" rows={2} placeholder="Write something you'd want them to draw" required />
-        <button className="btn w-full" type="submit">Add to deck</button>
+        <SubmitButton className="btn w-full">Add to deck</SubmitButton>
       </form>
 
       <form action={seedFromAI}>
-        <button className="btn btn-ghost w-full text-sm" type="submit" disabled={!aiEnabled()}>{aiEnabled() ? "AI: add 8 more" : ""}</button>
+        <SubmitButton className="btn btn-ghost w-full text-sm" disabled={!aiEnabled()} pendingLabel="Generating…">{aiEnabled() ? "AI: add 8 more" : ""}</SubmitButton>
       </form>
 
       <section className="space-y-1">

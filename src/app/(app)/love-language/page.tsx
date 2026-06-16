@@ -1,6 +1,7 @@
 import { revalidatePath } from "next/cache";
 import { requireCoupled } from "@/lib/couple";
 import { supabaseServer } from "@/lib/supabase/server";
+import SubmitButton from "@/components/SubmitButton";
 
 const CATS = [
   { id: "words", label: "Words" },
@@ -57,7 +58,7 @@ export default async function LoveLanguagePage() {
           ))}
         </div>
         <input className="input" name="note" placeholder="A small note (optional)" />
-        <button className="btn btn-primary w-full" type="submit">Log</button>
+        <SubmitButton className="btn btn-primary w-full">Log</SubmitButton>
       </form>
 
       <section className="grid grid-cols-2 gap-3">

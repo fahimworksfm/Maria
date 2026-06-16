@@ -2,6 +2,7 @@ import { revalidatePath } from "next/cache";
 import { requireCoupled } from "@/lib/couple";
 import { supabaseServer } from "@/lib/supabase/server";
 import { aiEnabled, chatJson } from "@/lib/groq";
+import SubmitButton from "@/components/SubmitButton";
 
 type Idea = {
   id: string;
@@ -131,9 +132,9 @@ export default async function DateRoulettePage() {
             <option value="indoor">Indoor</option>
             <option value="outdoor">Outdoor</option>
           </select>
-          <button className="btn btn-primary col-span-3" type="submit" disabled={!aiEnabled()}>
+          <SubmitButton className="btn btn-primary col-span-3" disabled={!aiEnabled()} pendingLabel="Generating…">
             {aiEnabled() ? "Generate 5 ideas" : "Set GROQ_API_KEY to enable"}
-          </button>
+          </SubmitButton>
         </form>
       </section>
 
@@ -147,7 +148,7 @@ export default async function DateRoulettePage() {
             <select className="input" name="effort" defaultValue=""><option value="">Effort</option><option>low</option><option>medium</option><option>high</option></select>
             <select className="input" name="weather" defaultValue=""><option value="">Weather</option><option>indoor</option><option>outdoor</option></select>
           </div>
-          <button className="btn w-full" type="submit">Add idea</button>
+          <SubmitButton className="btn w-full">Add idea</SubmitButton>
         </form>
       </section>
 

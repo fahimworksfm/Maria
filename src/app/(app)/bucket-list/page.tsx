@@ -1,6 +1,7 @@
 import { revalidatePath } from "next/cache";
 import { requireCoupled } from "@/lib/couple";
 import { supabaseServer } from "@/lib/supabase/server";
+import SubmitButton from "@/components/SubmitButton";
 
 export default async function BucketListPage() {
   const me = await requireCoupled();
@@ -66,7 +67,7 @@ export default async function BucketListPage() {
           <input className="input" name="category" placeholder="Category (e.g. travel)" />
           <input className="input" name="target_date" type="date" />
         </div>
-        <button className="btn btn-primary w-full" type="submit">Add</button>
+        <SubmitButton className="btn btn-primary w-full">Add</SubmitButton>
       </form>
 
       <section className="space-y-2">
