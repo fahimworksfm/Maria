@@ -1,18 +1,29 @@
 import Link from "next/link";
+import { Images, NotebookPen, Compass, Sprout, Inbox } from "lucide-react";
 import { requireCoupled } from "@/lib/couple";
 import { supabaseServer } from "@/lib/supabase/server";
+import { signedUrl } from "@/lib/media";
 
 const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
+type ItemKind = "memory" | "journal" | "anniversary" | "gratitude";
+
+const KIND_ICON: Record<ItemKind, typeof Images> = {
+  memory: Images,
+  journal: NotebookPen,
+  anniversary: Compass,
+  gratitude: Sprout,
+};
+
 type Item = {
   id: string;
-  kind: "memory" | "journal" | "anniversary" | "gratitude";
-  icon: string;
+  kind: ItemKind;
   label: string;
   title: string;
   snippet?: string | null;
   href: string;
+  photo?: string | null;
   ym: string;
   sortTs: number;
   dayLabel: string;
@@ -47,7 +58,7 @@ export default async function TimelinePage() {
   const [{ data: mems }, { data: jrn }, { data: annivs }, { data: grats }] = await Promise.all([
     supabase
       .from("memories")
-      .select("id, title, body, happened_on, location_name, created_at")
+      .select("id, title, body, happened_on, location_name, created_at, media_url, media_type")
       .eq("couple_id", me.coupleId)
       .order("created_at", { ascending: false })
       .limit(150),
@@ -73,14 +84,16 @@ export default async function TimelinePage() {
 
   for (const m of mems ?? []) {
     const d = fromDateOnly((m.happened_on ?? m.created_at).slice(0, 10));
+    const photo =
+      m.media_type === "image" && m.media_url ? await signedUrl(supabase, m.media_url, 60 * 60 * 12) : null;
     items.push({
       id: `mem-${m.id}`,
       kind: "memory",
-      icon: "💌",
       label: "Memory",
       title: m.title || "A moment",
       snippet: snip(m.body) ?? (m.location_name ? `at ${m.location_name}` : null),
       href: "/memories",
+      photo,
       ...d,
     });
   }
@@ -97,7 +110,6 @@ export default async function TimelinePage() {
     items.push({
       id: `jrn-${date}`,
       kind: "journal",
-      icon: "📔",
       label: "Journal",
       title: info.prompt,
       snippet: "You both answered.",
@@ -111,7 +123,6 @@ export default async function TimelinePage() {
     items.push({
       id: `ann-${a.id}`,
       kind: "anniversary",
-      icon: "🧭",
       label: a.kind === "birthday" ? "Birthday" : "Anniversary",
       title: a.name,
       snippet: null,
@@ -125,7 +136,6 @@ export default async function TimelinePage() {
     items.push({
       id: `grat-${g.id}`,
       kind: "gratitude",
-      icon: "🌳",
       label: "Gratitude",
       title: snip(g.text, 120) || "A small thanks",
       snippet: null,
@@ -153,7 +163,9 @@ export default async function TimelinePage() {
 
       {groups.length === 0 ? (
         <div className="card p-6 text-center space-y-2">
-          <div className="text-3xl" aria-hidden="true">🧵</div>
+          <div className="mx-auto w-12 h-12 rounded-full bg-accent/10 text-accent grid place-items-center">
+            <Inbox size={22} aria-hidden />
+          </div>
           <p className="font-display text-lg">Your story starts here.</p>
           <p className="muted text-sm">Add a memory, answer a prompt, or plant a gratitude — it&apos;ll all gather on this thread.</p>
         </div>
@@ -164,21 +176,51 @@ export default async function TimelinePage() {
               {monthLabel(group.ym)}
             </h2>
             <ol className="space-y-3">
-              {group.items.map((it) => (
-                <li key={it.id}>
-                  <Link href={it.href} className="card card-hover p-4 flex gap-3 items-start">
-                    <span className="text-2xl leading-none mt-0.5" aria-hidden="true">{it.icon}</span>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-baseline justify-between gap-2">
-                        <span className="label !mb-0">{it.label}</span>
-                        <span className="muted text-xs shrink-0">{it.dayLabel}</span>
+              {group.items.map((it) => {
+                const Icon = KIND_ICON[it.kind];
+                if (it.photo) {
+                  return (
+                    <li key={it.id}>
+                      <Link href={it.href} className="card card-hover p-0 overflow-hidden block">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={it.photo}
+                          alt={it.title}
+                          className="w-full max-h-72 object-cover rounded-xl2"
+                        />
+                        <div className="p-4">
+                          <div className="flex items-baseline justify-between gap-2">
+                            <span className="label !mb-0 inline-flex items-center gap-1.5">
+                              <Icon size={16} className="text-accent" aria-hidden />
+                              {it.label}
+                            </span>
+                            <span className="muted text-xs shrink-0">{it.dayLabel}</span>
+                          </div>
+                          <p className="font-medium mt-1 break-words">{it.title}</p>
+                          {it.snippet && <p className="muted text-sm mt-0.5 break-words">{it.snippet}</p>}
+                        </div>
+                      </Link>
+                    </li>
+                  );
+                }
+                return (
+                  <li key={it.id}>
+                    <Link href={it.href} className="card card-hover p-4 flex gap-3 items-start">
+                      <span className="text-accent leading-none mt-0.5" aria-hidden>
+                        <Icon size={20} />
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-baseline justify-between gap-2">
+                          <span className="label !mb-0">{it.label}</span>
+                          <span className="muted text-xs shrink-0">{it.dayLabel}</span>
+                        </div>
+                        <p className="font-medium mt-1 break-words">{it.title}</p>
+                        {it.snippet && <p className="muted text-sm mt-0.5 break-words">{it.snippet}</p>}
                       </div>
-                      <p className="font-medium mt-1 break-words">{it.title}</p>
-                      {it.snippet && <p className="muted text-sm mt-0.5 break-words">{it.snippet}</p>}
-                    </div>
-                  </Link>
-                </li>
-              ))}
+                    </Link>
+                  </li>
+                );
+              })}
             </ol>
           </section>
         ))

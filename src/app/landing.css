@@ -10,7 +10,7 @@
     radial-gradient(ellipse 80% 50% at 20% 0%, rgba(249,115,115,0.18), transparent 60%),
     radial-gradient(ellipse 70% 50% at 80% 30%, rgba(249,200,115,0.14), transparent 60%),
     radial-gradient(ellipse 90% 60% at 50% 100%, rgba(180,120,255,0.16), transparent 60%),
-    #0b0b10;
+    #0c0a09;
   background-size: 200% 200%;
 }
 
@@ -118,8 +118,8 @@
   width: 260px;
   height: 540px;
   border-radius: 38px;
-  background: linear-gradient(180deg, #1d1d27, #0b0b10);
-  border: 2px solid #2a2a36;
+  background: linear-gradient(180deg, #201a15, #0c0a09);
+  border: 2px solid #332a22;
   box-shadow: 0 30px 60px -10px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.06);
   padding: 14px;
   overflow: hidden;
@@ -134,14 +134,14 @@
   position: absolute;
   top: 14px; left: 50%; transform: translateX(-50%);
   width: 80px; height: 22px;
-  background: #0b0b10;
+  background: #0c0a09;
   border-radius: 11px;
   z-index: 2;
 }
 .phone-screen {
   position: relative;
   width: 100%; height: 100%;
-  background: #0b0b10;
+  background: #0c0a09;
   border-radius: 26px;
   overflow: hidden;
 }
@@ -167,21 +167,21 @@
 }
 
 .mini-card {
-  background: #15151c;
-  border: 1px solid #2a2a36;
+  background: #17120f;
+  border: 1px solid #332a22;
   border-radius: 12px;
   padding: 10px;
   font-size: 11px;
-  color: #e9e9f0;
+  color: #f1ece5;
 }
 .mini-pill {
   display: inline-block;
   padding: 2px 8px;
-  background: #1d1d27;
-  border: 1px solid #2a2a36;
+  background: #201a15;
+  border: 1px solid #332a22;
   border-radius: 999px;
   font-size: 9px;
-  color: #9a9aaa;
+  color: #a99f93;
   margin-right: 4px;
 }
 

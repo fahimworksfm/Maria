@@ -1,4 +1,5 @@
 import { revalidatePath } from "next/cache";
+import { Lock } from "lucide-react";
 import { requireCoupled } from "@/lib/couple";
 import { supabaseServer } from "@/lib/supabase/server";
 import { BUCKET, signedUrl, userScopedPath } from "@/lib/media";
@@ -78,7 +79,7 @@ export default async function VoiceLettersPage() {
                 {r.unlock_at ? <> · unlocks <LocalTime iso={r.unlock_at} mode="absolute" /></> : ""}
               </div>
               {locked ? (
-                <p className="text-sm muted">🔒 Sealed until the unlock date.</p>
+                <p className="text-sm muted inline-flex items-center gap-1.5"><Lock size={16} className="text-accent" aria-hidden /> Sealed until the unlock date.</p>
               ) : r.signed ? (
                 <audio controls src={r.signed} className="w-full" />
               ) : null}

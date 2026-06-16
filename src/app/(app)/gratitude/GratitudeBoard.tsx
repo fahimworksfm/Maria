@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Sprout } from "lucide-react";
 import { useCollection } from "@/lib/useCollection";
 import UndoToast from "@/components/UndoToast";
 import SwipeRow from "@/components/SwipeRow";
@@ -71,7 +72,7 @@ export default function GratitudeBoard({
 
       {items.length === 0 ? (
         <div className="card p-5 text-center space-y-1">
-          <div className="text-3xl">🌱</div>
+          <div className="mx-auto w-12 h-12 rounded-full bg-accent/10 text-accent grid place-items-center"><Sprout size={22} aria-hidden /></div>
           <p className="font-display text-base">An empty tree, waiting.</p>
           <p className="muted text-sm">Plant a small thing and watch it grow.</p>
         </div>

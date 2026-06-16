@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BookOpen } from "lucide-react";
 import { requireCoupled } from "@/lib/couple";
 import { supabaseServer } from "@/lib/supabase/server";
 import { aiEnabled, chat } from "@/lib/groq";
@@ -59,7 +60,7 @@ export default async function YearPage({ searchParams }: { searchParams: Promise
       )}
 
       <Link href={`/year/book?year=${year}`} className="card card-hover p-5 block text-center">
-        <div className="text-3xl mb-1">📖</div>
+        <div className="mx-auto w-12 h-12 rounded-full bg-accent/10 text-accent grid place-items-center mb-2"><BookOpen size={22} aria-hidden /></div>
         <div className="font-display text-lg">Make the book</div>
         <div className="muted text-sm mt-1">Lay {year} out as a printable A5 keepsake — memories, photos, and journal entries. Save it as a PDF.</div>
       </Link>

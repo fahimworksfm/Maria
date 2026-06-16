@@ -5,6 +5,7 @@ import { aiEnabled } from "@/lib/groq";
 import LocalTime from "@/components/LocalTime";
 import DeleteButton from "@/components/DeleteButton";
 import RepairFlow from "./RepairFlow";
+import { HeartHandshake } from "lucide-react";
 
 type Entry = {
   id: string;
@@ -77,7 +78,7 @@ export default async function RepairLogPage() {
         <h3 className="label">Your repairs</h3>
         {entries.length === 0 ? (
           <div className="card p-5 text-center space-y-1">
-            <div className="text-3xl">🤍</div>
+            <div className="mx-auto w-12 h-12 rounded-full bg-accent/10 text-accent grid place-items-center"><HeartHandshake size={22} aria-hidden /></div>
             <p className="font-display text-base">Nothing here yet — and that&apos;s okay.</p>
             <p className="muted text-sm">When something stings, walk through the four steps above.</p>
           </div>

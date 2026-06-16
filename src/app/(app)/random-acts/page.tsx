@@ -3,6 +3,7 @@ import { requireCoupled } from "@/lib/couple";
 import { supabaseServer } from "@/lib/supabase/server";
 import { aiEnabled, chatJson } from "@/lib/groq";
 import SubmitButton from "@/components/SubmitButton";
+import { Check } from "lucide-react";
 
 function weekOf(date: Date): string {
   const d = new Date(date);
@@ -159,8 +160,13 @@ export default async function RandomActsPage() {
             <div className="muted text-xs mb-1">Week of {w}</div>
             <ul className="text-sm space-y-1">
               {items!.map((a) => (
-                <li key={a.id} className={a.done ? "opacity-70 line-through" : ""}>
-                  {a.done ? "✓" : "○"} {a.act}
+                <li key={a.id} className={`flex items-center gap-2 ${a.done ? "opacity-70 line-through" : ""}`}>
+                  {a.done ? (
+                    <Check size={16} className="text-accent shrink-0" aria-hidden />
+                  ) : (
+                    <span className="w-1.5 h-1.5 rounded-full bg-line shrink-0" aria-hidden />
+                  )}
+                  <span>{a.act}</span>
                 </li>
               ))}
             </ul>

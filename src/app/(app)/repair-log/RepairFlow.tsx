@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { Sparkles } from "lucide-react";
 
 type Values = { trigger: string; feeling: string; need: string; repair: string };
 
@@ -132,7 +133,16 @@ export default function RepairFlow({
             onClick={soften}
             disabled={!aiEnabled || softening || !value.trim()}
           >
-            {!aiEnabled ? "Soften (set GROQ_API_KEY)" : softening ? "Softening…" : "✨ Soften this — kinder, first person"}
+            {!aiEnabled ? (
+              "Soften (set GROQ_API_KEY)"
+            ) : softening ? (
+              "Softening…"
+            ) : (
+              <span className="inline-flex items-center gap-1.5">
+                <Sparkles size={16} className="text-accent" aria-hidden />
+                Soften this — kinder, first person
+              </span>
+            )}
           </button>
           {softenErr && <p className="text-accent text-xs">{softenErr}</p>}
 

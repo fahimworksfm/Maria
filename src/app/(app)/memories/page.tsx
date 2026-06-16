@@ -4,6 +4,7 @@ import { supabaseServer } from "@/lib/supabase/server";
 import { BUCKET, signedUrl, userScopedPath } from "@/lib/media";
 import DeleteButton from "@/components/DeleteButton";
 import SubmitButton from "@/components/SubmitButton";
+import { Images, MapPin, Quote } from "lucide-react";
 
 type Memory = {
   id: string;
@@ -114,30 +115,32 @@ export default async function MemoriesPage() {
         <SubmitButton className="btn btn-primary w-full">Save memory</SubmitButton>
       </form>
 
-      <section className="space-y-3">
+      <section className="space-y-6">
         {items.length === 0 && (
-          <div className="card p-6 text-center space-y-2">
-            <div className="text-3xl">💌</div>
+          <div className="card p-8 text-center space-y-3">
+            <div className="mx-auto w-12 h-12 rounded-full bg-accent/10 text-accent grid place-items-center">
+              <Images size={22} aria-hidden />
+            </div>
             <p className="font-display text-lg">Drop your first moment.</p>
             <p className="muted text-sm">A photo, a voice note, a sentence — anything you&apos;d want to remember.</p>
           </div>
         )}
-        {items.map((m) => (
-          <article key={m.id} className="card p-4 space-y-2">
-            <div className="flex items-baseline justify-between gap-2">
-              <h3 className="font-medium">{m.title || "Untitled"}</h3>
-              <span className="muted text-xs">{(m.happened_on ?? m.created_at.slice(0, 10))}</span>
-            </div>
-            {m.body && <p className="text-sm whitespace-pre-wrap">{m.body}</p>}
-            {m.signed && m.media_type === "image" && (
-              <img src={m.signed} alt="" className="rounded-lg border border-line max-h-96 w-full object-cover" />
-            )}
-            {m.signed && m.media_type === "audio" && <audio controls src={m.signed} className="w-full" />}
-            {m.signed && m.media_type === "video" && <video controls src={m.signed} className="w-full rounded-lg" />}
-            <div className="flex justify-between items-center pt-1 text-xs">
-              <span className="muted">
-                {m.location_name && <span>{m.location_name} · </span>}
-                <span>by {m.author_id === me.userId ? "you" : partnerName}</span>
+        {items.map((m) => {
+          const when = m.happened_on ?? m.created_at.slice(0, 10);
+          const author = m.author_id === me.userId ? "you" : partnerName;
+          const meta = (
+            <div className="flex justify-between items-center gap-3 text-xs">
+              <span className="muted inline-flex items-center gap-1.5">
+                {m.location_name && (
+                  <span className="inline-flex items-center gap-1">
+                    <MapPin size={14} className="text-accent" aria-hidden />
+                    {m.location_name}
+                  </span>
+                )}
+                {m.location_name && <span aria-hidden>·</span>}
+                <span>{when}</span>
+                <span aria-hidden>·</span>
+                <span>by {author}</span>
               </span>
               {m.author_id === me.userId && (
                 <form action={deleteMemory}>
@@ -146,8 +149,52 @@ export default async function MemoriesPage() {
                 </form>
               )}
             </div>
-          </article>
-        ))}
+          );
+
+          // Photo-forward: image leads, text settles beneath it.
+          if (m.signed && m.media_type === "image") {
+            return (
+              <article key={m.id} className="card overflow-hidden">
+                <img
+                  src={m.signed}
+                  alt={m.title || ""}
+                  className="rounded-xl2 w-full max-h-96 object-cover"
+                />
+                <div className="p-4 space-y-2">
+                  {m.title && <h3 className="display text-xl leading-tight">{m.title}</h3>}
+                  {m.body && <p className="text-sm whitespace-pre-wrap">{m.body}</p>}
+                  {meta}
+                </div>
+              </article>
+            );
+          }
+
+          // Audio / video keep their players, framed simply.
+          if (m.signed && (m.media_type === "audio" || m.media_type === "video")) {
+            return (
+              <article key={m.id} className="card p-4 space-y-3">
+                {m.title && <h3 className="display text-xl leading-tight">{m.title}</h3>}
+                {m.media_type === "audio" ? (
+                  <audio controls src={m.signed} className="w-full" />
+                ) : (
+                  <video controls src={m.signed} className="w-full rounded-xl2" />
+                )}
+                {m.body && <p className="text-sm whitespace-pre-wrap">{m.body}</p>}
+                {meta}
+              </article>
+            );
+          }
+
+          // Text-only: a warm quote card.
+          return (
+            <article key={m.id} className="card p-6 space-y-3">
+              <Quote size={18} className="text-accent/70" aria-hidden />
+              {m.title && <h3 className="display text-xl leading-tight">{m.title}</h3>}
+              {m.body && <p className="whitespace-pre-wrap leading-relaxed">{m.body}</p>}
+              {meta}
+            </article>
+          );
+        })}
       </section>
     </div>
   );

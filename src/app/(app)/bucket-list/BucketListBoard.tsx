@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Globe } from "lucide-react";
 import { useCollection } from "@/lib/useCollection";
 import UndoToast from "@/components/UndoToast";
 import SwipeRow from "@/components/SwipeRow";
@@ -108,7 +109,7 @@ export default function BucketListBoard({ initial, coupleId }: { initial: Bucket
         ))}
         {open.length === 0 && done.length === 0 && (
           <div className="card p-5 text-center space-y-1">
-            <div className="text-3xl">🌍</div>
+            <div className="mx-auto w-12 h-12 rounded-full bg-accent/10 text-accent grid place-items-center"><Globe size={22} aria-hidden /></div>
             <p className="font-display text-base">What&apos;s the first dream?</p>
             <p className="muted text-sm">A trip, a project, a habit, a quiet plan. Add one above.</p>
           </div>

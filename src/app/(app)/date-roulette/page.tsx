@@ -3,6 +3,7 @@ import { requireCoupled } from "@/lib/couple";
 import { supabaseServer } from "@/lib/supabase/server";
 import { aiEnabled, chatJson } from "@/lib/groq";
 import SubmitButton from "@/components/SubmitButton";
+import { Dices } from "lucide-react";
 
 type Idea = {
   id: string;
@@ -175,7 +176,7 @@ export default async function DateRoulettePage() {
           ))}
           {ideas && ideas.length === 0 && (
             <div className="card p-5 text-center space-y-1">
-              <div className="text-3xl">🎯</div>
+              <div className="mx-auto w-12 h-12 rounded-full bg-accent/10 text-accent grid place-items-center"><Dices size={22} aria-hidden /></div>
               <p className="font-display text-base">Spin nothing? No fun.</p>
               <p className="muted text-sm">Generate five with AI above, or drop your own idea in.</p>
             </div>

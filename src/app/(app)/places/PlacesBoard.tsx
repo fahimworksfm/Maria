@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { MapPin } from "lucide-react";
 import { useCollection } from "@/lib/useCollection";
 import UndoToast from "@/components/UndoToast";
 import SwipeRow from "@/components/SwipeRow";
@@ -101,7 +102,7 @@ export default function PlacesBoard({ initial, coupleId }: { initial: Place[]; c
             ))}
           </ul>
         )}
-        {coords && <p className="muted text-xs">📍 location attached</p>}
+        {coords && <p className="muted text-xs inline-flex items-center gap-1"><MapPin size={16} className="text-accent" aria-hidden /> location attached</p>}
         {expanded && (
           <div className="space-y-2">
             <input className="input" placeholder="Type (cafe, dinner, park)" value={kind} onChange={(e) => setKind(e.target.value)} />

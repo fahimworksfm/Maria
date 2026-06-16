@@ -1,5 +1,19 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import {
+  Mail,
+  NotebookPen,
+  Dices,
+  Globe,
+  Gift,
+  Sparkles,
+  Clapperboard,
+  Utensils,
+  Music,
+  Map,
+  Mic,
+  CalendarRange,
+} from "lucide-react";
 import "./landing.css";
 import { supabaseServer } from "@/lib/supabase/server";
 import InstallPrompt from "@/components/InstallPrompt";
@@ -122,7 +136,9 @@ export default async function Landing() {
           <div className="mt-10 grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {FEATURES.map((f, i) => (
               <div key={f.title} className={`glass glass-hover p-5 fade-up d${(i % 6) + 1}`}>
-                <div className="text-2xl mb-2" aria-hidden="true">{f.icon}</div>
+                <div className="text-accent mb-3">
+                  <f.icon size={22} aria-hidden />
+                </div>
                 <h3 className="font-medium">{f.title}</h3>
                 <p className="muted text-sm mt-1">{f.desc}</p>
               </div>
@@ -174,18 +190,18 @@ export default async function Landing() {
 }
 
 const FEATURES = [
-  { icon: "💌", title: "Memory Jar", desc: "Photos, voice notes, dated moments." },
-  { icon: "📔", title: "Journal", desc: "A daily AI prompt. Both answer, both reveal." },
-  { icon: "🎯", title: "Date Roulette", desc: "Spin tonight. AI generates fresh ideas." },
-  { icon: "🌍", title: "Bucket List", desc: "Dreams with progress. Tick them off." },
-  { icon: "🎁", title: "Gift Vault", desc: "PIN-locked. Surprises stay surprises." },
-  { icon: "🧠", title: "Quiz", desc: "How well do you actually know each other?" },
-  { icon: "🎬", title: "Watchlist", desc: "Tonight? AI picks for the mood and time." },
-  { icon: "🍳", title: "Recipes", desc: "What's in the pantry? AI suggests dinner." },
-  { icon: "🎶", title: "Our Songs", desc: "A shared Spotify playlist with stories." },
-  { icon: "🗺️", title: "Travel", desc: "Pins for someday. AI drafts the day." },
-  { icon: "💝", title: "Voice Letters", desc: "Audio sealed until the date you choose." },
-  { icon: "📅", title: "Year in Review", desc: "An auto-written recap from everything." },
+  { icon: Mail, title: "Memory Jar", desc: "Photos, voice notes, dated moments." },
+  { icon: NotebookPen, title: "Journal", desc: "A daily AI prompt. Both answer, both reveal." },
+  { icon: Dices, title: "Date Roulette", desc: "Spin tonight. AI generates fresh ideas." },
+  { icon: Globe, title: "Bucket List", desc: "Dreams with progress. Tick them off." },
+  { icon: Gift, title: "Gift Vault", desc: "PIN-locked. Surprises stay surprises." },
+  { icon: Sparkles, title: "Quiz", desc: "How well do you actually know each other?" },
+  { icon: Clapperboard, title: "Watchlist", desc: "Tonight? AI picks for the mood and time." },
+  { icon: Utensils, title: "Recipes", desc: "What's in the pantry? AI suggests dinner." },
+  { icon: Music, title: "Our Songs", desc: "A shared Spotify playlist with stories." },
+  { icon: Map, title: "Travel", desc: "Pins for someday. AI drafts the day." },
+  { icon: Mic, title: "Voice Letters", desc: "Audio sealed until the date you choose." },
+  { icon: CalendarRange, title: "Year in Review", desc: "An auto-written recap from everything." },
 ];
 
 function Guarantee({ title, body }: { title: string; body: string }) {

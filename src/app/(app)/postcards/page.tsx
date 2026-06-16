@@ -3,6 +3,7 @@ import { requireCoupled } from "@/lib/couple";
 import { supabaseServer } from "@/lib/supabase/server";
 import { BUCKET, signedUrl, userScopedPath } from "@/lib/media";
 import SubmitButton from "@/components/SubmitButton";
+import { Mail } from "lucide-react";
 
 export default async function PostcardsPage() {
   const me = await requireCoupled();
@@ -73,7 +74,7 @@ export default async function PostcardsPage() {
                 {p.signed ? (
                   <img src={p.signed} alt="" className="w-full h-full object-cover" />
                 ) : (
-                  <div className="absolute inset-0 flex items-center justify-center text-6xl opacity-40">📮</div>
+                  <div className="absolute inset-0 flex items-center justify-center text-muted opacity-40"><Mail size={48} aria-hidden /></div>
                 )}
               </div>
               <div className="p-4 relative">
