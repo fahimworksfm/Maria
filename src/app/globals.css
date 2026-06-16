@@ -238,3 +238,20 @@ body {
   outline-offset: 2px;
   border-radius: 4px;
 }
+
+/* Calm celebration: soft petals drifting up (replaces the confetti burst). */
+.petal {
+  position: fixed;
+  bottom: 6vh;
+  z-index: 1000;
+  pointer-events: none;
+  border-radius: 60% 60% 62% 10%;
+  filter: blur(0.4px);
+  opacity: 0;
+  will-change: transform, opacity;
+}
+@keyframes petalRise {
+  0% { opacity: 0; transform: translate(0, 0) rotate(0deg); }
+  18% { opacity: 0.8; }
+  100% { opacity: 0; transform: translate(var(--sway, 0px), -74vh) rotate(var(--spin, 200deg)); }
+}
