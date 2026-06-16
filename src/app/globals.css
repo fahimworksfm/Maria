@@ -183,6 +183,17 @@ body {
   .cta-glow::before { animation: shine 6s linear infinite; }
   .pulse-button::before { animation: pulse-aura 2.4s ease-in-out infinite; }
   .pulse-button-emoji { animation: pulse-heart 2.4s ease-in-out infinite; }
+  /* New list items fade/slide in (only newly-mounted nodes animate). */
+  .collection-item { animation: collEnter 0.35s ease both; }
+  .toast-in { animation: toastIn 0.25s ease both; }
+}
+@keyframes collEnter {
+  from { opacity: 0; transform: translateY(-6px) scale(0.99); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes toastIn {
+  from { opacity: 0; transform: translate(-50%, 10px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
 }
 
 /* Visible keyboard focus across tiles, nav items, buttons and links. */

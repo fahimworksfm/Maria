@@ -542,3 +542,17 @@ create policy "repair_entries_write_self" on repair_entries for all
 
 -- Couple-level accent theme (see src/lib/themes.ts).
 alter table couples add column if not exists theme text not null default 'coral';
+
+-- Realtime for optimistic collection boards (places, gratitudes, bucket_items, watchlist).
+do $$
+declare t text;
+begin
+  foreach t in array array['places','gratitudes','bucket_items','watchlist'] loop
+    if not exists (
+      select 1 from pg_publication_tables
+      where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = t
+    ) then
+      execute format('alter publication supabase_realtime add table public.%I', t);
+    end if;
+  end loop;
+end $$;
