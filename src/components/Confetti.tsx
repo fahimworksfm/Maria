@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { play } from "@/lib/sound";
 
 // A calm, warm celebration: a few soft petals drift up and fade. Deliberately
 // quiet (Arrows-style restraint) — not a confetti burst. Skips on reduced-motion.
@@ -16,6 +17,7 @@ export default function Confetti({ trigger, once }: { trigger: string | number |
       } catch {}
     }
 
+    play("celebrate");
     const COUNT = 14;
     const colors = ["var(--accent)", "var(--accent-2)", "var(--accent-3)"];
     const root = document.body;

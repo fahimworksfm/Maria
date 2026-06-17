@@ -3,6 +3,7 @@ import { requireCoupled } from "@/lib/couple";
 import { supabaseServer } from "@/lib/supabase/server";
 import { THEMES, DEFAULT_THEME } from "@/lib/themes";
 import ThemePicker from "@/components/ThemePicker";
+import SoundToggle from "@/components/SoundToggle";
 import SubmitButton from "@/components/SubmitButton";
 
 type Prefs = {
@@ -87,6 +88,9 @@ export default async function ProfilePage() {
           <p className="muted text-xs">Sets the accent for both of you. Pick what feels like the two of you.</p>
         </div>
         <ThemePicker current={currentTheme} action={setTheme} />
+        <div className="border-t border-line/70 pt-3">
+          <SoundToggle />
+        </div>
       </section>
 
       <form action={save} className="card p-4 space-y-3">

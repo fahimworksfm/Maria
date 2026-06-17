@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { tap, HAPTIC } from "@/lib/haptic";
+import { play } from "@/lib/sound";
 
 export default function PulseButton() {
   const [pressed, setPressed] = useState(false);
@@ -9,6 +10,7 @@ export default function PulseButton() {
   function handleDown() {
     setPressed(true);
     tap(HAPTIC.pulse);
+    play("pulse");
     window.setTimeout(() => setPressed(false), 850);
   }
 

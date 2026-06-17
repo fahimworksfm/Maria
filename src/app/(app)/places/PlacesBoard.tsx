@@ -1,10 +1,13 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import dynamic from "next/dynamic";
 import { MapPin } from "lucide-react";
 import { useCollection } from "@/lib/useCollection";
 import UndoToast from "@/components/UndoToast";
 import SwipeRow from "@/components/SwipeRow";
+
+const PlacesMap = dynamic(() => import("./PlacesMap"), { ssr: false });
 
 export type Place = {
   id: string;
@@ -77,7 +80,9 @@ export default function PlacesBoard({ initial, coupleId }: { initial: Place[]; c
 
   const toGo = items.filter((p) => !p.visited);
   const been = items.filter((p) => p.visited);
-  const mapPlace = items.find((p) => p.lat != null && p.lng != null);
+  const mapPins = items
+    .filter((p) => p.lat != null && p.lng != null && !String(p.id).startsWith("temp-"))
+    .map((p) => ({ id: p.id, name: p.name, lat: p.lat as number, lng: p.lng as number, visited: p.visited }));
 
   return (
     <div className="space-y-6">
@@ -117,18 +122,7 @@ export default function PlacesBoard({ initial, coupleId }: { initial: Place[]; c
         </div>
       </form>
 
-      {mapPlace && (
-        <div className="card p-1 overflow-hidden">
-          <iframe
-            title="Map"
-            className="w-full rounded-lg"
-            style={{ height: 180, border: 0 }}
-            loading="lazy"
-            src={`https://www.openstreetmap.org/export/embed.html?bbox=${mapPlace.lng! - 0.01}%2C${mapPlace.lat! - 0.01}%2C${mapPlace.lng! + 0.01}%2C${mapPlace.lat! + 0.01}&layer=mapnik&marker=${mapPlace.lat}%2C${mapPlace.lng}`}
-          />
-          <p className="muted text-xs px-2 py-1">Showing {mapPlace.name}</p>
-        </div>
-      )}
+      {mapPins.length > 0 && <PlacesMap pins={mapPins} />}
 
       <section className="space-y-2">
         <h3 className="label">Want to go ({toGo.length})</h3>

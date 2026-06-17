@@ -6,6 +6,7 @@ import BottomNav from "@/components/BottomNav";
 import PushRegistration from "@/components/PushRegistration";
 import PartnerPresence from "@/components/PartnerPresence";
 import OfflineStatus from "@/components/OfflineStatus";
+import PageTransition from "@/components/PageTransition";
 import { getTheme, themeVars } from "@/lib/themes";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
@@ -36,7 +37,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           </nav>
         </div>
       </header>
-      <main className="flex-1 max-w-3xl w-full mx-auto px-4 pt-4 pb-nav">{children}</main>
+      <main className="flex-1 max-w-3xl w-full mx-auto px-4 pt-4 pb-nav">
+        <PageTransition>{children}</PageTransition>
+      </main>
       <footer className="max-w-3xl w-full mx-auto px-4 pb-28 text-xs text-muted flex gap-3 justify-center">
         <Link href="/terms" className="hover:text-ink">Terms</Link>
         <span>·</span>
