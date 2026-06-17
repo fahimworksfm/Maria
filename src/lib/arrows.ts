@@ -1,24 +1,50 @@
-// Arrows puzzle engine (original take on the "tap an arrow, it slides off the
-// grid if its path is clear; clear the board to win" mechanic).
+// Arrows puzzle engine — multi-cell sliding "pipe" pieces (original take on the
+// Arrows – Puzzle Escape mechanic): each piece is a straight run of cells with an
+// arrowhead at one end; tap it to slide it off the board in its head direction if
+// the path beyond the head to the edge is clear. Pieces block each other.
 //
-// Levels are generated deterministically from the level number so both partners
-// get the same puzzle, and by reverse-construction so every level is solvable:
-// we place arrows one at a time only where their straight path to the edge is
-// clear of already-placed arrows — the reverse of that placement order is a
-// valid solve order.
+// Levels are deterministic (seeded by level / date) and always solvable by
+// reverse-construction: a piece is only placed where its exit path is clear of
+// already-placed pieces, so the reverse of the placement order is a valid solve.
 
 export type Dir = "U" | "D" | "L" | "R";
-export type Cell = Dir | null;
-export type Grid = Cell[][];
-
-export const DELTA: Record<Dir, [number, number]> = {
-  U: [-1, 0],
-  D: [1, 0],
-  L: [0, -1],
-  R: [0, 1],
-};
-
+export const DELTA: Record<Dir, [number, number]> = { U: [-1, 0], D: [1, 0], L: [0, -1], R: [0, 1] };
 const DIRS: Dir[] = ["U", "D", "L", "R"];
+
+export type Piece = { id: number; cells: [number, number][]; dir: Dir }; // cells ordered tail → head
+export type Board = { size: number; pieces: Piece[] };
+
+const ckey = (r: number, c: number) => `${r},${c}`;
+
+function occupancy(pieces: Piece[], exceptId?: number): Set<string> {
+  const s = new Set<string>();
+  for (const p of pieces) {
+    if (p.id === exceptId) continue;
+    for (const [r, c] of p.cells) s.add(ckey(r, c));
+  }
+  return s;
+}
+
+export function headOf(p: Piece): [number, number] {
+  return p.cells[p.cells.length - 1]!;
+}
+
+export function canExit(board: Board, piece: Piece): boolean {
+  const occ = occupancy(board.pieces, piece.id);
+  const [dr, dc] = DELTA[piece.dir];
+  let [r, c] = headOf(piece);
+  r += dr; c += dc;
+  while (r >= 0 && r < board.size && c >= 0 && c < board.size) {
+    if (occ.has(ckey(r, c))) return false;
+    r += dr; c += dc;
+  }
+  return true;
+}
+
+export function findHintId(board: Board): number | null {
+  for (const p of board.pieces) if (canExit(board, p)) return p.id;
+  return null;
+}
 
 function mulberry32(seed: number) {
   return () => {
@@ -30,83 +56,56 @@ function mulberry32(seed: number) {
   };
 }
 
-// Cells the arrow at (r,c) must travel through to leave the board (exclusive of
-// its own cell, inclusive to the edge).
-export function pathToEdge(r: number, c: number, dir: Dir, size: number): Array<[number, number]> {
-  const [dr, dc] = DELTA[dir];
-  const cells: Array<[number, number]> = [];
-  let nr = r + dr;
-  let nc = c + dc;
-  while (nr >= 0 && nr < size && nc >= 0 && nc < size) {
-    cells.push([nr, nc]);
-    nr += dr;
-    nc += dc;
-  }
-  return cells;
-}
-
-// Is this arrow free to fly off the board right now? (no occupied cell in path)
-export function canExit(grid: Grid, r: number, c: number): boolean {
-  const dir = grid[r]![c]!;
-  if (!dir) return false;
-  for (const [pr, pc] of pathToEdge(r, c, dir, grid.length)) {
-    if (grid[pr]![pc]) return false;
-  }
-  return true;
-}
-
-export function countArrows(grid: Grid): number {
-  let n = 0;
-  for (const row of grid) for (const cell of row) if (cell) n++;
-  return n;
-}
-
-function genGrid(seed: number, size: number, target: number): Grid {
+function genBoard(seed: number, size: number, target: number, maxLen: number): Board {
   const rand = mulberry32(seed);
-  const grid: Grid = Array.from({ length: size }, () => Array<Cell>(size).fill(null));
-  const occupied = new Set<string>();
-
-  let placed = 0;
+  const occ = new Set<string>();
+  const pieces: Piece[] = [];
+  let id = 1;
   let attempts = 0;
-  while (placed < target && attempts < target * 60) {
+  while (pieces.length < target && attempts < target * 120) {
     attempts++;
-    const r = Math.floor(rand() * size);
-    const c = Math.floor(rand() * size);
-    if (occupied.has(`${r},${c}`)) continue;
-    const order = [...DIRS].sort(() => rand() - 0.5);
-    let chosen: Dir | null = null;
-    for (const dir of order) {
-      const clear = pathToEdge(r, c, dir, size).every(([pr, pc]) => !occupied.has(`${pr},${pc}`));
-      if (clear) { chosen = dir; break; }
+    const dir = DIRS[Math.floor(rand() * 4)]!;
+    const len = 1 + Math.floor(rand() * maxLen);
+    const hr = Math.floor(rand() * size);
+    const hc = Math.floor(rand() * size);
+    const [dr, dc] = DELTA[dir];
+
+    // Body extends opposite the head direction. Build tail → head.
+    const cells: [number, number][] = [];
+    let ok = true;
+    for (let i = len - 1; i >= 0; i--) {
+      const r = hr - dr * i;
+      const c = hc - dc * i;
+      if (r < 0 || r >= size || c < 0 || c >= size || occ.has(ckey(r, c))) { ok = false; break; }
+      cells.push([r, c]);
     }
-    if (!chosen) continue;
-    grid[r]![c] = chosen;
-    occupied.add(`${r},${c}`);
-    placed++;
+    if (!ok) continue;
+
+    // Exit path from head to edge must be clear of already-placed pieces.
+    let er = hr + dr;
+    let ec = hc + dc;
+    let clear = true;
+    while (er >= 0 && er < size && ec >= 0 && ec < size) {
+      if (occ.has(ckey(er, ec))) { clear = false; break; }
+      er += dr; ec += dc;
+    }
+    if (!clear) continue;
+
+    for (const [r, c] of cells) occ.add(ckey(r, c));
+    pieces.push({ id: id++, cells, dir });
   }
-  return grid;
+  return { size, pieces };
 }
 
-export function genLevel(level: number): Grid {
-  const size = Math.min(4 + Math.floor((level - 1) / 4), 7); // 4 → 7 as you progress
-  const target = Math.min(3 + level, Math.floor(size * size * 0.55));
-  return genGrid(level * 9973 + 7, size, target);
+export function genLevel(level: number): Board {
+  const size = Math.min(4 + Math.floor((level - 1) / 3), 6); // 4 → 6
+  const target = Math.min(2 + level, Math.floor((size * size) / 3));
+  const maxLen = size >= 6 ? 4 : 3;
+  return genBoard(level * 9973 + 7, size, target, maxLen);
 }
 
-// The same puzzle for everyone on a given calendar day (date-seeded).
-export function genDaily(dateStr: string): Grid {
+export function genDaily(dateStr: string): Board {
   let h = 0;
   for (let i = 0; i < dateStr.length; i++) h = (h * 31 + dateStr.charCodeAt(i)) | 0;
-  return genGrid((h >>> 0) + 12345, 6, 16);
-}
-
-// First currently-exitable arrow — used by the hint button. There is always one
-// until the board is clear (removing arrows only frees paths).
-export function findHint(grid: Grid): [number, number] | null {
-  for (let r = 0; r < grid.length; r++) {
-    for (let c = 0; c < grid.length; c++) {
-      if (grid[r]![c] && canExit(grid, r, c)) return [r, c];
-    }
-  }
-  return null;
+  return genBoard((h >>> 0) + 12345, 6, 9, 4);
 }

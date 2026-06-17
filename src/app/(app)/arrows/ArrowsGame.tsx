@@ -1,8 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ArrowUp, ArrowDown, ArrowLeft, ArrowRight, RotateCcw, Lightbulb, type LucideIcon } from "lucide-react";
-import { genLevel, genDaily, canExit, countArrows, findHint, DELTA, type Grid, type Dir } from "@/lib/arrows";
+import { ArrowUp, ArrowDown, ArrowLeft, ArrowRight, Heart, Undo2, Lightbulb, RotateCcw, type LucideIcon } from "lucide-react";
+import { genLevel, genDaily, canExit, findHintId, headOf, DELTA, type Board, type Piece, type Dir } from "@/lib/arrows";
 import { tap, HAPTIC } from "@/lib/haptic";
 import { play } from "@/lib/sound";
 import Confetti from "@/components/Confetti";
@@ -12,107 +12,93 @@ export type Result = { moves: number; timeMs: number } | null;
 const ICON: Record<Dir, LucideIcon> = { U: ArrowUp, D: ArrowDown, L: ArrowLeft, R: ArrowRight };
 type Mode = "levels" | "daily";
 
+// Fixed game palette (matches Arrows' lavender-on-navy look, independent of theme).
+const NAVY = "#171c2e";
+const NAVY2 = "#1f2740";
+const PIPE = "#aab4ff";
+const LIVES = 3;
+
 function fmtTime(ms: number): string {
   const s = ms / 1000;
   if (s < 60) return `${s.toFixed(1)}s`;
-  const m = Math.floor(s / 60);
-  return `${m}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
+  return `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
 }
 
 export default function ArrowsGame({
-  startLevel,
-  partnerLevel,
-  partnerName,
-  dailyDate,
-  dailyKey,
-  myDaily,
-  partnerDaily,
-  saveLevel,
-  recordResult,
+  startLevel, partnerLevel, partnerName, dailyDate, dailyKey, myDaily, partnerDaily, saveLevel, recordResult,
 }: {
-  startLevel: number;
-  partnerLevel: number | null;
-  partnerName: string;
-  dailyDate: string;
-  dailyKey: string;
-  myDaily: Result;
-  partnerDaily: Result;
+  startLevel: number; partnerLevel: number | null; partnerName: string;
+  dailyDate: string; dailyKey: string; myDaily: Result; partnerDaily: Result;
   saveLevel: (level: number) => Promise<void>;
   recordResult: (puzzleKey: string, moves: number, timeMs: number) => Promise<void>;
 }) {
   const [mode, setMode] = useState<Mode>("levels");
   const [level, setLevel] = useState(startLevel);
-  const [grid, setGrid] = useState<Grid>(() => genLevel(startLevel));
+  const [board, setBoard] = useState<Board>(() => genLevel(startLevel));
+  const [removed, setRemoved] = useState<Piece[]>([]);
+  const [lives, setLives] = useState(LIVES);
   const [moves, setMoves] = useState(0);
-  const [exiting, setExiting] = useState<{ r: number; c: number; dir: Dir } | null>(null);
-  const [shake, setShake] = useState<string | null>(null);
-  const [hintCell, setHintCell] = useState<string | null>(null);
+  const [exitingId, setExitingId] = useState<number | null>(null);
+  const [shakeId, setShakeId] = useState<number | null>(null);
+  const [hintId, setHintId] = useState<number | null>(null);
   const [won, setWon] = useState(false);
+  const [failed, setFailed] = useState(false);
   const [busy, setBusy] = useState(false);
   const [elapsed, setElapsed] = useState(0);
   const [dailySolved, setDailySolved] = useState<Result>(myDaily);
 
   const startedAt = useRef<number | null>(null);
   const tickRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const stopTimer = useCallback(() => { if (tickRef.current) { clearInterval(tickRef.current); tickRef.current = null; } }, []);
 
-  const stopTimer = useCallback(() => {
-    if (tickRef.current) { clearInterval(tickRef.current); tickRef.current = null; }
-  }, []);
-
-  const loadGrid = useCallback((g: Grid) => {
-    setGrid(g);
-    setMoves(0);
-    setWon(false);
-    setExiting(null);
-    setShake(null);
-    setHintCell(null);
-    setBusy(false);
-    setElapsed(0);
-    startedAt.current = null;
-    stopTimer();
+  const loadBoard = useCallback((b: Board) => {
+    setBoard(b); setRemoved([]); setLives(LIVES); setMoves(0);
+    setExitingId(null); setShakeId(null); setHintId(null); setWon(false); setFailed(false); setBusy(false);
+    setElapsed(0); startedAt.current = null; stopTimer();
   }, [stopTimer]);
 
-  // (Re)load the puzzle when mode/level changes.
   useEffect(() => {
-    if (mode === "levels") loadGrid(genLevel(level));
-    else loadGrid(genDaily(dailyDate));
+    loadBoard(mode === "levels" ? genLevel(level) : genDaily(dailyDate));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode, level, dailyDate]);
-
   useEffect(() => () => stopTimer(), [stopTimer]);
 
   function ensureTimer() {
     if (startedAt.current == null) {
       startedAt.current = Date.now();
-      tickRef.current = setInterval(() => {
-        if (startedAt.current != null) setElapsed(Date.now() - startedAt.current);
-      }, 100);
+      tickRef.current = setInterval(() => { if (startedAt.current != null) setElapsed(Date.now() - startedAt.current); }, 100);
     }
   }
 
-  function tapCell(r: number, c: number) {
-    if (busy || won) return;
-    const dir = grid[r]![c];
-    if (!dir) return;
-    if (!canExit(grid, r, c)) {
+  function tapPiece(p: Piece) {
+    if (busy || won || failed) return;
+    if (!canExit(board, p)) {
       tap(HAPTIC.tap);
-      setShake(`${r},${c}`);
-      setTimeout(() => setShake(null), 320);
+      setShakeId(p.id);
+      setTimeout(() => setShakeId(null), 320);
+      setLives((lv) => {
+        const next = lv - 1;
+        if (next <= 0) {
+          setFailed(true);
+          stopTimer();
+          setTimeout(() => loadBoard(mode === "levels" ? genLevel(level) : genDaily(dailyDate)), 1600);
+        }
+        return Math.max(0, next);
+      });
       return;
     }
     ensureTimer();
     setBusy(true);
-    setHintCell(null);
+    setHintId(null);
     tap(HAPTIC.tick);
     play("tick");
-    setExiting({ r, c, dir });
+    setExitingId(p.id);
     const nextMoves = moves + 1;
     setMoves(nextMoves);
     setTimeout(() => {
-      setGrid((g) => {
-        const next = g.map((row) => [...row]);
-        next[r]![c] = null;
-        if (countArrows(next) === 0) {
+      setBoard((b) => {
+        const pieces = b.pieces.filter((x) => x.id !== p.id);
+        if (pieces.length === 0) {
           stopTimer();
           const timeMs = startedAt.current ? Date.now() - startedAt.current : 0;
           setElapsed(timeMs);
@@ -126,124 +112,150 @@ export default function ArrowsGame({
             setDailySolved({ moves: nextMoves, timeMs });
           }
         }
-        return next;
+        return { ...b, pieces };
       });
-      setExiting(null);
+      setRemoved((r) => [...r, p]);
+      setExitingId(null);
       setBusy(false);
-    }, 260);
+    }, 240);
   }
 
-  function restart() { tap(HAPTIC.tick); loadGrid(mode === "levels" ? genLevel(level) : genDaily(dailyDate)); }
-
-  function hint() {
-    if (won || busy) return;
-    const h = findHint(grid);
-    if (!h) return;
+  function undo() {
+    if (won || failed || busy || removed.length === 0) return;
     tap(HAPTIC.tick);
-    setHintCell(`${h[0]},${h[1]}`);
-    setTimeout(() => setHintCell(null), 1300);
+    const last = removed[removed.length - 1]!;
+    setRemoved((r) => r.slice(0, -1));
+    setBoard((b) => ({ ...b, pieces: [...b.pieces, last] }));
+    setMoves((m) => Math.max(0, m - 1));
   }
 
-  const size = grid.length;
-  const remaining = countArrows(grid);
+  function restart() { tap(HAPTIC.tick); loadBoard(mode === "levels" ? genLevel(level) : genDaily(dailyDate)); }
+  function hint() {
+    if (won || failed || busy) return;
+    const id = findHintId(board);
+    if (id == null) return;
+    tap(HAPTIC.tick);
+    setHintId(id);
+    setTimeout(() => setHintId(null), 1300);
+  }
+
+  const size = board.size;
+  const cell = 100 / size;
+  const inset = cell * 0.15;
 
   return (
     <div className="space-y-5">
       {won && <Confetti trigger={`arrows-${mode}-${level}`} />}
 
-      {/* Mode tabs */}
       <div className="grid grid-cols-2 gap-2 p-1 rounded-xl2 bg-panel2/60 border border-line">
         {(["levels", "daily"] as Mode[]).map((m) => (
-          <button
-            key={m}
-            onClick={() => { tap(HAPTIC.tick); setMode(m); }}
-            className={`py-2 rounded-lg text-sm transition ${mode === m ? "bg-accent/15 text-ink" : "text-muted hover:text-ink"}`}
-          >
+          <button key={m} onClick={() => { tap(HAPTIC.tick); setMode(m); }}
+            className={`py-2 rounded-lg text-sm transition ${mode === m ? "bg-accent/15 text-ink" : "text-muted hover:text-ink"}`}>
             {m === "levels" ? "Levels" : "Daily puzzle"}
           </button>
         ))}
       </div>
 
+      {/* Top bar: undo / hint · level+stats · lives */}
       <div className="flex items-center justify-between">
-        <div>
-          <span className="label !mb-0">{mode === "levels" ? "Level" : "Today"}</span>
-          <div className="font-display text-2xl leading-none">{mode === "levels" ? level : dailyDate.slice(5)}</div>
+        <div className="flex gap-1">
+          <button onClick={undo} disabled={removed.length === 0 || won || failed} className="btn btn-ghost p-2" aria-label="Undo"><Undo2 size={18} aria-hidden /></button>
+          <button onClick={hint} disabled={won || failed} className="btn btn-ghost p-2" aria-label="Hint"><Lightbulb size={18} aria-hidden /></button>
+          <button onClick={restart} className="btn btn-ghost p-2" aria-label="Restart"><RotateCcw size={18} aria-hidden /></button>
         </div>
-        <div className="text-center">
-          <span className="label !mb-0">Moves</span>
-          <div className="font-display text-2xl leading-none">{moves}</div>
-        </div>
-        <div className="text-right">
-          <span className="label !mb-0">Time</span>
-          <div className="font-display text-2xl leading-none tabular-nums">{fmtTime(elapsed)}</div>
+        <div className="flex gap-1">
+          {Array.from({ length: LIVES }).map((_, i) => (
+            <Heart key={i} size={20} aria-hidden
+              fill={i < lives ? "#f0566e" : "transparent"} color={i < lives ? "#f0566e" : "#46506e"} />
+          ))}
         </div>
       </div>
 
-      <div className="grid gap-2 mx-auto select-none" style={{ gridTemplateColumns: `repeat(${size}, 1fr)`, maxWidth: 380 }}>
-        {grid.map((row, r) =>
-          row.map((dir, c) => {
-            const k = `${r},${c}`;
-            const isExiting = exiting && exiting.r === r && exiting.c === c;
-            const exitTransform = isExiting ? `translate(${DELTA[exiting!.dir][1] * 140}%, ${DELTA[exiting!.dir][0] * 140}%)` : undefined;
-            const Icon = dir ? ICON[dir] : null;
-            return (
-              <div key={k} className="aspect-square">
-                {dir && Icon ? (
-                  <button
-                    onClick={() => tapCell(r, c)}
-                    aria-label={`Arrow ${dir}`}
-                    className={`w-full h-full rounded-xl2 grid place-items-center bg-accent/12 text-accent border transition-all duration-200 active:scale-90 hover:bg-accent/20 ${shake === k ? "shake" : ""} ${hintCell === k ? "ring-2 ring-accent border-accent" : "border-accent/20"}`}
-                    style={{ transform: exitTransform, opacity: isExiting ? 0 : 1 }}
-                  >
-                    <Icon size={Math.max(18, 120 / size)} strokeWidth={2.2} aria-hidden />
-                  </button>
-                ) : (
-                  <div className="w-full h-full rounded-xl2 bg-panel2/40 border border-line/40" />
-                )}
-              </div>
-            );
-          })
+      <div className="flex items-center justify-between text-center">
+        <Stat label={mode === "levels" ? "Level" : "Today"} value={mode === "levels" ? String(level) : dailyDate.slice(5)} />
+        <Stat label="Moves" value={String(moves)} />
+        <Stat label="Time" value={fmtTime(elapsed)} />
+      </div>
+
+      {/* Board */}
+      <div className="relative mx-auto w-full rounded-xl2 overflow-hidden" style={{ maxWidth: 380, aspectRatio: "1 / 1", background: NAVY, border: `1px solid ${NAVY2}` }}>
+        {/* faint grid */}
+        <div className="absolute inset-0" style={{ backgroundImage: `linear-gradient(${NAVY2} 1px, transparent 1px), linear-gradient(90deg, ${NAVY2} 1px, transparent 1px)`, backgroundSize: `${cell}% ${cell}%`, opacity: 0.5 }} />
+
+        {board.pieces.map((p) => {
+          const rs = p.cells.map((c) => c[0]); const cs = p.cells.map((c) => c[1]);
+          const minR = Math.min(...rs), maxR = Math.max(...rs), minC = Math.min(...cs), maxC = Math.max(...cs);
+          const [hr, hc] = headOf(p);
+          const [dr, dc] = DELTA[p.dir];
+          const exiting = exitingId === p.id;
+          const Icon = ICON[p.dir];
+          return (
+            <div key={p.id}
+              style={{
+                position: "absolute",
+                top: `${minR * cell}%`, left: `${minC * cell}%`,
+                width: `${(maxC - minC + 1) * cell}%`, height: `${(maxR - minR + 1) * cell}%`,
+                transform: exiting ? `translate(${dc * 130}%, ${dr * 130}%)` : "none",
+                opacity: exiting ? 0 : 1,
+                transition: "transform .24s ease, opacity .24s ease",
+              }}>
+              <button onClick={() => tapPiece(p)} aria-label={`Arrow ${p.dir}`} className={shakeId === p.id ? "shake" : ""}
+                style={{
+                  position: "absolute", inset: `${inset}%`,
+                  background: PIPE, borderRadius: 9999, cursor: "pointer", border: "none",
+                  boxShadow: hintId === p.id ? `0 0 0 3px ${PIPE}, 0 0 18px ${PIPE}` : "none",
+                  transition: "box-shadow .2s ease, filter .15s ease",
+                }} />
+              {/* arrowhead at the head cell */}
+              <span style={{
+                position: "absolute", color: NAVY,
+                left: `${((hc - minC) + 0.5) / (maxC - minC + 1) * 100}%`,
+                top: `${((hr - minR) + 0.5) / (maxR - minR + 1) * 100}%`,
+                transform: "translate(-50%, -50%)", pointerEvents: "none",
+              }}>
+                <Icon size={Math.max(14, 200 / size)} strokeWidth={3} aria-hidden />
+              </span>
+            </div>
+          );
+        })}
+
+        {failed && (
+          <div className="absolute inset-0 grid place-items-center" style={{ background: "rgba(10,12,22,0.7)" }}>
+            <p className="font-display text-lg text-ink">Out of hearts — resetting…</p>
+          </div>
         )}
       </div>
 
       {won ? (
-        <p className="text-center font-display text-lg">
-          {mode === "levels" ? "Cleared. Next one…" : `Solved in ${moves} moves · ${fmtTime(elapsed)}`}
-        </p>
+        <p className="text-center font-display text-lg">{mode === "levels" ? "Cleared. Next one…" : `Solved in ${moves} moves · ${fmtTime(elapsed)}`}</p>
       ) : (
-        <p className="muted text-center text-sm">Tap an arrow to send it off the grid. Clear them all.</p>
+        <p className="muted text-center text-sm">Tap a piece to slide it off the grid. Clear them all.</p>
       )}
 
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex gap-2">
-          <button onClick={restart} className="btn inline-flex items-center gap-2 text-sm">
-            <RotateCcw size={16} aria-hidden /> Restart
-          </button>
-          <button onClick={hint} className="btn inline-flex items-center gap-2 text-sm" disabled={won}>
-            <Lightbulb size={16} aria-hidden /> Hint
-          </button>
-        </div>
-        {mode === "levels" && partnerLevel != null && (
-          <span className="muted text-xs text-right">You: lvl {level}<br />{partnerName}: lvl {partnerLevel}</span>
-        )}
-      </div>
+      {mode === "levels" && partnerLevel != null && (
+        <p className="muted text-center text-xs">You: level {level} · {partnerName}: level {partnerLevel}</p>
+      )}
 
       {mode === "daily" && (
         <div className="card p-4 space-y-2">
           <h3 className="label">Today&apos;s puzzle · you vs {partnerName}</h3>
           <Row who="You" r={dailySolved} />
           <Row who={partnerName} r={partnerDaily} />
-          {dailySolved && partnerDaily && (
-            <p className="muted text-xs pt-1">
-              {scoreLine(dailySolved, partnerDaily, partnerName)}
-            </p>
-          )}
+          {dailySolved && partnerDaily && <p className="muted text-xs pt-1">{scoreLine(dailySolved, partnerDaily, partnerName)}</p>}
         </div>
       )}
     </div>
   );
 }
 
+function Stat({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <span className="label !mb-0">{label}</span>
+      <div className="font-display text-2xl leading-none tabular-nums">{value}</div>
+    </div>
+  );
+}
 function Row({ who, r }: { who: string; r: Result }) {
   return (
     <div className="flex justify-between text-sm">
@@ -252,7 +264,6 @@ function Row({ who, r }: { who: string; r: Result }) {
     </div>
   );
 }
-
 function scoreLine(me: NonNullable<Result>, them: NonNullable<Result>, partnerName: string): string {
   if (me.moves !== them.moves) return me.moves < them.moves ? "Fewer moves — you take it 🤍" : `${partnerName} solved it in fewer moves.`;
   if (me.timeMs !== them.timeMs) return me.timeMs < them.timeMs ? "Same moves, you were faster." : `Same moves — ${partnerName} was faster.`;
