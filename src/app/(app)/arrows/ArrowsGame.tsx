@@ -13,8 +13,11 @@ type Mode = "levels" | "daily";
 const NAVY = "#171c2e";
 const NAVY2 = "#252e49";
 const PIPE = "#aab4ff";
+const PIPE_HI = "#d8ddff";
 const RED = "#f0566e";
+const RED_HI = "#ffd6dd";
 const LIVES = 3;
+const EXIT_MS = 300;
 
 function fmtTime(ms: number): string {
   const s = ms / 1000;
@@ -22,13 +25,28 @@ function fmtTime(ms: number): string {
   return `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
 }
 
-function piecePoints(p: Piece): string {
-  if (p.cells.length === 1) {
-    const [r, c] = p.cells[0]!;
-    const [dr, dc] = DELTA[p.dir];
-    return `${c + 0.5 - dc * 0.2},${r + 0.5 - dr * 0.2} ${c + 0.5 + dc * 0.2},${r + 0.5 + dr * 0.2}`;
-  }
-  return p.cells.map(([r, c]) => `${c + 0.5},${r + 0.5}`).join(" ");
+// Geometry for drawing + the head-first "drain" exit. The body is drawn along an
+// extended path (its own cells + a corridor running off-board past the head); a
+// dash window the length of the body slides along that path so the pipe retracts
+// head-first along the route it occupies — matching the engine's model where the
+// body trails the head and only the head corridor must be clear.
+function exitGeom(p: Piece, size: number) {
+  const pts = p.cells.map(([r, c]) => [c + 0.5, r + 0.5] as [number, number]);
+  const [dx, dy] = [DELTA[p.dir][1], DELTA[p.dir][0]];
+  const [hx, hy] = pts[pts.length - 1]!;
+  const ext = size + 1;
+  const full = [...pts];
+  for (let k = 1; k <= ext; k++) full.push([hx + dx * k, hy + dy * k]);
+  const toStr = (a: [number, number][]) => a.map(([x, y]) => `${x},${y}`).join(" ");
+  const lWin = p.cells.length - 1; // body arc length (unit cells)
+  const lTot = lWin + ext;
+  return {
+    bodyStr: toStr(pts),
+    fullStr: toStr(full),
+    shadowStr: toStr(full.map(([x, y]) => [x + 0.06, y + 0.08] as [number, number])),
+    dash: `${lWin} ${lTot + 1}`,
+    lTot,
+  };
 }
 
 function arrowHead(p: Piece): string {
@@ -110,27 +128,28 @@ export default function ArrowsGame({
     setExitingId(p.id);
     const nextMoves = moves + 1;
     setMoves(nextMoves);
+    // No other piece can change during the exit (busy gates taps/undo), so the
+    // board after this removal is known now — compute the win + its side effects
+    // here rather than inside the setBoard updater (which must stay pure).
+    const solved = board.pieces.filter((x) => x.id !== p.id).length === 0;
+    let timeMs = 0;
+    if (solved) { stopTimer(); timeMs = startedAt.current ? Date.now() - startedAt.current : 0; }
     setTimeout(() => {
-      setBoard((b) => {
-        const pieces = b.pieces.filter((x) => x.id !== p.id);
-        if (pieces.length === 0) {
-          stopTimer();
-          const timeMs = startedAt.current ? Date.now() - startedAt.current : 0;
-          setElapsed(timeMs); setWon(true);
-          if (mode === "levels") {
-            void saveLevel(level + 1);
-            void recordResult(`L${level}`, nextMoves, timeMs);
-            setTimeout(() => setLevel((l) => l + 1), 1700);
-          } else {
-            void recordResult(dailyKey, nextMoves, timeMs);
-            setDailySolved({ moves: nextMoves, timeMs });
-          }
-        }
-        return { ...b, pieces };
-      });
+      setBoard((b) => ({ ...b, pieces: b.pieces.filter((x) => x.id !== p.id) }));
       setRemoved((r) => [...r, p]);
       setExitingId(null); setBusy(false);
-    }, 240);
+      if (solved) {
+        setElapsed(timeMs); setWon(true);
+        if (mode === "levels") {
+          void saveLevel(level + 1);
+          void recordResult(`L${level}`, nextMoves, timeMs);
+          setTimeout(() => setLevel((l) => l + 1), 1700);
+        } else {
+          void recordResult(dailyKey, nextMoves, timeMs);
+          setDailySolved({ moves: nextMoves, timeMs });
+        }
+      }
+    }, EXIT_MS);
   }
 
   function undo() {
@@ -184,27 +203,45 @@ export default function ArrowsGame({
         <Stat label="Time" value={fmtTime(elapsed)} />
       </div>
 
-      <div className="relative mx-auto w-full rounded-xl2 overflow-hidden" style={{ maxWidth: 380, aspectRatio: "1 / 1", background: NAVY, border: `1px solid ${NAVY2}` }}>
+      <div className="relative mx-auto w-full rounded-xl2 overflow-hidden" style={{ maxWidth: 380, aspectRatio: "1 / 1", background: NAVY, border: `1px solid ${NAVY2}`, boxShadow: won ? "0 0 0 1px rgba(170,180,255,.55), 0 0 34px rgba(170,180,255,.28)" : "none", transition: "box-shadow .6s ease" }}>
         <div className="absolute inset-0" style={{ backgroundImage: `linear-gradient(${NAVY2} 1px, transparent 1px), linear-gradient(90deg, ${NAVY2} 1px, transparent 1px)`, backgroundSize: `${100 / size}% ${100 / size}%`, opacity: 0.5 }} />
         <svg viewBox={`0 0 ${size} ${size}`} className="absolute inset-0 w-full h-full" style={{ overflow: "visible" }}>
           {board.pieces.map((p) => {
             const exiting = exitingId === p.id;
-            const color = flashId === p.id ? RED : PIPE;
+            const flashing = flashId === p.id;
+            const color = flashing ? RED : PIPE;
+            const hi = flashing ? RED_HI : PIPE_HI;
             const [dx, dy] = [DELTA[p.dir][1], DELTA[p.dir][0]];
+
+            // Single-cell piece: a rounded nub that slides straight off on exit.
+            if (p.cells.length === 1) {
+              const [r, c] = p.cells[0]!;
+              const cx = c + 0.5, cy = r + 0.5;
+              return (
+                <g key={p.id} onClick={() => tapPiece(p)} role="button" aria-label="pipe"
+                  style={{ cursor: "pointer", transform: exiting ? `translate(${dx * 420}px, ${dy * 420}px)` : "none", opacity: exiting ? 0 : 1, transition: `transform ${EXIT_MS}ms ease, opacity ${EXIT_MS}ms ease` }}>
+                  {hintId === p.id && <circle cx={cx} cy={cy} r={0.44} fill="none" stroke="#fff" strokeOpacity={0.4} strokeWidth={0.12} />}
+                  <circle cx={cx} cy={cy} r={0.44} fill="transparent" style={{ pointerEvents: "all" }} />
+                  <circle cx={cx + 0.06} cy={cy + 0.08} r={0.27} fill="#000" fillOpacity={0.28} style={{ pointerEvents: "none" }} />
+                  <circle cx={cx} cy={cy} r={0.27} fill={color} style={{ pointerEvents: "none" }} />
+                  <circle cx={cx - 0.08} cy={cy - 0.1} r={0.08} fill={hi} fillOpacity={0.5} style={{ pointerEvents: "none" }} />
+                  <polygon points={arrowHead(p)} fill={color} style={{ pointerEvents: "none" }} />
+                </g>
+              );
+            }
+
+            const g = exitGeom(p, size);
+            const drain = { strokeDasharray: g.dash, strokeDashoffset: exiting ? -g.lTot : 0, transition: `stroke-dashoffset ${EXIT_MS}ms ease` } as const;
             return (
-              <g key={p.id}
-                onClick={() => tapPiece(p)}
-                style={{
-                  cursor: "pointer",
-                  transform: exiting ? `translate(${dx * 420}px, ${dy * 420}px)` : "none",
-                  opacity: exiting ? 0 : 1,
-                  transition: "transform .26s ease, opacity .26s ease",
-                }}>
+              <g key={p.id} onClick={() => tapPiece(p)} role="button" aria-label="pipe" style={{ cursor: "pointer" }}>
                 {hintId === p.id && (
-                  <polyline points={piecePoints(p)} fill="none" stroke="#ffffff" strokeOpacity={0.55} strokeWidth={0.92} strokeLinecap="round" strokeLinejoin="round" />
+                  <polyline points={g.bodyStr} fill="none" stroke="#fff" strokeOpacity={0.4} strokeWidth={1.02} strokeLinecap="round" strokeLinejoin="round" style={{ pointerEvents: "none" }} />
                 )}
-                <polyline points={piecePoints(p)} fill="none" stroke={color} strokeWidth={0.6} strokeLinecap="round" strokeLinejoin="round" style={{ pointerEvents: "stroke" }} />
-                <polygon points={arrowHead(p)} fill={color} style={{ pointerEvents: "fill" }} />
+                <polyline points={g.bodyStr} fill="none" stroke="transparent" strokeWidth={0.98} strokeLinecap="round" strokeLinejoin="round" style={{ pointerEvents: "stroke" }} />
+                <polyline points={g.shadowStr} fill="none" stroke="#000" strokeOpacity={0.28} strokeWidth={0.6} strokeLinecap="round" strokeLinejoin="round" style={{ pointerEvents: "none", ...drain }} />
+                <polyline points={g.fullStr} fill="none" stroke={color} strokeWidth={0.56} strokeLinecap="round" strokeLinejoin="round" style={{ pointerEvents: "none", ...drain }} />
+                <polyline points={g.fullStr} fill="none" stroke={hi} strokeOpacity={0.5} strokeWidth={0.14} strokeLinecap="round" strokeLinejoin="round" style={{ pointerEvents: "none", ...drain }} />
+                <polygon points={arrowHead(p)} fill={color} style={{ pointerEvents: "fill", transform: exiting ? `translate(${dx * 420}px, ${dy * 420}px)` : "none", opacity: exiting ? 0 : 1, transition: `transform ${EXIT_MS}ms ease, opacity ${EXIT_MS}ms ease` }} />
               </g>
             );
           })}
