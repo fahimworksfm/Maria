@@ -229,6 +229,14 @@ body {
   from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: none; }
 }
+
+/* Arrows puzzle: invalid-move shake (not motion-gated — it's direct feedback). */
+.shake { animation: cellShake 0.3s ease; }
+@keyframes cellShake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  75% { transform: translateX(4px); }
+}
 @keyframes collEnter {
   from { opacity: 0; transform: translateY(-6px) scale(0.99); }
   to { opacity: 1; transform: none; }

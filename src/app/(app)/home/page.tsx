@@ -2,7 +2,7 @@ import Link from "next/link";
 import {
   History, Images, NotebookPen, Dices, Globe, Brain, Clapperboard, MapPin, Music, Map as MapIcon,
   ChefHat, Mic, CalendarRange, Compass, HeartHandshake, Gem, Sparkles, HeartPulse, Newspaper,
-  Sprout, Mail, ClipboardList, Gift, Smile, Heart, Settings2, ArrowRight, type LucideIcon,
+  Sprout, Mail, ClipboardList, Gift, Smile, Heart, Settings2, Gamepad2, ArrowRight, type LucideIcon,
 } from "lucide-react";
 import { requireCoupled } from "@/lib/couple";
 import { supabaseServer } from "@/lib/supabase/server";
@@ -38,6 +38,7 @@ const TILES: Tile[] = [
   { Icon: Sprout, href: "/gratitude", title: "Gratitude Tree", desc: "A leaf for each thanks.", zone: "shared" },
   { Icon: Mail, href: "/postcards", title: "Postcards", desc: "A note from anywhere.", zone: "shared" },
   { Icon: ClipboardList, href: "/worksheets", title: "Worksheets", desc: "Languages, attachment, conflict.", zone: "shared" },
+  { Icon: Gamepad2, href: "/arrows", title: "Arrows", desc: "A calm puzzle for two.", zone: "shared" },
   { Icon: Gift, href: "/vault", title: "Gift Vault", desc: "Private to you. PIN locked.", zone: "private" },
   { Icon: Smile, href: "/mood", title: "Mood", desc: "Daily check-in.", zone: "personal" },
   { Icon: Heart, href: "/love-language", title: "Love Language", desc: "Notice the patterns.", zone: "personal" },
