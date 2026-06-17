@@ -1,27 +1,45 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ArrowUp, ArrowDown, ArrowLeft, ArrowRight, Heart, Undo2, Lightbulb, RotateCcw, type LucideIcon } from "lucide-react";
-import { genLevel, genDaily, canExit, findHintId, headOf, DELTA, type Board, type Piece, type Dir } from "@/lib/arrows";
+import { Heart, Undo2, Lightbulb, RotateCcw } from "lucide-react";
+import { genLevel, genDaily, canExit, findHintId, headOf, DELTA, type Board, type Piece } from "@/lib/arrows";
 import { tap, HAPTIC } from "@/lib/haptic";
 import { play } from "@/lib/sound";
 import Confetti from "@/components/Confetti";
 
 export type Result = { moves: number; timeMs: number } | null;
-
-const ICON: Record<Dir, LucideIcon> = { U: ArrowUp, D: ArrowDown, L: ArrowLeft, R: ArrowRight };
 type Mode = "levels" | "daily";
 
-// Fixed game palette (matches Arrows' lavender-on-navy look, independent of theme).
 const NAVY = "#171c2e";
-const NAVY2 = "#1f2740";
+const NAVY2 = "#252e49";
 const PIPE = "#aab4ff";
+const RED = "#f0566e";
 const LIVES = 3;
 
 function fmtTime(ms: number): string {
   const s = ms / 1000;
   if (s < 60) return `${s.toFixed(1)}s`;
   return `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
+}
+
+function piecePoints(p: Piece): string {
+  if (p.cells.length === 1) {
+    const [r, c] = p.cells[0]!;
+    const [dr, dc] = DELTA[p.dir];
+    return `${c + 0.5 - dc * 0.2},${r + 0.5 - dr * 0.2} ${c + 0.5 + dc * 0.2},${r + 0.5 + dr * 0.2}`;
+  }
+  return p.cells.map(([r, c]) => `${c + 0.5},${r + 0.5}`).join(" ");
+}
+
+function arrowHead(p: Piece): string {
+  const [hr, hc] = headOf(p);
+  const [dx, dy] = [DELTA[p.dir][1], DELTA[p.dir][0]]; // (x,y)
+  const x = hc + 0.5, y = hr + 0.5;
+  const px = dy, py = -dx; // perpendicular
+  const tip = `${x + dx * 0.46},${y + dy * 0.46}`;
+  const a = `${x + px * 0.3 + dx * 0.04},${y + py * 0.3 + dy * 0.04}`;
+  const b = `${x - px * 0.3 + dx * 0.04},${y - py * 0.3 + dy * 0.04}`;
+  return `${tip} ${a} ${b}`;
 }
 
 export default function ArrowsGame({
@@ -39,7 +57,7 @@ export default function ArrowsGame({
   const [lives, setLives] = useState(LIVES);
   const [moves, setMoves] = useState(0);
   const [exitingId, setExitingId] = useState<number | null>(null);
-  const [shakeId, setShakeId] = useState<number | null>(null);
+  const [flashId, setFlashId] = useState<number | null>(null);
   const [hintId, setHintId] = useState<number | null>(null);
   const [won, setWon] = useState(false);
   const [failed, setFailed] = useState(false);
@@ -53,7 +71,7 @@ export default function ArrowsGame({
 
   const loadBoard = useCallback((b: Board) => {
     setBoard(b); setRemoved([]); setLives(LIVES); setMoves(0);
-    setExitingId(null); setShakeId(null); setHintId(null); setWon(false); setFailed(false); setBusy(false);
+    setExitingId(null); setFlashId(null); setHintId(null); setWon(false); setFailed(false); setBusy(false);
     setElapsed(0); startedAt.current = null; stopTimer();
   }, [stopTimer]);
 
@@ -74,24 +92,21 @@ export default function ArrowsGame({
     if (busy || won || failed) return;
     if (!canExit(board, p)) {
       tap(HAPTIC.tap);
-      setShakeId(p.id);
-      setTimeout(() => setShakeId(null), 320);
+      setFlashId(p.id);
+      setTimeout(() => setFlashId(null), 360);
       setLives((lv) => {
-        const next = lv - 1;
-        if (next <= 0) {
-          setFailed(true);
-          stopTimer();
+        const next = Math.max(0, lv - 1);
+        if (next === 0) {
+          setFailed(true); stopTimer();
           setTimeout(() => loadBoard(mode === "levels" ? genLevel(level) : genDaily(dailyDate)), 1600);
         }
-        return Math.max(0, next);
+        return next;
       });
       return;
     }
     ensureTimer();
-    setBusy(true);
-    setHintId(null);
-    tap(HAPTIC.tick);
-    play("tick");
+    setBusy(true); setHintId(null);
+    tap(HAPTIC.tick); play("tick");
     setExitingId(p.id);
     const nextMoves = moves + 1;
     setMoves(nextMoves);
@@ -101,12 +116,11 @@ export default function ArrowsGame({
         if (pieces.length === 0) {
           stopTimer();
           const timeMs = startedAt.current ? Date.now() - startedAt.current : 0;
-          setElapsed(timeMs);
-          setWon(true);
+          setElapsed(timeMs); setWon(true);
           if (mode === "levels") {
             void saveLevel(level + 1);
             void recordResult(`L${level}`, nextMoves, timeMs);
-            setTimeout(() => setLevel((l) => l + 1), 1600);
+            setTimeout(() => setLevel((l) => l + 1), 1700);
           } else {
             void recordResult(dailyKey, nextMoves, timeMs);
             setDailySolved({ moves: nextMoves, timeMs });
@@ -115,8 +129,7 @@ export default function ArrowsGame({
         return { ...b, pieces };
       });
       setRemoved((r) => [...r, p]);
-      setExitingId(null);
-      setBusy(false);
+      setExitingId(null); setBusy(false);
     }, 240);
   }
 
@@ -128,20 +141,16 @@ export default function ArrowsGame({
     setBoard((b) => ({ ...b, pieces: [...b.pieces, last] }));
     setMoves((m) => Math.max(0, m - 1));
   }
-
   function restart() { tap(HAPTIC.tick); loadBoard(mode === "levels" ? genLevel(level) : genDaily(dailyDate)); }
   function hint() {
     if (won || failed || busy) return;
     const id = findHintId(board);
     if (id == null) return;
-    tap(HAPTIC.tick);
-    setHintId(id);
+    tap(HAPTIC.tick); setHintId(id);
     setTimeout(() => setHintId(null), 1300);
   }
 
   const size = board.size;
-  const cell = 100 / size;
-  const inset = cell * 0.15;
 
   return (
     <div className="space-y-5">
@@ -151,12 +160,11 @@ export default function ArrowsGame({
         {(["levels", "daily"] as Mode[]).map((m) => (
           <button key={m} onClick={() => { tap(HAPTIC.tick); setMode(m); }}
             className={`py-2 rounded-lg text-sm transition ${mode === m ? "bg-accent/15 text-ink" : "text-muted hover:text-ink"}`}>
-            {m === "levels" ? "Levels" : "Daily puzzle"}
+            {m === "levels" ? "Levels" : "Daily ♥"}
           </button>
         ))}
       </div>
 
-      {/* Top bar: undo / hint · level+stats · lives */}
       <div className="flex items-center justify-between">
         <div className="flex gap-1">
           <button onClick={undo} disabled={removed.length === 0 || won || failed} className="btn btn-ghost p-2" aria-label="Undo"><Undo2 size={18} aria-hidden /></button>
@@ -165,8 +173,7 @@ export default function ArrowsGame({
         </div>
         <div className="flex gap-1">
           {Array.from({ length: LIVES }).map((_, i) => (
-            <Heart key={i} size={20} aria-hidden
-              fill={i < lives ? "#f0566e" : "transparent"} color={i < lives ? "#f0566e" : "#46506e"} />
+            <Heart key={i} size={20} aria-hidden fill={i < lives ? RED : "transparent"} color={i < lives ? RED : "#46506e"} />
           ))}
         </div>
       </div>
@@ -177,50 +184,33 @@ export default function ArrowsGame({
         <Stat label="Time" value={fmtTime(elapsed)} />
       </div>
 
-      {/* Board */}
       <div className="relative mx-auto w-full rounded-xl2 overflow-hidden" style={{ maxWidth: 380, aspectRatio: "1 / 1", background: NAVY, border: `1px solid ${NAVY2}` }}>
-        {/* faint grid */}
-        <div className="absolute inset-0" style={{ backgroundImage: `linear-gradient(${NAVY2} 1px, transparent 1px), linear-gradient(90deg, ${NAVY2} 1px, transparent 1px)`, backgroundSize: `${cell}% ${cell}%`, opacity: 0.5 }} />
-
-        {board.pieces.map((p) => {
-          const rs = p.cells.map((c) => c[0]); const cs = p.cells.map((c) => c[1]);
-          const minR = Math.min(...rs), maxR = Math.max(...rs), minC = Math.min(...cs), maxC = Math.max(...cs);
-          const [hr, hc] = headOf(p);
-          const [dr, dc] = DELTA[p.dir];
-          const exiting = exitingId === p.id;
-          const Icon = ICON[p.dir];
-          return (
-            <div key={p.id}
-              style={{
-                position: "absolute",
-                top: `${minR * cell}%`, left: `${minC * cell}%`,
-                width: `${(maxC - minC + 1) * cell}%`, height: `${(maxR - minR + 1) * cell}%`,
-                transform: exiting ? `translate(${dc * 130}%, ${dr * 130}%)` : "none",
-                opacity: exiting ? 0 : 1,
-                transition: "transform .24s ease, opacity .24s ease",
-              }}>
-              <button onClick={() => tapPiece(p)} aria-label={`Arrow ${p.dir}`} className={shakeId === p.id ? "shake" : ""}
+        <div className="absolute inset-0" style={{ backgroundImage: `linear-gradient(${NAVY2} 1px, transparent 1px), linear-gradient(90deg, ${NAVY2} 1px, transparent 1px)`, backgroundSize: `${100 / size}% ${100 / size}%`, opacity: 0.5 }} />
+        <svg viewBox={`0 0 ${size} ${size}`} className="absolute inset-0 w-full h-full" style={{ overflow: "visible" }}>
+          {board.pieces.map((p) => {
+            const exiting = exitingId === p.id;
+            const color = flashId === p.id ? RED : PIPE;
+            const [dx, dy] = [DELTA[p.dir][1], DELTA[p.dir][0]];
+            return (
+              <g key={p.id}
+                onClick={() => tapPiece(p)}
                 style={{
-                  position: "absolute", inset: `${inset}%`,
-                  background: PIPE, borderRadius: 9999, cursor: "pointer", border: "none",
-                  boxShadow: hintId === p.id ? `0 0 0 3px ${PIPE}, 0 0 18px ${PIPE}` : "none",
-                  transition: "box-shadow .2s ease, filter .15s ease",
-                }} />
-              {/* arrowhead at the head cell */}
-              <span style={{
-                position: "absolute", color: NAVY,
-                left: `${((hc - minC) + 0.5) / (maxC - minC + 1) * 100}%`,
-                top: `${((hr - minR) + 0.5) / (maxR - minR + 1) * 100}%`,
-                transform: "translate(-50%, -50%)", pointerEvents: "none",
-              }}>
-                <Icon size={Math.max(14, 200 / size)} strokeWidth={3} aria-hidden />
-              </span>
-            </div>
-          );
-        })}
-
+                  cursor: "pointer",
+                  transform: exiting ? `translate(${dx * 420}px, ${dy * 420}px)` : "none",
+                  opacity: exiting ? 0 : 1,
+                  transition: "transform .26s ease, opacity .26s ease",
+                }}>
+                {hintId === p.id && (
+                  <polyline points={piecePoints(p)} fill="none" stroke="#ffffff" strokeOpacity={0.55} strokeWidth={0.92} strokeLinecap="round" strokeLinejoin="round" />
+                )}
+                <polyline points={piecePoints(p)} fill="none" stroke={color} strokeWidth={0.6} strokeLinecap="round" strokeLinejoin="round" style={{ pointerEvents: "stroke" }} />
+                <polygon points={arrowHead(p)} fill={color} style={{ pointerEvents: "fill" }} />
+              </g>
+            );
+          })}
+        </svg>
         {failed && (
-          <div className="absolute inset-0 grid place-items-center" style={{ background: "rgba(10,12,22,0.7)" }}>
+          <div className="absolute inset-0 grid place-items-center" style={{ background: "rgba(10,12,22,0.72)" }}>
             <p className="font-display text-lg text-ink">Out of hearts — resetting…</p>
           </div>
         )}
@@ -229,7 +219,7 @@ export default function ArrowsGame({
       {won ? (
         <p className="text-center font-display text-lg">{mode === "levels" ? "Cleared. Next one…" : `Solved in ${moves} moves · ${fmtTime(elapsed)}`}</p>
       ) : (
-        <p className="muted text-center text-sm">Tap a piece to slide it off the grid. Clear them all.</p>
+        <p className="muted text-center text-sm">Tap a pipe to drive it off the grid. Clear them all.</p>
       )}
 
       {mode === "levels" && partnerLevel != null && (
@@ -238,7 +228,7 @@ export default function ArrowsGame({
 
       {mode === "daily" && (
         <div className="card p-4 space-y-2">
-          <h3 className="label">Today&apos;s puzzle · you vs {partnerName}</h3>
+          <h3 className="label">Today&apos;s heart · you vs {partnerName}</h3>
           <Row who="You" r={dailySolved} />
           <Row who={partnerName} r={partnerDaily} />
           {dailySolved && partnerDaily && <p className="muted text-xs pt-1">{scoreLine(dailySolved, partnerDaily, partnerName)}</p>}
