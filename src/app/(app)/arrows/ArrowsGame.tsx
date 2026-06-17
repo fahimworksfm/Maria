@@ -10,10 +10,12 @@ import Confetti from "@/components/Confetti";
 export type Result = { moves: number; timeMs: number } | null;
 type Mode = "levels" | "daily";
 
-const NAVY = "#141a2b";
-const NAVY2 = "#222b45";
+const NAVY = "#1a1f30"; // flat board background (matches the real game)
+const LAV = "#aab4e6"; // flat arrow colour
 const RED = "#f0566e";
-const SHAFT = 0.4; // arrow body thickness (of one cell)
+const SHAFT = 0.32; // line thickness (of one cell)
+const TIP = 0.46; // how far the tip reaches past the head-cell centre
+const CHEV = 0.3; // chevron arm length
 const LIVES = 3;
 const EXIT_MS = 380;
 
@@ -23,34 +25,23 @@ function fmtTime(ms: number): string {
   return `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
 }
 
-// Geometry for drawing + the head-first "drain" exit. The body is drawn along an
-// extended path (its own cells + a corridor running off-board past the head); a
-// dash window the length of the body slides along that path so the pipe retracts
-// head-first along the route it occupies — matching the engine's model where the
-// body trails the head and only the head corridor must be clear.
-// The slim shaft, drawn as a rounded polyline through the cells it spans (tail →
-// head center). A single-cell arrow gets a short stub behind its head.
-function shaftStr(p: Piece): string {
-  if (p.cells.length === 1) {
-    const [r, c] = p.cells[0]!;
-    const [dx, dy] = [DELTA[p.dir][1], DELTA[p.dir][0]];
-    const x = c + 0.5, y = r + 0.5;
-    return `${x - dx * 0.24},${y - dy * 0.24} ${x - dx * 0.03},${y - dy * 0.03}`;
-  }
-  return p.cells.map(([r, c]) => `${c + 0.5},${r + 0.5}`).join(" ");
-}
-
-// A clean triangular head that flares wider than the shaft, tip reaching the
-// head cell's outer edge so the arrow reads as an arrow, not a tube.
-function arrowHead(p: Piece): string {
-  const [hr, hc] = headOf(p);
-  const [dx, dy] = [DELTA[p.dir][1], DELTA[p.dir][0]]; // (x,y)
-  const x = hc + 0.5, y = hr + 0.5;
+// The whole arrow is drawn as thin rounded strokes (flat colour, no fill) to
+// match the real game: a shaft that runs through the cells tail → head and on to
+// a tip just past the head cell, plus an OPEN chevron (a "V") at that tip.
+function arrowGeom(p: Piece): { shaft: string; chevron: string } {
+  const [dx, dy] = [DELTA[p.dir][1], DELTA[p.dir][0]];
   const px = dy, py = -dx; // perpendicular
-  const tip = `${x + dx * 0.5},${y + dy * 0.5}`;
-  const a = `${x + px * 0.36 - dx * 0.14},${y + py * 0.36 - dy * 0.14}`;
-  const b = `${x - px * 0.36 - dx * 0.14},${y - py * 0.36 - dy * 0.14}`;
-  return `${tip} ${a} ${b}`;
+  const [hr, hc] = headOf(p);
+  const tx = hc + 0.5 + dx * TIP, ty = hr + 0.5 + dy * TIP; // tip
+  const body =
+    p.cells.length === 1
+      ? [[hc + 0.5 - dx * 0.3, hr + 0.5 - dy * 0.3] as [number, number]]
+      : p.cells.map(([r, c]) => [c + 0.5, r + 0.5] as [number, number]);
+  const shaft = [...body, [tx, ty] as [number, number]].map(([x, y]) => `${x},${y}`).join(" ");
+  const left = `${tx - dx * CHEV + px * CHEV},${ty - dy * CHEV + py * CHEV}`;
+  const right = `${tx - dx * CHEV - px * CHEV},${ty - dy * CHEV - py * CHEV}`;
+  const chevron = `${left} ${tx},${ty} ${right}`;
+  return { shaft, chevron };
 }
 
 export default function ArrowsGame({
@@ -196,26 +187,16 @@ export default function ArrowsGame({
         <Stat label="Time" value={fmtTime(elapsed)} />
       </div>
 
-      <div className="relative mx-auto w-full rounded-xl2 overflow-hidden" style={{ maxWidth: 380, aspectRatio: "1 / 1", background: `radial-gradient(120% 120% at 50% 0%, ${NAVY2} 0%, ${NAVY} 62%)`, boxShadow: won ? "0 0 0 1px rgba(170,180,255,.5), 0 0 40px rgba(170,180,255,.3)" : "inset 0 1px 0 rgba(255,255,255,.05)", transition: "box-shadow .6s ease" }}>
+      <div className="relative mx-auto w-full rounded-xl2 overflow-hidden" style={{ maxWidth: 380, aspectRatio: "1 / 1", background: NAVY, boxShadow: won ? "0 0 0 1px rgba(170,180,255,.4), 0 0 36px rgba(170,180,255,.25)" : "none", transition: "box-shadow .6s ease" }}>
         <svg viewBox={`0 0 ${size} ${size}`} className="absolute inset-0 w-full h-full" style={{ overflow: "visible" }}>
-          <defs>
-            <linearGradient id="arrowGrad" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2={size}>
-              <stop offset="0" stopColor="#cdd3ff" />
-              <stop offset="1" stopColor="#8e9af0" />
-            </linearGradient>
-            <filter id="arrowShadow" x="-40%" y="-40%" width="180%" height="180%">
-              <feDropShadow dx="0" dy="0.05" stdDeviation="0.08" floodColor="#05060d" floodOpacity="0.55" />
-            </filter>
-          </defs>
           {board.pieces.map((p) => {
             const exiting = exitingId === p.id;
-            const fill = flashId === p.id ? RED : "url(#arrowGrad)";
+            const stroke = flashId === p.id ? RED : LAV;
             const [dx, dy] = [DELTA[p.dir][1], DELTA[p.dir][0]];
-            const shaft = shaftStr(p);
-            const head = arrowHead(p);
+            const { shaft, chevron } = arrowGeom(p);
+            const line = { fill: "none", strokeLinecap: "round", strokeLinejoin: "round" } as const;
             return (
               <g key={p.id} onClick={() => tapPiece(p)} role="button" aria-label="arrow"
-                filter="url(#arrowShadow)"
                 style={{
                   cursor: "pointer",
                   transform: exiting ? `translate(${dx * (size + 2)}px, ${dy * (size + 2)}px)` : "none",
@@ -228,12 +209,12 @@ export default function ArrowsGame({
                 ))}
                 {hintId === p.id && (
                   <>
-                    <polyline points={shaft} fill="none" stroke="#fff" strokeOpacity={0.32} strokeWidth={SHAFT + 0.28} strokeLinecap="round" strokeLinejoin="round" style={{ pointerEvents: "none" }} />
-                    <polygon points={head} fill="#fff" fillOpacity={0.32} style={{ pointerEvents: "none" }} />
+                    <polyline points={shaft} {...line} stroke="#fff" strokeOpacity={0.3} strokeWidth={SHAFT + 0.34} style={{ pointerEvents: "none" }} />
+                    <polyline points={chevron} {...line} stroke="#fff" strokeOpacity={0.3} strokeWidth={SHAFT + 0.34} style={{ pointerEvents: "none" }} />
                   </>
                 )}
-                <polyline points={shaft} fill="none" stroke={fill} strokeWidth={SHAFT} strokeLinecap="round" strokeLinejoin="round" style={{ pointerEvents: "none" }} />
-                <polygon points={head} fill={fill} style={{ pointerEvents: "none" }} />
+                <polyline points={shaft} {...line} stroke={stroke} strokeWidth={SHAFT} style={{ pointerEvents: "stroke" }} />
+                <polyline points={chevron} {...line} stroke={stroke} strokeWidth={SHAFT} style={{ pointerEvents: "stroke" }} />
               </g>
             );
           })}

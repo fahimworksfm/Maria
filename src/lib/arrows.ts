@@ -76,10 +76,9 @@ function mulberry32(seed: number) {
 // Build one snaking piece via a random self-avoiding walk. mask (if given) keeps
 // the body inside a target shape. Returns null if it can't place a valid piece.
 function buildPiece(
-  rand: () => number, size: number, occ: Set<string>, maxLen: number, idGen: () => number, mask?: Set<string>
+  rand: () => number, size: number, occ: Set<string>, maxLen: number, idGen: () => number, mask?: Set<string>, start?: [number, number]
 ): Piece | null {
-  const sr = Math.floor(rand() * size);
-  const sc = Math.floor(rand() * size);
+  const [sr, sc] = start ?? [Math.floor(rand() * size), Math.floor(rand() * size)];
   if (occ.has(ckey(sr, sc)) || (mask && !mask.has(ckey(sr, sc)))) return null;
 
   const cells: [number, number][] = [[sr, sc]];
@@ -120,23 +119,34 @@ function packBoard(seed: number, size: number, target: number, maxLen: number, m
   const pieces: Piece[] = [];
   let nextId = 1;
   const idGen = () => nextId++;
-  const cap = mask ? mask.size : target;
+  const all: string[] = [];
+  if (mask) for (const k of mask) all.push(k);
+  else for (let r = 0; r < size; r++) for (let c = 0; c < size; c++) all.push(ckey(r, c));
+  const total = mask ? mask.size : size * size;
+
+  // Always start a walk from an empty cell so the shape fills densely; shorten
+  // pieces as the board fills so leftover pockets still get covered.
   let attempts = 0;
-  while (pieces.length < target && attempts < cap * 200) {
+  while (pieces.length < target && occ.size < total && attempts < total * 12) {
     attempts++;
-    const p = buildPiece(rand, size, occ, maxLen, idGen, mask);
+    const empties = all.filter((k) => !occ.has(k));
+    if (!empties.length) break;
+    const remaining = empties.length;
+    const len = remaining < 4 ? 2 : maxLen;
+    const startKey = empties[Math.floor(rand() * empties.length)]!;
+    const [sr, sc] = startKey.split(",").map(Number) as [number, number];
+    const p = buildPiece(rand, size, occ, len, idGen, mask, [sr, sc]);
     if (!p) continue;
     for (const [r, c] of p.cells) occ.add(ckey(r, c));
     pieces.push(p);
-    if (mask && occ.size >= mask.size) break;
   }
   return { size, pieces };
 }
 
 export function genLevel(level: number): Board {
-  const size = Math.min(4 + Math.floor((level - 1) / 3), 6);
-  const target = Math.min(2 + level, Math.floor((size * size) / 3));
-  const maxLen = size >= 6 ? 4 : 3;
+  const size = Math.min(5 + Math.floor((level - 1) / 3), 8);
+  const target = Math.min(2 + level, Math.floor((size * size) / 4));
+  const maxLen = size >= 7 ? 7 : 5;
   return packBoard(level * 9973 + 7, size, target, maxLen);
 }
 
@@ -152,21 +162,30 @@ function maskFromArt(art: string[]): { size: number; mask: Set<string> } {
   return { size, mask };
 }
 
+// High-resolution heart so the daily packs into long, thin snaking arrows like
+// the real game. Must be square (rows === cols).
 const HEART = [
-  ".##.##.",
-  "#######",
-  "#######",
-  "#######",
-  ".#####.",
-  "..###..",
-  "...#...",
+  "..###....###..",
+  ".#####..#####.",
+  ".############.",
+  "##############",
+  "##############",
+  ".############.",
+  "..##########..",
+  "...########...",
+  "....######....",
+  "....######....",
+  ".....####.....",
+  ".....####.....",
+  "......##......",
+  "......##......",
 ];
 
 export function genShaped(seed: number, art: string[]): Board {
   const { size, mask } = maskFromArt(art);
-  // Pack the shape, then trust reverse-construction (solver-validated below).
-  let board = packBoard(seed, size, mask.size, 5, mask);
-  if (!isSolvable(board)) board = packBoard(seed + 1, size, mask.size, 5, mask);
+  // Pack the shape with long pieces, then trust reverse-construction (validated).
+  let board = packBoard(seed, size, mask.size, 9, mask);
+  for (let i = 1; i <= 3 && !isSolvable(board); i++) board = packBoard(seed + i, size, mask.size, 9, mask);
   return board;
 }
 
@@ -175,5 +194,5 @@ export function genDaily(dateStr: string): Board {
   for (let i = 0; i < dateStr.length; i++) h = (h * 31 + dateStr.charCodeAt(i)) | 0;
   const board = genShaped((h >>> 0) + 12345, HEART);
   // Safety net: if the shaped pack somehow under-fills, it's still solvable.
-  return board.pieces.length > 0 ? board : packBoard((h >>> 0) + 99, 6, 9, 4);
+  return board.pieces.length > 0 ? board : packBoard((h >>> 0) + 99, 8, 14, 6);
 }
