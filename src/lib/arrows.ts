@@ -61,11 +61,8 @@ export function countArrows(grid: Grid): number {
   return n;
 }
 
-export function genLevel(level: number): Grid {
-  const rand = mulberry32(level * 9973 + 7);
-  const size = Math.min(4 + Math.floor((level - 1) / 4), 7); // 4 → 7 as you progress
-  const target = Math.min(3 + level, Math.floor(size * size * 0.55)); // arrow count
-
+function genGrid(seed: number, size: number, target: number): Grid {
+  const rand = mulberry32(seed);
   const grid: Grid = Array.from({ length: size }, () => Array<Cell>(size).fill(null));
   const occupied = new Set<string>();
 
@@ -76,7 +73,6 @@ export function genLevel(level: number): Grid {
     const r = Math.floor(rand() * size);
     const c = Math.floor(rand() * size);
     if (occupied.has(`${r},${c}`)) continue;
-    // shuffle dirs deterministically
     const order = [...DIRS].sort(() => rand() - 0.5);
     let chosen: Dir | null = null;
     for (const dir of order) {
@@ -89,4 +85,28 @@ export function genLevel(level: number): Grid {
     placed++;
   }
   return grid;
+}
+
+export function genLevel(level: number): Grid {
+  const size = Math.min(4 + Math.floor((level - 1) / 4), 7); // 4 → 7 as you progress
+  const target = Math.min(3 + level, Math.floor(size * size * 0.55));
+  return genGrid(level * 9973 + 7, size, target);
+}
+
+// The same puzzle for everyone on a given calendar day (date-seeded).
+export function genDaily(dateStr: string): Grid {
+  let h = 0;
+  for (let i = 0; i < dateStr.length; i++) h = (h * 31 + dateStr.charCodeAt(i)) | 0;
+  return genGrid((h >>> 0) + 12345, 6, 16);
+}
+
+// First currently-exitable arrow — used by the hint button. There is always one
+// until the board is clear (removing arrows only frees paths).
+export function findHint(grid: Grid): [number, number] | null {
+  for (let r = 0; r < grid.length; r++) {
+    for (let c = 0; c < grid.length; c++) {
+      if (grid[r]![c] && canExit(grid, r, c)) return [r, c];
+    }
+  }
+  return null;
 }
