@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { supabaseServer } from "@/lib/supabase/server";
 import { requireCoupled } from "@/lib/couple";
+import AuthShell from "@/components/AuthShell";
 import CopyButton from "./CopyButton";
 
 export default async function InvitePage() {
@@ -28,11 +29,8 @@ export default async function InvitePage() {
   const inviteUrl = `${proto}://${host}/join/${couple.invite_code}`;
 
   return (
-    <main className="min-h-screen flex items-center justify-center p-6">
-      <div className="card p-6 w-full max-w-md text-center space-y-4">
-        <h1 className="h1">Send this to your partner</h1>
-        <p className="muted">One link. They sign up and you&apos;re paired.</p>
-
+    <AuthShell title="Send this to your partner" subtitle="One link. They sign up and you're paired.">
+      <div className="text-center space-y-4">
         <div className="bg-panel2 border border-line rounded-xl2 p-4 break-all text-sm font-mono">
           {inviteUrl}
         </div>
@@ -51,6 +49,6 @@ export default async function InvitePage() {
           <Link className="btn w-full" href="/home">Go to your space</Link>
         )}
       </div>
-    </main>
+    </AuthShell>
   );
 }

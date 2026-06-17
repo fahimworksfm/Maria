@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { supabaseServer } from "@/lib/supabase/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { randomInviteCode } from "@/lib/crypto";
+import AuthShell from "@/components/AuthShell";
 
 export default function SignupPage({ searchParams }: { searchParams: Promise<{ error?: string; code?: string }> }) {
   return <SignupInner searchParamsP={searchParams} />;
@@ -92,23 +93,18 @@ async function SignupInner({ searchParamsP }: { searchParamsP: Promise<{ error?:
     redirect("/pair/invite");
   }
 
+  const title = inviter ? "You're invited" : "Create your space";
+  const subtitle = inviter
+    ? `${inviter.name ? `${inviter.name} wants` : "Someone wants"} to share a Tether with you.`
+    : "Two minutes, and it's yours.";
+
   return (
-    <main className="min-h-screen flex items-center justify-center p-6">
-      <div className="card p-6 w-full max-w-sm">
-        {inviter ? (
-          <>
-            <h1 className="h1 mb-1">You&apos;re invited</h1>
-            <p className="muted mb-6">
-              {inviter.name ? `${inviter.name} wants` : "Someone wants"} to share a Tether with you. Create your account to join.
-            </p>
-          </>
-        ) : (
-          <>
-            <h1 className="h1 mb-1">Tether</h1>
-            <p className="muted mb-6">Create your account. Your space is ready in a click.</p>
-          </>
-        )}
-        <form action={signUp} className="space-y-3">
+    <AuthShell
+      title={title}
+      subtitle={subtitle}
+      footer={<>Already have an account? <Link className="text-ink underline" href="/login">Sign in</Link></>}
+    >
+      <form action={signUp} className="space-y-3">
           {code && <input type="hidden" name="code" value={code} />}
           <div>
             <label className="label">Your name</label>
@@ -135,10 +131,6 @@ async function SignupInner({ searchParamsP }: { searchParamsP: Promise<{ error?:
             {code ? "Create account & join" : "Create my space"}
           </button>
         </form>
-        <p className="muted text-center mt-6">
-          Already have an account? <Link className="text-ink underline" href="/login">Sign in</Link>
-        </p>
-      </div>
-    </main>
+    </AuthShell>
   );
 }

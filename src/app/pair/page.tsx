@@ -3,6 +3,7 @@ import { supabaseServer } from "@/lib/supabase/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { requireMe } from "@/lib/couple";
 import { randomInviteCode } from "@/lib/crypto";
+import AuthShell from "@/components/AuthShell";
 
 export default async function PairPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
   const me = await requireMe();
@@ -66,21 +67,19 @@ export default async function PairPage({ searchParams }: { searchParams: Promise
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center p-6">
-      <div className="w-full max-w-md space-y-4">
-        <div className="card p-6">
-          <h2 className="h2 mb-2">Start a new Tether</h2>
-          <p className="muted mb-4">Create your shared space. You&apos;ll get an invite code to send to your partner.</p>
-          <form action={createCouple} className="space-y-3">
-            <input className="input" name="name" placeholder="A name for your space (optional)" />
-            <button className="btn btn-primary w-full" type="submit">Create</button>
-          </form>
-        </div>
+    <AuthShell wide title="Start your Tether" subtitle="Create a space, or join your partner's.">
+      <div className="space-y-5">
+        <form action={createCouple} className="space-y-3">
+          <h2 className="h2">Start a new one</h2>
+          <p className="muted text-sm">You&apos;ll get a link to send your partner.</p>
+          <input className="input" name="name" placeholder="A name for your space (optional)" />
+          <button className="btn btn-primary w-full cta-glow" type="submit">Create</button>
+        </form>
 
-        <div className="card p-6">
-          <h2 className="h2 mb-2">Join an existing Tether</h2>
-          <p className="muted mb-4">If your partner already created one, paste their code.</p>
+        <div className="border-t border-line/70 pt-5">
           <form action={joinCouple} className="space-y-3">
+            <h2 className="h2">Join an existing one</h2>
+            <p className="muted text-sm">If your partner already created one, paste their code.</p>
             <input className="input uppercase tracking-widest text-center" name="code" placeholder="ABC123" maxLength={6} required />
             <button className="btn w-full" type="submit">Join</button>
           </form>
@@ -88,6 +87,6 @@ export default async function PairPage({ searchParams }: { searchParams: Promise
 
         {sp.error && <p className="text-accent text-sm text-center">{sp.error}</p>}
       </div>
-    </main>
+    </AuthShell>
   );
 }
