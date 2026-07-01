@@ -2,7 +2,7 @@ import Link from "next/link";
 import {
   History, Images, NotebookPen, Dices, Globe, Brain, Clapperboard, MapPin, Music, Map as MapIcon,
   ChefHat, Mic, CalendarRange, Compass, HeartHandshake, Gem, Sparkles, HeartPulse, Newspaper,
-  Sprout, Mail, ClipboardList, Gift, Smile, Heart, Settings2, Gamepad2, ArrowRight, type LucideIcon,
+  Sprout, Mail, ClipboardList, Gift, Smile, Heart, Settings2, Gamepad2, Plane, ArrowRight, type LucideIcon,
 } from "lucide-react";
 import { requireCoupled } from "@/lib/couple";
 import { supabaseServer } from "@/lib/supabase/server";
@@ -16,6 +16,7 @@ const MOOD_EMOJI = ["😞", "😕", "🙂", "😊", "🤩"];
 type Tile = { href: string; title: string; desc: string; zone: "shared" | "private" | "personal"; Icon: LucideIcon };
 
 const TILES: Tile[] = [
+  { Icon: Plane, href: "/together", title: "Together", desc: "Distance, countdown, good time to call.", zone: "shared" },
   { Icon: History, href: "/timeline", title: "Timeline", desc: "Your whole story, woven together.", zone: "shared" },
   { Icon: Images, href: "/memories", title: "Memory Jar", desc: "Photos, notes, and moments.", zone: "shared" },
   { Icon: NotebookPen, href: "/journal", title: "Journal", desc: "A daily prompt for two.", zone: "shared" },

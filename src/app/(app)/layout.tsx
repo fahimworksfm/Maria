@@ -5,6 +5,7 @@ import { supabaseServer } from "@/lib/supabase/server";
 import BottomNav from "@/components/BottomNav";
 import PushRegistration from "@/components/PushRegistration";
 import PartnerPresence from "@/components/PartnerPresence";
+import PresenceHeartbeat from "@/components/PresenceHeartbeat";
 import OfflineStatus from "@/components/OfflineStatus";
 import PageTransition from "@/components/PageTransition";
 import { getTheme, themeVars } from "@/lib/themes";
@@ -48,6 +49,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       <BottomNav />
       <PWAInstaller />
       <PushRegistration vapidKey={process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ?? ""} />
+      <PresenceHeartbeat />
       <OfflineStatus />
     </div>
   );

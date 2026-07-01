@@ -587,3 +587,19 @@ drop policy if exists "arrows_results_select_couple" on arrows_results;
 create policy "arrows_results_select_couple" on arrows_results for select using (couple_id = current_couple_id());
 drop policy if exists "arrows_results_write_self" on arrows_results;
 create policy "arrows_results_write_self" on arrows_results for all using (user_id = auth.uid()) with check (user_id = auth.uid() and couple_id = current_couple_id());
+
+-- "Together" module (see migration 0011). Next-visit is couple-level; location +
+-- daily rhythm + last-seen are per-user (self-write, partner-read). Covered by the
+-- existing couples/profiles policies, so no new RLS here.
+alter table couples add column if not exists next_visit_at timestamptz;
+alter table couples add column if not exists next_visit_label text;
+alter table couples add column if not exists next_visit_traveler text;
+alter table profiles add column if not exists home_city text;
+alter table profiles add column if not exists home_lat double precision;
+alter table profiles add column if not exists home_lng double precision;
+alter table profiles add column if not exists timezone text;
+alter table profiles add column if not exists wake_hour int;
+alter table profiles add column if not exists sleep_hour int;
+alter table profiles add column if not exists work_start_hour int;
+alter table profiles add column if not exists work_end_hour int;
+alter table profiles add column if not exists last_active_at timestamptz;
