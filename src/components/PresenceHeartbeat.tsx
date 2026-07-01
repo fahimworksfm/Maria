@@ -13,7 +13,11 @@ export default function PresenceHeartbeat() {
       const now = Date.now();
       if (now - lastSent.current < 60_000) return;
       lastSent.current = now;
-      fetch("/api/presence", { method: "POST", keepalive: true }).catch(() => {});
+      // On failure (e.g. an expired session), clear the throttle so the next
+      // tick/visibility change retries instead of going stale for a minute.
+      fetch("/api/presence", { method: "POST", keepalive: true })
+        .then((r) => { if (!r.ok) lastSent.current = 0; })
+        .catch(() => { lastSent.current = 0; });
     };
     beat();
     const onVisible = () => { if (document.visibilityState === "visible") beat(); };

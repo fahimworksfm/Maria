@@ -61,6 +61,29 @@ export function clockLabel(now: Date, tz: string): string {
   }
 }
 
+export function isValidTimeZone(tz: string): boolean {
+  if (!tz) return false;
+  try {
+    new Intl.DateTimeFormat("en-US", { timeZone: tz });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+// The calendar day in a given timezone, as "YYYY-MM-DD" — for today/tomorrow
+// comparisons that must respect local midnight, not UTC.
+function localDayKey(d: Date, tz: string): string {
+  try {
+    const p = new Intl.DateTimeFormat("en-CA", { timeZone: tz, year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(d);
+    const g: Record<string, string> = {};
+    for (const x of p) g[x.type] = x.value;
+    return `${g.year}-${g.month}-${g.day}`;
+  } catch {
+    return d.toISOString().slice(0, 10);
+  }
+}
+
 // Is `h` inside the window [start, end), allowing wrap past midnight (e.g. 23→7)?
 function inWindow(h: number, start: number, end: number): boolean {
   if (start === end) return false;
@@ -93,7 +116,7 @@ export function bothFreeHint(now: Date, mine: Rhythm, theirs: Rhythm): string | 
     const t = new Date(now.getTime() + step * 30 * 60_000);
     if (inferStatus(t, mine).free && inferStatus(t, theirs).free) {
       const when = clockLabel(t, mine.timezone);
-      const soon = step <= 2 ? "soon" : t.getDate() === now.getDate() ? "later today" : "tomorrow";
+      const soon = step <= 2 ? "soon" : localDayKey(t, mine.timezone) === localDayKey(now, mine.timezone) ? "later today" : "tomorrow";
       return `You're both likely free ${soon}, around ${when}.`;
     }
   }

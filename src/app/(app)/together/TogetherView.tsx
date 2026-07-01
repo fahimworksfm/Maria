@@ -47,11 +47,10 @@ export default function TogetherView({
   saveVisit: Action;
   saveRhythm: Action;
 }) {
-  const [now, setNow] = useState<Date | null>(null);
+  const [now, setNow] = useState<Date>(() => new Date());
   const [activity, setActivity] = useState({ me: me.lastActiveAt, partner: partner?.lastActiveAt ?? null });
 
   useEffect(() => {
-    setNow(new Date());
     const id = window.setInterval(() => setNow(new Date()), 1000);
     return () => window.clearInterval(id);
   }, []);
@@ -81,8 +80,8 @@ export default function TogetherView({
       ? Math.round(haversineMiles(me.lat, me.lng, partner.lat, partner.lng))
       : null;
 
-  const cd = now ? countdownTo(nextVisit.at, now) : null;
-  const hint = now && partner ? bothFreeHint(now, myRhythm, rhythmOf(partner)) : null;
+  const cd = countdownTo(nextVisit.at, now);
+  const hint = partner ? bothFreeHint(now, myRhythm, rhythmOf(partner)) : null;
 
   const travelerLine = (() => {
     if (!nextVisit.traveler || !partner) return null;
@@ -204,10 +203,10 @@ function Unit({ n, u }: { n: number; u: string }) {
 function PersonCard({
   person, rhythm, now, lastActive, labelOverride, isMe,
 }: {
-  person: Person; rhythm: Rhythm; now: Date | null; lastActive: string | null; labelOverride: string; isMe?: boolean;
+  person: Person; rhythm: Rhythm; now: Date; lastActive: string | null; labelOverride: string; isMe?: boolean;
 }) {
-  const status = now ? inferStatus(now, rhythm) : null;
-  const online = now ? activeNow(lastActive, now) : false;
+  const status = inferStatus(now, rhythm);
+  const online = activeNow(lastActive, now);
   const configured = person.timezone != null;
   return (
     <div className="card p-4 space-y-1.5">
@@ -216,14 +215,14 @@ function PersonCard({
         {online && <span className="relative inline-flex shrink-0"><span className="absolute inline-flex h-2 w-2 rounded-full bg-emerald-400 opacity-75 animate-ping" /><span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" /></span>}
       </div>
       <div className="text-xs" suppressHydrationWarning>
-        {online ? <span className="text-emerald-400">here now</span> : <span className="text-muted">{now ? lastSeenLabel(lastActive, now) : ""}</span>}
+        {online ? <span className="text-emerald-400">here now</span> : <span className="text-muted">{lastSeenLabel(lastActive, now)}</span>}
       </div>
-      <div className="flex items-baseline gap-2 pt-0.5">
-        <span className="text-2xl" aria-hidden>{status?.emoji ?? "·"}</span>
-        <span className="text-ink leading-tight">{status?.label ?? "…"}</span>
+      <div className="flex items-baseline gap-2 pt-0.5" suppressHydrationWarning>
+        <span className="text-2xl" aria-hidden>{status.emoji}</span>
+        <span className="text-ink leading-tight">{status.label}</span>
       </div>
       <p className="muted text-xs" suppressHydrationWarning>
-        {person.city ? `${person.city} · ` : ""}{now ? clockLabel(now, rhythm.timezone) : ""}
+        {person.city ? `${person.city} · ` : ""}{clockLabel(now, rhythm.timezone)}
         {!configured && !isMe ? " · typical hours" : ""}
       </p>
     </div>

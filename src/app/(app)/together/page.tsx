@@ -1,7 +1,8 @@
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { requireCoupled } from "@/lib/couple";
 import { supabaseServer } from "@/lib/supabase/server";
-import { coordsForCity, zonedToUtcISO } from "@/lib/presence";
+import { coordsForCity, zonedToUtcISO, isValidTimeZone } from "@/lib/presence";
 import TogetherView, { type Person } from "./TogetherView";
 
 // Best-effort geocode for any city that isn't in the seed list. The app already
@@ -57,7 +58,8 @@ export default async function TogetherPage() {
         }
       : null;
 
-  const mine = toPerson((profiles ?? []).find((p) => p.user_id === me.userId))!;
+  const mine = toPerson((profiles ?? []).find((p) => p.user_id === me.userId));
+  if (!mine) redirect("/profile"); // no profile row yet — shouldn't happen past requireCoupled
   const partner = toPerson((profiles ?? []).find((p) => p.user_id !== me.userId) ?? null);
 
   async function saveVisit(formData: FormData) {
@@ -65,13 +67,21 @@ export default async function TogetherPage() {
     const me = await requireCoupled();
     const supabase = await supabaseServer();
     const naive = String(formData.get("at") ?? "").trim();
-    const tz = String(formData.get("tz") ?? "America/New_York") || "America/New_York";
+    const rawTz = String(formData.get("tz") ?? "").trim();
+    const tz = isValidTimeZone(rawTz) ? rawTz : "America/New_York";
+    // Only persist a traveler that is actually one of this couple's members.
+    const rawTraveler = String(formData.get("traveler") ?? "").trim();
+    let traveler: string | null = null;
+    if (rawTraveler) {
+      const { data: members } = await supabase.from("profiles").select("user_id").eq("couple_id", me.coupleId);
+      if ((members ?? []).some((m) => m.user_id === rawTraveler)) traveler = rawTraveler;
+    }
     await supabase
       .from("couples")
       .update({
         next_visit_at: naive ? zonedToUtcISO(naive, tz) : null,
         next_visit_label: String(formData.get("label") ?? "").trim() || null,
-        next_visit_traveler: String(formData.get("traveler") ?? "").trim() || null,
+        next_visit_traveler: traveler,
       })
       .eq("id", me.coupleId);
     revalidatePath("/together");
@@ -82,9 +92,10 @@ export default async function TogetherPage() {
     const me = await requireCoupled();
     const supabase = await supabaseServer();
     const city = String(formData.get("city") ?? "").trim() || null;
+    const rawTz = String(formData.get("timezone") ?? "").trim();
     const update: Record<string, unknown> = {
       home_city: city,
-      timezone: String(formData.get("timezone") ?? "").trim() || null,
+      timezone: isValidTimeZone(rawTz) ? rawTz : null,
       wake_hour: hour(formData.get("wake_hour")),
       sleep_hour: hour(formData.get("sleep_hour")),
       work_start_hour: hour(formData.get("work_start_hour")),

@@ -287,7 +287,8 @@ create policy "profiles_insert_self" on profiles for insert
 
 drop policy if exists "profiles_update_self" on profiles;
 create policy "profiles_update_self" on profiles for update
-  using (user_id = auth.uid());
+  using (user_id = auth.uid())
+  with check (user_id = auth.uid() and couple_id is not distinct from current_couple_id());
 
 -- Generic shared-table policy maker: read/write requires couple_id = current_couple_id().
 -- We inline the policies because Postgres doesn't allow parameterized policy definitions.
