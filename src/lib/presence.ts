@@ -36,8 +36,8 @@ export function coordsForCity(city: string | null | undefined): { lat: number; l
   return CITY_COORDS[city.trim().toLowerCase()] ?? null;
 }
 
-// Current local time in a timezone, as a fractional hour (0–24) plus weekday.
-function localHour(now: Date, tz: string): number {
+// Current local time in a timezone, as a fractional hour (0–24).
+export function localHour(now: Date, tz: string): number {
   try {
     const parts = new Intl.DateTimeFormat("en-US", {
       timeZone: tz,
@@ -73,7 +73,7 @@ export function isValidTimeZone(tz: string): boolean {
 
 // The calendar day in a given timezone, as "YYYY-MM-DD" — for today/tomorrow
 // comparisons that must respect local midnight, not UTC.
-function localDayKey(d: Date, tz: string): string {
+export function localDay(d: Date, tz: string): string {
   try {
     const p = new Intl.DateTimeFormat("en-CA", { timeZone: tz, year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(d);
     const g: Record<string, string> = {};
@@ -116,7 +116,7 @@ export function bothFreeHint(now: Date, mine: Rhythm, theirs: Rhythm): string | 
     const t = new Date(now.getTime() + step * 30 * 60_000);
     if (inferStatus(t, mine).free && inferStatus(t, theirs).free) {
       const when = clockLabel(t, mine.timezone);
-      const soon = step <= 2 ? "soon" : localDayKey(t, mine.timezone) === localDayKey(now, mine.timezone) ? "later today" : "tomorrow";
+      const soon = step <= 2 ? "soon" : localDay(t, mine.timezone) === localDay(now, mine.timezone) ? "later today" : "tomorrow";
       return `You're both likely free ${soon}, around ${when}.`;
     }
   }

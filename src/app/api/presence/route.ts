@@ -1,14 +1,24 @@
 import { NextResponse } from "next/server";
 import { getMe } from "@/lib/couple";
 import { supabaseServer } from "@/lib/supabase/server";
+import { runPresencePingsForCouple } from "@/lib/presence-notify";
 
 // POST: stamp the current user's last_active_at. Called automatically by a
 // heartbeat while the app is open, so presence is inferred with zero effort.
+// Also opportunistically fires the good-morning / both-free pushes (no-op unless
+// VAPID is configured).
 export async function POST() {
   const me = await getMe();
   if (!me) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   const supabase = await supabaseServer();
   await supabase.from("profiles").update({ last_active_at: new Date().toISOString() }).eq("user_id", me.userId);
+  if (me.coupleId) {
+    try {
+      await runPresencePingsForCouple(me.coupleId, me.userId);
+    } catch {
+      /* pings are best-effort; never fail the heartbeat */
+    }
+  }
   return NextResponse.json({ ok: true });
 }
 
