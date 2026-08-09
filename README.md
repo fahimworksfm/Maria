@@ -68,6 +68,22 @@ Open http://localhost:3000.
 4. She lands on `/pair`, enters your code in **Join**, and the two of you are linked.
 5. Both can now use the app.
 
+## Lost password
+
+There is no in-app password reset, and Supabase's built-in email service does
+not reliably deliver to addresses outside the project's org members — so the
+dashboard's "send recovery link" will appear to work and never arrive. Set the
+password directly instead:
+
+```bash
+node scripts/set-password.mjs her@email.com
+# prompts for the new password; needs SUPABASE_SERVICE_ROLE_KEY in .env.local
+```
+
+A real self-serve reset flow needs custom SMTP configured in Supabase
+(Authentication → Emails → SMTP) plus a `/forgot` page and an `/auth/callback`
+route to consume the recovery token. None of those exist yet.
+
 ## Gift Vault
 
 - First visit: you set a 4–12 char PIN. The PIN is hashed (scrypt) and stored with the profile.
