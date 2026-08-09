@@ -7,14 +7,37 @@ export default function LoginPage({ searchParams }: { searchParams: Promise<{ re
   return <LoginInner searchParamsP={searchParams} />;
 }
 
+// Only same-origin paths, so a crafted ?redirect= can't bounce off-site.
+function safePath(p: string | undefined, fallback: string) {
+  return p && p.startsWith("/") && !p.startsWith("//") ? p : fallback;
+}
+
 async function LoginInner({ searchParamsP }: { searchParamsP: Promise<{ redirect?: string; error?: string }> }) {
   const sp = await searchParamsP;
+
+  // The real "already signed in?" check. This used to live in the middleware,
+  // which only saw that a cookie existed — an expired one sent the user to
+  // /home, which bounced them back here, forever. Verify before redirecting,
+  // and never let a slow Supabase block the form from rendering.
+  let signedIn = false;
+  try {
+    const supabase = await supabaseServer();
+    const result = await Promise.race([
+      supabase.auth.getUser(),
+      new Promise<{ data: { user: null } }>((resolve) => setTimeout(() => resolve({ data: { user: null } }), 1500)),
+    ]);
+    signedIn = Boolean(result.data.user);
+  } catch {
+    signedIn = false;
+  }
+  // Outside the try: redirect() signals via a thrown error the catch would eat.
+  if (signedIn) redirect(safePath(sp.redirect, "/home"));
 
   async function signIn(formData: FormData) {
     "use server";
     const email = String(formData.get("email") || "").trim();
     const password = String(formData.get("password") || "");
-    const redirectTo = String(formData.get("redirect") || "/");
+    const redirectTo = safePath(String(formData.get("redirect") || ""), "/home");
     const supabase = await supabaseServer();
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
@@ -23,7 +46,7 @@ async function LoginInner({ searchParamsP }: { searchParamsP: Promise<{ redirect
       if (redirectTo) params.set("redirect", redirectTo);
       redirect(`/login?${params.toString()}`);
     }
-    redirect(redirectTo || "/");
+    redirect(redirectTo);
   }
 
   return (

@@ -13,6 +13,22 @@ async function SignupInner({ searchParamsP }: { searchParamsP: Promise<{ error?:
   const sp = await searchParamsP;
   const code = sp.code?.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 6) || null;
 
+  // Verified "already signed in" bounce — see the note in /login. The
+  // middleware can't do this safely because it never validates the cookie.
+  let signedIn = false;
+  try {
+    const supabase = await supabaseServer();
+    const result = await Promise.race([
+      supabase.auth.getUser(),
+      new Promise<{ data: { user: null } }>((resolve) => setTimeout(() => resolve({ data: { user: null } }), 1500)),
+    ]);
+    signedIn = Boolean(result.data.user);
+  } catch {
+    signedIn = false;
+  }
+  // Outside the try: redirect() throws to signal, and the catch would eat it.
+  if (signedIn) redirect("/home");
+
   // If a code is present, look up the inviter for a friendly header.
   let inviter: { name: string | null } | null = null;
   if (code) {

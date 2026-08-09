@@ -29,7 +29,11 @@ export async function getMe(): Promise<Me | null> {
 
 export async function requireMe(): Promise<Me> {
   const me = await getMe();
-  if (!me) redirect("/login");
+  // Route through /auth/signout rather than straight to /login. Getting here
+  // with a stale auth cookie means the cookie must be cleared, and only a Route
+  // Handler can do that — a Server Component's cookie writes are ignored. The
+  // sign-out route lands on /login once the cookie is gone.
+  if (!me) redirect("/auth/signout");
   return me;
 }
 

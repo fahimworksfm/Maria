@@ -14,7 +14,7 @@ export async function middleware(request: NextRequest) {
   // site). The real, secure auth check runs in requireMe() on every protected page.
   const hasAuthCookie = request.cookies
     .getAll()
-    .some((c) => c.name.startsWith("sb-") && c.name.includes("auth-token"));
+    .some((c) => c.name.startsWith("sb-") && c.name.includes("auth-token") && c.value.length > 0);
 
   if (!hasAuthCookie && !isPublic) {
     const url = request.nextUrl.clone();
@@ -23,11 +23,12 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  if (hasAuthCookie && (path === "/login" || path === "/signup")) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/home";
-    return NextResponse.redirect(url);
-  }
+  // NOTE: we deliberately do NOT redirect /login -> /home on cookie presence.
+  // `hasAuthCookie` is unvalidated, so an expired-but-present cookie would send
+  // the user to /home, where requireMe() does a real check, fails, and sends
+  // them back to /login — an infinite loop that renders as a blank screen in an
+  // installed PWA. The "already signed in" bounce lives in the /login and
+  // /signup pages instead, where the session is actually verified.
 
   // Best-effort token refresh. Capped with a short race so it can never block the
   // response even if Supabase is unreachable.
