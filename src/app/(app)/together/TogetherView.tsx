@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { MapPin, Plane, CalendarHeart, Moon } from "lucide-react";
 import SubmitButton from "@/components/SubmitButton";
+import type { Weather } from "@/lib/weather";
 import {
   DEFAULT_RHYTHM, type Rhythm, inferStatus, bothFreeHint, haversineMiles,
   activeNow, lastSeenLabel, countdownTo, clockLabel, utcToZonedInput,
@@ -39,11 +40,12 @@ const HOURS = Array.from({ length: 24 }, (_, h) => h);
 const TZS = ["America/New_York", "America/Chicago", "America/Denver", "America/Los_Angeles", "America/Phoenix", "Europe/London"];
 
 export default function TogetherView({
-  me, partner, nextVisit, saveVisit, saveRhythm,
+  me, partner, nextVisit, weather, saveVisit, saveRhythm,
 }: {
   me: Person;
   partner: Person | null;
   nextVisit: { at: string | null; label: string | null; traveler: string | null };
+  weather: { me: Weather | null; partner: Weather | null };
   saveVisit: Action;
   saveRhythm: Action;
 }) {
@@ -126,8 +128,8 @@ export default function TogetherView({
       {/* Presence: auto-inferred, no daily tapping */}
       <section className="space-y-3">
         <div className={`grid gap-3 ${partner ? "grid-cols-2" : "grid-cols-1"}`}>
-          <PersonCard person={me} rhythm={myRhythm} now={now} lastActive={activity.me} labelOverride={myName} isMe />
-          {partner && <PersonCard person={partner} rhythm={rhythmOf(partner)} now={now} lastActive={activity.partner} labelOverride={partnerName} />}
+          <PersonCard person={me} rhythm={myRhythm} now={now} lastActive={activity.me} labelOverride={myName} weather={weather.me} isMe />
+          {partner && <PersonCard person={partner} rhythm={rhythmOf(partner)} now={now} lastActive={activity.partner} labelOverride={partnerName} weather={weather.partner} />}
         </div>
         {hint && (
           <p className="text-center text-sm rounded-xl2 border border-accent/30 bg-accent/10 text-ink py-2.5 px-3">{hint}</p>
@@ -201,9 +203,10 @@ function Unit({ n, u }: { n: number; u: string }) {
 }
 
 function PersonCard({
-  person, rhythm, now, lastActive, labelOverride, isMe,
+  person, rhythm, now, lastActive, labelOverride, weather, isMe,
 }: {
-  person: Person; rhythm: Rhythm; now: Date; lastActive: string | null; labelOverride: string; isMe?: boolean;
+  person: Person; rhythm: Rhythm; now: Date; lastActive: string | null; labelOverride: string;
+  weather: Weather | null; isMe?: boolean;
 }) {
   const status = inferStatus(now, rhythm);
   const online = activeNow(lastActive, now);
@@ -223,6 +226,14 @@ function PersonCard({
       </div>
       <p className="muted text-xs" suppressHydrationWarning>
         {person.city ? `${person.city} · ` : ""}{clockLabel(now, rhythm.timezone)}
+        {weather && (
+          <>
+            {" · "}
+            <span aria-label={`${weather.label}, ${weather.tempF} degrees`}>
+              <span aria-hidden>{weather.emoji}</span> {weather.tempF}°
+            </span>
+          </>
+        )}
         {!configured && !isMe ? " · typical hours" : ""}
       </p>
     </div>

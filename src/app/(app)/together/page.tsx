@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { requireCoupled } from "@/lib/couple";
 import { supabaseServer } from "@/lib/supabase/server";
 import { coordsForCity, zonedToUtcISO, isValidTimeZone } from "@/lib/presence";
+import { fetchWeather } from "@/lib/weather";
 import TogetherView, { type Person } from "./TogetherView";
 
 // Best-effort geocode for any city that isn't in the seed list. The app already
@@ -61,6 +62,13 @@ export default async function TogetherPage() {
   const mine = toPerson((profiles ?? []).find((p) => p.user_id === me.userId));
   if (!mine) redirect("/profile"); // no profile row yet — shouldn't happen past requireCoupled
   const partner = toPerson((profiles ?? []).find((p) => p.user_id !== me.userId) ?? null);
+
+  // Current conditions where each of you is. Both resolve to null on failure,
+  // so the cards simply render without a weather line.
+  const [myWeather, partnerWeather] = await Promise.all([
+    fetchWeather(mine.lat, mine.lng),
+    fetchWeather(partner?.lat ?? null, partner?.lng ?? null),
+  ]);
 
   async function saveVisit(formData: FormData) {
     "use server";
@@ -126,6 +134,7 @@ export default async function TogetherPage() {
           label: couple?.next_visit_label ?? null,
           traveler: couple?.next_visit_traveler ?? null,
         }}
+        weather={{ me: myWeather, partner: partnerWeather }}
         saveVisit={saveVisit}
         saveRhythm={saveRhythm}
       />
