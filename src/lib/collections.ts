@@ -13,7 +13,7 @@ export const COLLECTIONS: Record<string, CollectionConfig> = {
   places: { scope: "couple", columns: ["name", "kind", "notes", "lat", "lng"], updatable: ["visited", "rating", "name", "kind", "notes"] },
   gratitudes: { scope: "couple", setAuthor: true, columns: ["text"] },
   bucket_items: { scope: "couple", columns: ["title", "notes", "category", "target_date"], updatable: ["completed_at", "title", "notes"] },
-  watchlist: { scope: "couple", columns: ["title", "kind", "notes", "runtime_min", "mood_tags"], updatable: ["watched_at", "rating", "notes"] },
+  watchlist: { scope: "couple", columns: ["title", "kind", "notes", "runtime_min", "mood_tags", "tmdb_id", "poster_path", "year", "overview"], updatable: ["watched_at", "rating", "notes"] },
 };
 
 export function collectionConfig(table: string): CollectionConfig | null {

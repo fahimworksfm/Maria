@@ -18,7 +18,7 @@ Built with Next.js 15, Supabase (Postgres + Auth + Storage + RLS), Tailwind, and
 
 ## Modules
 
-**Shared (both partners read/write):** Memory Jar, Journal w/ AI prompts, Date Roulette w/ AI, Bucket List, Watchlist, Places, Our Songs, Travel pins + AI itineraries, Recipes, Quiz w/ AI, Voice Letters, Year-in-Review w/ AI.
+**Shared (both partners read/write):** Memory Jar, Journal w/ AI prompts, Date Roulette w/ AI, Bucket List, Watchlist (TMDb-backed), Places, Our Songs, Travel pins + AI itineraries, Recipes, Quiz w/ AI, Voice Letters, Year-in-Review w/ AI.
 
 **Personal (own-write, partner-read):** Mood check-in, Love Language tracker, Profile/Preferences (sizes, wishlist).
 
@@ -44,14 +44,23 @@ Built with Next.js 15, Supabase (Postgres + Auth + Storage + RLS), Tailwind, and
 
 AI-powered features degrade gracefully when no key is set — the buttons stay disabled.
 
-### 3. Env file
+### 3. TMDb (optional)
+
+1. Free key at https://www.themoviedb.org/settings/api (request a v3 API key).
+2. `TMDB_API_KEY=...`
+
+Adds poster art, year, synopsis and runtime to the Watchlist via a search panel.
+Without the key the panel is hidden and titles are added by hand exactly as
+before — nothing else changes.
+
+### 4. Env file
 
 ```bash
 cp .env.example .env.local
 # fill in the values
 ```
 
-### 4. Install & run
+### 5. Install & run
 
 ```bash
 npm install

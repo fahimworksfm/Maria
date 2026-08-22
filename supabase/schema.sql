@@ -121,6 +121,10 @@ create table if not exists watchlist (
   mood_tags text[],
   watched_at timestamptz,
   rating int check (rating between 1 and 5),
+  tmdb_id int,
+  poster_path text,
+  year int,
+  overview text,
   created_at timestamptz not null default now()
 );
 
