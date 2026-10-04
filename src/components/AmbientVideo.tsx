@@ -14,7 +14,16 @@ type Connection = { saveData?: boolean; effectiveType?: string };
  * carry the page exactly as they did before. That is also why there is no
  * poster: the finished-looking fallback is already on screen.
  */
-export default function AmbientVideo({ src, className = "" }: { src: string; className?: string }) {
+export default function AmbientVideo({
+  src,
+  className = "",
+  loop = true,
+}: {
+  src: string;
+  /** Base class for this surface — it owns the positioning and opacity. */
+  className?: string;
+  loop?: boolean;
+}) {
   const [allowed, setAllowed] = useState(false);
   const [playing, setPlaying] = useState(false);
 
@@ -30,11 +39,11 @@ export default function AmbientVideo({ src, className = "" }: { src: string; cla
 
   return (
     <video
-      className={`ambient-video ${playing ? "is-visible" : ""} ${className}`}
+      className={`${className} ${playing ? "is-visible" : ""}`}
       src={src}
       autoPlay
       muted
-      loop
+      loop={loop}
       playsInline
       preload="auto"
       aria-hidden

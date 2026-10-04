@@ -40,7 +40,7 @@ export default async function Landing() {
   return (
     <>
       <div className="landing-bg" />
-      <AmbientVideo src="/media/landing-ambient.mp4" />
+      <AmbientVideo src="/media/landing-ambient.mp4" className="ambient-video" />
       <div className="aurora">
         <div className="aurora-blob a" />
         <div className="aurora-blob b" />

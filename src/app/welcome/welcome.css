@@ -90,3 +90,52 @@
   .shine { display: none; }
   .names, .kicker { animation: none; opacity: 1; transform: none; }
 }
+
+/* Bloom behind the cord.
+
+   `screen` blending is doing real work here: the clip is light on near-black,
+   so its dark ground drops out and only the bloom itself lands on the gradient.
+   That also hides the 16:9 source being cropped to a phone's shape — there is
+   no edge to notice when the edges are black.
+
+   The lifecycle animation is keyed off `is-visible`, which the player only adds
+   once playback actually starts, so the fade-out lands with the clip rather
+   than with a timer that assumed it. If the video never plays — refused
+   autoplay, slow network, reduced motion — nothing here applies and the
+   celebration is exactly what it was. */
+.celebrate-bloom {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+  opacity: 0;
+  mix-blend-mode: screen;
+  /* Screen blending over a near-black ground lifts everything it touches, which
+     at full frame washes the whole screen grey and takes the kicker's contrast
+     with it. Masking to an ellipse keeps the light where the cord is and leaves
+     the edges — where the type sits — properly dark. */
+  -webkit-mask-image: radial-gradient(ellipse 60% 40% at 50% 44%, #000 0%, rgba(0, 0, 0, 0.5) 52%, transparent 76%);
+  mask-image: radial-gradient(ellipse 60% 40% at 50% 44%, #000 0%, rgba(0, 0, 0, 0.5) 52%, transparent 76%);
+}
+.celebrate-bloom.is-visible {
+  animation: bloom-life 4s ease forwards;
+}
+@keyframes bloom-life {
+  0% { opacity: 0; }
+  14% { opacity: 0.5; }
+  72% { opacity: 0.5; }
+  100% { opacity: 0; }
+}
+
+/* Keep the cord and the names above the bloom. */
+.celebrate > svg,
+.celebrate > div {
+  position: relative;
+  z-index: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .celebrate-bloom { display: none; }
+}

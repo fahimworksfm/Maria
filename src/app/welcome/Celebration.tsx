@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import AmbientVideo from "@/components/AmbientVideo";
 
 export default function Celebration({ names }: { names: string[] }) {
   const router = useRouter();
@@ -15,7 +16,10 @@ export default function Celebration({ names }: { names: string[] }) {
         ? window.matchMedia("(prefers-reduced-motion: reduce)").matches
         : false;
     setReduced(reducedNow);
-    const t = setTimeout(() => router.replace("/home"), reducedNow ? 1400 : 3000);
+    // 4.2s rather than 3s: the bloom runs 4.01s and its tail — settling back to
+    // dark — is what makes the moment land instead of cutting. Reduced motion
+    // plays no video and keeps the short advance. A tap still skips either way.
+    const t = setTimeout(() => router.replace("/home"), reducedNow ? 1400 : 4200);
     return () => clearTimeout(t);
   }, [router]);
 
@@ -28,6 +32,8 @@ export default function Celebration({ names }: { names: string[] }) {
       role="button"
       aria-label="Continue to your space"
     >
+      <AmbientVideo src="/media/welcome-bloom.mp4" className="celebrate-bloom" loop={false} />
+
       <svg viewBox="0 0 512 512" aria-hidden className="cord-glow">
         <defs>
           <linearGradient id="cordGrad" x1="0%" y1="100%" x2="100%" y2="0%">
