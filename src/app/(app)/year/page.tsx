@@ -4,6 +4,8 @@ import { requireCoupled } from "@/lib/couple";
 import { supabaseServer } from "@/lib/supabase/server";
 import { aiEnabled, chat } from "@/lib/groq";
 import SubmitButton from "@/components/SubmitButton";
+import { SEASONS, seasonOfISODate, shortDate } from "@/lib/seasons";
+import YearChapters, { type Chapter } from "./YearChapters";
 
 export default async function YearPage({ searchParams }: { searchParams: Promise<{ year?: string; generate?: string }> }) {
   const me = await requireCoupled();
@@ -28,6 +30,16 @@ export default async function YearPage({ searchParams }: { searchParams: Promise
       maxTokens: 800,
     });
   }
+
+  const chapters: Chapter[] = SEASONS.map((s) => ({
+    key: s.key,
+    label: s.label,
+    plate: s.plate,
+    memories: (mem ?? [])
+      .filter((m) => seasonOfISODate(m.happened_on) === s.key)
+      .map((m) => ({ title: m.title, date: shortDate(m.happened_on), place: m.location_name ?? null })),
+    journalCount: (jrn ?? []).filter((j) => seasonOfISODate(j.prompt_date) === s.key).length,
+  }));
 
   return (
     <div className="space-y-6">
@@ -58,6 +70,8 @@ export default async function YearPage({ searchParams }: { searchParams: Promise
       {narrative && (
         <article className="card p-5 whitespace-pre-wrap text-sm leading-relaxed">{narrative}</article>
       )}
+
+      <YearChapters chapters={chapters} year={year} />
 
       <Link href={`/year/book?year=${year}`} className="card card-hover p-5 block text-center">
         <div className="mx-auto w-12 h-12 rounded-full bg-accent/10 text-accent grid place-items-center mb-2"><BookOpen size={22} aria-hidden /></div>

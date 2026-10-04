@@ -276,3 +276,47 @@ body {
 .globe-tone canvas {
   filter: saturate(0.72) brightness(0.82) contrast(1.04);
 }
+
+/* Year in Review chapter plates.
+
+   The hidden start state is scoped to `.chapters.ready`, a class only the
+   reveal script adds. Without JS, or before hydration, the chapters render
+   plainly visible — the animation can fail without taking the content with it. */
+.chapter-plate {
+  position: relative;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid var(--line, #23232b);
+  aspect-ratio: 21 / 9;
+}
+.chapter-plate img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.chapter-plate-label {
+  position: absolute;
+  left: 16px;
+  bottom: 12px;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  color: #fff;
+  /* The plates are busy; a shadow keeps the season readable over any of them. */
+  text-shadow: 0 1px 14px rgba(0, 0, 0, 0.75), 0 1px 3px rgba(0, 0, 0, 0.9);
+}
+
+.chapters.ready .chapter {
+  opacity: 0;
+  transform: translateY(14px);
+}
+.chapters.ready .chapter.is-in {
+  opacity: 1;
+  transform: none;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .chapters.ready .chapter {
+    transition: opacity 0.7s ease, transform 0.7s ease;
+  }
+}
