@@ -117,7 +117,10 @@ export default async function MemoriesPage() {
       </form>
 
       <MemoryJarPanel
-        motes={items.map((m) => ({ id: m.id, withPhoto: Boolean(m.signed && m.media_type === "image") }))}
+        motes={items.map((m) => {
+          const isPhoto = Boolean(m.signed && m.media_type === "image");
+          return { id: m.id, withPhoto: isPhoto, photo: isPhoto ? m.signed : null };
+        })}
       />
 
       <section className="space-y-6">

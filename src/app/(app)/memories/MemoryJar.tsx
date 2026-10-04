@@ -3,9 +3,12 @@
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
 
-export type Mote = { id: string; withPhoto: boolean };
+export type Mote = { id: string; withPhoto: boolean; photo: string | null };
 
 const MAX_MOTES = 60;
+// Each photo is its own draw call, so this is capped well below MAX_MOTES. The
+// rest stay as lights, which is what they were anyway.
+const MAX_PHOTOS = 18;
 
 /** Soft radial glow, drawn once into a canvas — no asset to ship or load. */
 function glowTexture(): THREE.Texture {
@@ -62,6 +65,32 @@ const FRESNEL_FRAG = `
     float f = 1.0 - abs(dot(normalize(vNormalW), normalize(vViewDir)));
     f = pow(clamp(f, 0.0, 1.0), 2.4);
     gl_FragColor = vec4(uColor, f * uOpacity);
+  }`;
+
+const PHOTO_VERT = `
+  varying vec2 vUv;
+  void main() {
+    vUv = uv;
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+  }`;
+
+// Round, soft-edged, with a rim in the couple's accent. Fragments outside the
+// circle are discarded rather than drawn transparent, so depth still sorts the
+// photos against each other correctly.
+const PHOTO_FRAG = `
+  uniform sampler2D uMap;
+  uniform vec3 uRim;
+  varying vec2 vUv;
+  void main() {
+    vec2 p = vUv - 0.5;
+    float d = length(p);
+    if (d > 0.5) discard;
+    float edge = smoothstep(0.5, 0.42, d);
+    float rim = smoothstep(0.34, 0.5, d) * 0.6;
+    vec3 col = texture2D(uMap, vUv).rgb;
+    col = mix(col, uRim, rim);
+    gl_FragColor = vec4(col, edge);
+    if (gl_FragColor.a < 0.02) discard;
   }`;
 
 export default function MemoryJar({ motes, onSelect }: { motes: Mote[]; onSelect: (id: string) => void }) {
@@ -161,6 +190,48 @@ export default function MemoryJar({ motes, onSelect }: { motes: Mote[]; onSelect
     const points = new THREE.Points(moteGeo, moteMat);
     group.add(points);
 
+    // --- photos ---
+    // Textures come straight from the signed URL to the GPU; no canvas, so a
+    // cross-origin image can never taint one. If Supabase does not send CORS
+    // headers the load simply errors and that memory stays a light.
+    const photoIdx: number[] = [];
+    const photoMeshes: THREE.Mesh[] = [];
+    const photoTextures: THREE.Texture[] = [];
+    const photoGeo = new THREE.PlaneGeometry(1, 1);
+    const loader = new THREE.TextureLoader();
+    loader.setCrossOrigin("anonymous");
+
+    let disposed = false;
+    const rimColor = accentColor.clone().lerp(new THREE.Color(1, 1, 1), 0.3);
+    const withPhotos = shown.map((m, i) => ({ m, i })).filter((x) => x.m.photo).slice(0, MAX_PHOTOS);
+
+    for (const { m, i } of withPhotos) {
+      loader.load(
+        m.photo!,
+        (texture) => {
+          if (disposed) { texture.dispose(); return; }
+          texture.colorSpace = THREE.SRGBColorSpace;
+          const mat = new THREE.ShaderMaterial({
+            vertexShader: PHOTO_VERT,
+            fragmentShader: PHOTO_FRAG,
+            uniforms: { uMap: { value: texture }, uRim: { value: rimColor } },
+            transparent: true,
+          });
+          const mesh = new THREE.Mesh(photoGeo, mat);
+          mesh.scale.setScalar(0.3);
+          // Added to the scene, not the group: billboarding is simpler when the
+          // parent is not itself turning.
+          scene.add(mesh);
+          photoIdx.push(i);
+          photoMeshes.push(mesh);
+          photoTextures.push(texture);
+          if (calm || !running) drawOnce();
+        },
+        undefined,
+        () => { /* no CORS, or gone — the light underneath is the fallback */ }
+      );
+    }
+
     // --- interaction ---
     const raycaster = new THREE.Raycaster();
     raycaster.params.Points.threshold = 0.18;
@@ -201,6 +272,28 @@ export default function MemoryJar({ motes, onSelect }: { motes: Mote[]; onSelect
     const clock = new THREE.Clock();
     const pos = moteGeo.attributes.position as THREE.BufferAttribute;
 
+    // Photos live outside the rotating group, so apply the same turn by hand and
+    // face them at the camera. Called from the loop and from every static draw,
+    // because under reduced motion there is no loop to do it.
+    function placePhotos() {
+      if (photoMeshes.length === 0) return;
+      const cos = Math.cos(spin);
+      const sin = Math.sin(spin);
+      for (let k = 0; k < photoMeshes.length; k++) {
+        const i = photoIdx[k]!;
+        const x = pos.array[i * 3]!;
+        const y = pos.array[i * 3 + 1]!;
+        const z = pos.array[i * 3 + 2]!;
+        photoMeshes[k]!.position.set(x * cos + z * sin, y, -x * sin + z * cos);
+        photoMeshes[k]!.quaternion.copy(camera.quaternion);
+      }
+    }
+
+    function drawOnce() {
+      placePhotos();
+      renderer.render(scene, camera);
+    }
+
     function frame() {
       const t = clock.getElapsedTime();
       if (!calm) {
@@ -215,12 +308,13 @@ export default function MemoryJar({ motes, onSelect }: { motes: Mote[]; onSelect
         spinVel *= 0.93;
         group.rotation.y = spin;
       }
+      placePhotos();
       renderer.render(scene, camera);
       if (running && !calm) raf = requestAnimationFrame(frame);
     }
 
     function start() {
-      if (running || calm) { if (calm) renderer.render(scene, camera); return; }
+      if (running || calm) { if (calm) drawOnce(); return; }
       running = true;
       clock.getDelta();
       raf = requestAnimationFrame(frame);
@@ -247,11 +341,11 @@ export default function MemoryJar({ motes, onSelect }: { motes: Mote[]; onSelect
       renderer.setSize(w, h, false);
       camera.aspect = w / h;
       camera.updateProjectionMatrix();
-      if (calm || !running) renderer.render(scene, camera);
+      if (calm || !running) drawOnce();
     });
     ro.observe(host);
 
-    renderer.render(scene, camera); // first frame immediately, even if calm
+    drawOnce(); // first frame immediately, even if calm
 
     return () => {
       stop();
@@ -263,6 +357,13 @@ export default function MemoryJar({ motes, onSelect }: { motes: Mote[]; onSelect
       renderer.domElement.removeEventListener("pointerup", onUp);
       jarGeo.dispose();
       jarMat.dispose();
+      disposed = true;
+      for (const mesh of photoMeshes) {
+        scene.remove(mesh);
+        (mesh.material as THREE.Material).dispose();
+      }
+      for (const t of photoTextures) t.dispose();
+      photoGeo.dispose();
       moteGeo.dispose();
       moteMat.dispose();
       tex.dispose();
