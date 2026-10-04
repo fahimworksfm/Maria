@@ -334,3 +334,14 @@ input[type="search"]::-webkit-search-decoration {
   appearance: none;
   display: none;
 }
+
+/* Memory Jar: the card a mote points at, briefly ringed so the connection
+   between the light you tapped and the memory below it is obvious. */
+.memory-flash {
+  outline: 2px solid rgb(var(--accent) / 0.75);
+  outline-offset: 3px;
+  border-radius: 1.25rem;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .memory-flash { transition: outline-color 0.4s ease; }
+}

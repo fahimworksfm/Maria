@@ -5,6 +5,7 @@ import { BUCKET, signedUrl, userScopedPath } from "@/lib/media";
 import DeleteButton from "@/components/DeleteButton";
 import SubmitButton from "@/components/SubmitButton";
 import { Images, MapPin, Quote } from "lucide-react";
+import MemoryJarPanel from "./MemoryJarPanel";
 
 type Memory = {
   id: string;
@@ -115,6 +116,10 @@ export default async function MemoriesPage() {
         <SubmitButton className="btn btn-primary w-full">Save memory</SubmitButton>
       </form>
 
+      <MemoryJarPanel
+        motes={items.map((m) => ({ id: m.id, withPhoto: Boolean(m.signed && m.media_type === "image") }))}
+      />
+
       <section className="space-y-6">
         {items.length === 0 && (
           <div className="card p-8 text-center space-y-3">
@@ -154,7 +159,7 @@ export default async function MemoriesPage() {
           // Photo-forward: image leads, text settles beneath it.
           if (m.signed && m.media_type === "image") {
             return (
-              <article key={m.id} className="card overflow-hidden">
+              <article key={m.id} id={`memory-${m.id}`} className="card overflow-hidden">
                 <img
                   src={m.signed}
                   alt={m.title || ""}
@@ -172,7 +177,7 @@ export default async function MemoriesPage() {
           // Audio / video keep their players, framed simply.
           if (m.signed && (m.media_type === "audio" || m.media_type === "video")) {
             return (
-              <article key={m.id} className="card p-4 space-y-3">
+              <article key={m.id} id={`memory-${m.id}`} className="card p-4 space-y-3">
                 {m.title && <h3 className="display text-xl leading-tight">{m.title}</h3>}
                 {m.media_type === "audio" ? (
                   <audio controls src={m.signed} className="w-full" />
@@ -187,7 +192,7 @@ export default async function MemoriesPage() {
 
           // Text-only: a warm quote card.
           return (
-            <article key={m.id} className="card p-6 space-y-3">
+            <article key={m.id} id={`memory-${m.id}`} className="card p-6 space-y-3">
               <Quote size={18} className="text-accent/70" aria-hidden />
               {m.title && <h3 className="display text-xl leading-tight">{m.title}</h3>}
               {m.body && <p className="whitespace-pre-wrap leading-relaxed">{m.body}</p>}
