@@ -1,50 +1,14 @@
 import Link from "next/link";
-import {
-  History, Images, NotebookPen, Dices, Globe, Brain, Clapperboard, MapPin, Music, Map as MapIcon,
-  ChefHat, Mic, CalendarRange, Compass, HeartHandshake, Gem, Sparkles, HeartPulse, Newspaper,
-  Sprout, Mail, ClipboardList, Gift, Smile, Heart, Settings2, Gamepad2, Plane, ArrowRight, type LucideIcon,
-} from "lucide-react";
+import { Compass, HeartPulse, Mail, NotebookPen, Sprout, type LucideIcon } from "lucide-react";
 import { requireCoupled } from "@/lib/couple";
 import { supabaseServer } from "@/lib/supabase/server";
 import InstallPrompt from "@/components/InstallPrompt";
 import RealtimeRefresh from "@/components/RealtimeRefresh";
 import StreakLine from "@/components/StreakLine";
+import ModuleDirectory from "./ModuleDirectory";
 import { getTogetherStreak } from "@/lib/streak";
 
 const MOOD_EMOJI = ["😞", "😕", "🙂", "😊", "🤩"];
-
-type Tile = { href: string; title: string; desc: string; zone: "shared" | "private" | "personal"; Icon: LucideIcon };
-
-const TILES: Tile[] = [
-  { Icon: Plane, href: "/together", title: "Together", desc: "Distance, countdown, good time to call.", zone: "shared" },
-  { Icon: History, href: "/timeline", title: "Timeline", desc: "Your whole story, woven together.", zone: "shared" },
-  { Icon: Images, href: "/memories", title: "Memory Jar", desc: "Photos, notes, and moments.", zone: "shared" },
-  { Icon: NotebookPen, href: "/journal", title: "Journal", desc: "A daily prompt for two.", zone: "shared" },
-  { Icon: Dices, href: "/date-roulette", title: "Date Roulette", desc: "Spin up a plan for tonight.", zone: "shared" },
-  { Icon: Globe, href: "/bucket-list", title: "Bucket List", desc: "Dreams in progress.", zone: "shared" },
-  { Icon: Brain, href: "/quiz", title: "Know Me", desc: "Ask. Guess. Compare.", zone: "shared" },
-  { Icon: Clapperboard, href: "/watchlist", title: "Watchlist", desc: "Movies and shows for us.", zone: "shared" },
-  { Icon: MapPin, href: "/places", title: "Places", desc: "Restaurants and spots.", zone: "shared" },
-  { Icon: Music, href: "/songs", title: "Our Songs", desc: "A playlist with stories.", zone: "shared" },
-  { Icon: MapIcon, href: "/travel", title: "Travel", desc: "Pins and itineraries.", zone: "shared" },
-  { Icon: ChefHat, href: "/recipes", title: "Recipes", desc: "What we cook together.", zone: "shared" },
-  { Icon: Mic, href: "/voice-letters", title: "Voice Letters", desc: "Audio for later.", zone: "shared" },
-  { Icon: CalendarRange, href: "/year", title: "Year in Review", desc: "Auto-generated recap.", zone: "shared" },
-  { Icon: Compass, href: "/anniversaries", title: "Anniversaries", desc: "Countdowns to every date.", zone: "shared" },
-  { Icon: HeartHandshake, href: "/repair-log", title: "Repair Log", desc: "What you both learned.", zone: "shared" },
-  { Icon: Gem, href: "/affirmations", title: "Affirmations", desc: "Shuffle, draw, send.", zone: "shared" },
-  { Icon: Sparkles, href: "/random-acts", title: "Random Acts", desc: "Tiny love-acts each week.", zone: "shared" },
-  { Icon: HeartPulse, href: "/pulse", title: "Pulse", desc: "Their phone buzzes.", zone: "shared" },
-  { Icon: Newspaper, href: "/digest", title: "Weekly Digest", desc: "Sunday auto-recap.", zone: "shared" },
-  { Icon: Sprout, href: "/gratitude", title: "Gratitude Tree", desc: "A leaf for each thanks.", zone: "shared" },
-  { Icon: Mail, href: "/postcards", title: "Postcards", desc: "A note from anywhere.", zone: "shared" },
-  { Icon: ClipboardList, href: "/worksheets", title: "Worksheets", desc: "Languages, attachment, conflict.", zone: "shared" },
-  { Icon: Gamepad2, href: "/arrows", title: "Arrows", desc: "A calm puzzle for two.", zone: "shared" },
-  { Icon: Gift, href: "/vault", title: "Gift Vault", desc: "Private to you. PIN locked.", zone: "private" },
-  { Icon: Smile, href: "/mood", title: "Mood", desc: "Daily check-in.", zone: "personal" },
-  { Icon: Heart, href: "/love-language", title: "Love Language", desc: "Notice the patterns.", zone: "personal" },
-  { Icon: Settings2, href: "/profile", title: "My Preferences", desc: "Sizes, favourites, wishlist.", zone: "personal" },
-];
 
 function greeting(): string {
   const h = new Date().getHours();
@@ -111,9 +75,7 @@ export default async function Home() {
         <Stat href="/pulse" label="Pulses" value={unreadPulses ?? 0} highlight={(unreadPulses ?? 0) > 0} />
       </section>
 
-      <Section title="Shared"><Grid tiles={TILES.filter((t) => t.zone === "shared")} /></Section>
-      <Section title="Private to you"><Grid tiles={TILES.filter((t) => t.zone === "private")} /></Section>
-      <Section title="Personal"><Grid tiles={TILES.filter((t) => t.zone === "personal")} /></Section>
+      <ModuleDirectory />
     </div>
   );
 }
@@ -159,33 +121,5 @@ function Stat({ href, label, value, highlight }: { href: string; label: string; 
       <div className={`text-xl font-display font-medium leading-tight ${highlight ? "headline-gradient" : ""}`}>{value}</div>
       <div className="muted text-[10px] uppercase tracking-wider mt-1">{label}</div>
     </Link>
-  );
-}
-
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <section className="space-y-3">
-      <h2 className="label">{title}</h2>
-      {children}
-    </section>
-  );
-}
-
-function Grid({ tiles }: { tiles: Tile[] }) {
-  return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-      {tiles.map((t) => {
-        const Icon = t.Icon;
-        return (
-          <Link key={t.href} href={t.href} className="card card-hover p-4 block group">
-            <span className="inline-flex items-center justify-center w-10 h-10 rounded-xl2 bg-accent/12 text-accent mb-3 transition group-hover:bg-accent/20">
-              <Icon size={18} aria-hidden />
-            </span>
-            <div className="font-display font-medium leading-snug">{t.title}</div>
-            <div className="muted text-xs mt-1 leading-relaxed">{t.desc}</div>
-          </Link>
-        );
-      })}
-    </div>
   );
 }

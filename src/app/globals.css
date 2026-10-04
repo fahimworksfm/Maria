@@ -320,3 +320,17 @@ body {
     transition: opacity 0.7s ease, transform 0.7s ease;
   }
 }
+
+/* Home directory: disclosure state. The summary marker is suppressed in favour
+   of a chevron that turns, which reads the same on iOS and Android. */
+details > summary::-webkit-details-marker { display: none; }
+details[open] > summary .chev { transform: rotate(180deg); }
+
+/* The directory draws its own clear button, so suppress the one WebKit adds to
+   type="search" — otherwise there are two Xs sitting next to each other. */
+input[type="search"]::-webkit-search-cancel-button,
+input[type="search"]::-webkit-search-decoration {
+  -webkit-appearance: none;
+  appearance: none;
+  display: none;
+}

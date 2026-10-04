@@ -30,12 +30,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             <Link href="/home" className="font-display text-xl">Tether</Link>
             <PartnerPresence coupleId={me.coupleId} myUserId={me.userId} partnerName={partnerName} />
           </div>
-          <nav className="flex items-center gap-1 text-sm">
-            <Link className="btn btn-ghost px-2" href="/profile">{me.displayName ?? "Me"}</Link>
-            <form action="/auth/signout" method="post">
-              <button className="btn btn-ghost px-2" type="submit">Sign out</button>
-            </form>
-          </nav>
+          {/* "Me" and sign-out both lived here, duplicating the bottom nav's Me
+              tab and giving a once-a-year action permanent prime space. Sign-out
+              now sits at the bottom of /profile, where you go to manage yourself. */}
         </div>
       </header>
       <main className="flex-1 max-w-3xl w-full mx-auto px-4 pt-4 pb-nav">

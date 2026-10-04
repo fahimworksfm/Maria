@@ -129,6 +129,10 @@ export default async function ProfilePage() {
         <Field title="Allergies / dislikes" value={theirPrefs.allergies} />
         {!partner && <p className="muted">Your partner hasn&apos;t signed up yet.</p>}
       </section>
+
+      <form action="/auth/signout" method="post" className="pt-2">
+        <button className="btn w-full" type="submit">Sign out</button>
+      </form>
     </div>
   );
 }
