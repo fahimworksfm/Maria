@@ -36,7 +36,7 @@ export const GROUPS: ModuleGroup[] = [
   { key: "plan", label: "Plan something", blurb: "Things to do, watch, eat, see" },
   { key: "grow", label: "Grow together", blurb: "The deeper work" },
   { key: "play", label: "Play", blurb: "For when you just want to play" },
-  { key: "yours", label: "Just yours", blurb: "Only you see these" },
+  { key: "yours", label: "Just yours", blurb: "Only you fill these in" },
 ];
 
 export const MODULES: AppModule[] = [
@@ -44,7 +44,6 @@ export const MODULES: AppModule[] = [
   { group: "today", Icon: Plane, href: "/together", title: "Together", desc: "Distance, countdown, good time to call.", keywords: ["distance", "globe", "visit", "timezone", "weather"] },
   { group: "today", Icon: HeartPulse, href: "/pulse", title: "Pulse", desc: "Their phone buzzes.", keywords: ["nudge", "poke", "notification"] },
   { group: "today", Icon: NotebookPen, href: "/journal", title: "Journal", desc: "A daily prompt for two.", keywords: ["prompt", "diary", "write"] },
-  { group: "today", Icon: Smile, href: "/mood", title: "Mood", desc: "Daily check-in.", badge: "yours", keywords: ["feeling", "checkin"] },
   { group: "today", Icon: Sprout, href: "/gratitude", title: "Gratitude Tree", desc: "A leaf for each thanks.", keywords: ["thanks", "grateful", "leaf"] },
 
   // Remember
@@ -77,6 +76,7 @@ export const MODULES: AppModule[] = [
   { group: "play", Icon: Gamepad2, href: "/arrows", title: "Arrows", desc: "A calm puzzle for two.", keywords: ["game", "puzzle", "daily"] },
 
   // Just yours
+  { group: "yours", Icon: Smile, href: "/mood", title: "Mood", desc: "Daily check-in.", badge: "yours", keywords: ["feeling", "checkin"] },
   { group: "yours", Icon: Gift, href: "/vault", title: "Gift Vault", desc: "Private to you. PIN locked.", badge: "private", keywords: ["present", "surprise", "secret", "pin"] },
   { group: "yours", Icon: Settings2, href: "/profile", title: "My Preferences", desc: "Sizes, favourites, wishlist.", badge: "yours", keywords: ["settings", "profile", "wishlist", "sizes", "theme"] },
 ];
