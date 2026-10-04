@@ -1,9 +1,14 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
 import { MapPin, Plane, CalendarHeart, Moon } from "lucide-react";
 import SubmitButton from "@/components/SubmitButton";
 import type { Weather } from "@/lib/weather";
+
+// MapLibre is ~270KB gzipped, so it loads only when there is actually a globe
+// to draw — the same treatment PlacesMap gets.
+const TogetherGlobe = dynamic(() => import("./TogetherGlobe"), { ssr: false });
 import {
   DEFAULT_RHYTHM, type Rhythm, inferStatus, bothFreeHint, haversineMiles,
   activeNow, lastSeenLabel, countdownTo, clockLabel, utcToZonedInput,
@@ -92,10 +97,17 @@ export default function TogetherView({
     return null;
   })();
 
+  const globePoints =
+    me.lat != null && me.lng != null && partner?.lat != null && partner.lng != null
+      ? { me: { name: myName, lat: me.lat, lng: me.lng }, partner: { name: partnerName, lat: partner.lat, lng: partner.lng } }
+      : null;
+
   return (
     <div className="space-y-6">
-      {/* Hero: distance + countdown */}
+      {/* Hero: globe + distance + countdown */}
       <section className="hero-glow card p-6 text-center space-y-4">
+        {globePoints && <TogetherGlobe me={globePoints.me} partner={globePoints.partner} />}
+
         {distance != null ? (
           <p className="muted flex items-center justify-center gap-1.5 text-sm">
             <MapPin size={14} aria-hidden />

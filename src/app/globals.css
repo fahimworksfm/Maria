@@ -269,3 +269,10 @@ body {
   18% { opacity: 0.8; }
   100% { opacity: 0; transform: translate(var(--sway, 0px), -74vh) rotate(var(--spin, 200deg)); }
 }
+
+/* Together globe: tone the OSM raster down so the bright default basemap sits
+   on the dark shell instead of glaring off it. Only the canvas is filtered —
+   the marker dots are DOM siblings and stay at full strength. */
+.globe-tone canvas {
+  filter: saturate(0.72) brightness(0.82) contrast(1.04);
+}
