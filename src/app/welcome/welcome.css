@@ -122,10 +122,15 @@
 .celebrate-bloom.is-visible {
   animation: bloom-life 4s ease forwards;
 }
+/* How bright the bloom gets at its peak. This is the dial — turn it down to
+   make the glow more restrained, up to make it more present. */
+.celebrate-bloom {
+  --bloom-peak: 0.3;
+}
 @keyframes bloom-life {
   0% { opacity: 0; }
-  14% { opacity: 0.5; }
-  72% { opacity: 0.5; }
+  14% { opacity: var(--bloom-peak); }
+  72% { opacity: var(--bloom-peak); }
   100% { opacity: 0; }
 }
 
