@@ -5,7 +5,7 @@
 // HTML like "/". Only GET is touched — POST (server actions, writes) always
 // hits the network.
 
-const CACHE = "tether-v5";
+const CACHE = "tether-v6";
 // Static, non-redirecting assets only. NOT "/", which redirects when signed in.
 const SHELL = ["/manifest.webmanifest", "/icon.svg"];
 
@@ -65,6 +65,10 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return; // third-party: passthrough
   if (url.pathname.startsWith("/api/") || url.pathname.startsWith("/auth/")) return; // dynamic: network
+  // Media: hands off entirely. A <video> fetches with Range headers, and handing
+  // back a cached whole-file 200 in answer to a Range request is exactly what
+  // Safari refuses — playback stalls with no error worth reading.
+  if (/\.(mp4|webm|mov|m4v|ogg|oga|mp3|wav)$/i.test(url.pathname)) return;
 
   if (req.mode === "navigate") {
     event.respondWith(handleNavigation(req));

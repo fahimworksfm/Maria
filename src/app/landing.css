@@ -212,3 +212,31 @@
   .phone-slide { animation: slide-cycle 18s infinite; }
   .cta-glow::before { animation: shine 6s linear infinite; }
 }
+
+/* Ambient hero loop. Sits between the base gradient and the aurora blobs, all
+   at z-index -1, so DOM order does the stacking.
+
+   The source is 16:9 and a phone viewport is roughly 9:19.5, so object-fit:cover
+   crops to a narrow vertical slice and upscales it several times over. The blur
+   turns that from a defect into the intent — what is left is drifting colour,
+   which is the only reason to use video here instead of another gradient, and it
+   keeps the headline legible on top. */
+.ambient-video {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 1.4s ease;
+  filter: blur(18px) saturate(1.15);
+  /* Scale past the edges so the blur has no visible border. */
+  transform: scale(1.15);
+}
+.ambient-video.is-visible { opacity: 0.55; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ambient-video { display: none; }
+}

@@ -17,6 +17,7 @@ import {
 import "./landing.css";
 import { supabaseServer } from "@/lib/supabase/server";
 import InstallPrompt from "@/components/InstallPrompt";
+import AmbientVideo from "@/components/AmbientVideo";
 
 export const metadata = { title: "Tether — a private space for two" };
 
@@ -39,6 +40,7 @@ export default async function Landing() {
   return (
     <>
       <div className="landing-bg" />
+      <AmbientVideo src="/media/landing-ambient.mp4" />
       <div className="aurora">
         <div className="aurora-blob a" />
         <div className="aurora-blob b" />
