@@ -18,7 +18,10 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0a0a0c",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#ede7da" },
+    { media: "(prefers-color-scheme: dark)", color: "#14130f" },
+  ],
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
@@ -27,7 +30,16 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" data-mode="light" suppressHydrationWarning>
+      <head>
+        {/* Resolve the palette before first paint. Without this, a dark-mode
+            viewer gets a full flash of paper on every navigation. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var m=localStorage.getItem('tether:mode')||'system';var d=m==='dark'||(m==='system'&&matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.setAttribute('data-mode',d?'dark':'light')}catch(e){}})()`,
+          }}
+        />
+      </head>
       <body className="min-h-screen">
         <div className="grain" aria-hidden />
         {children}

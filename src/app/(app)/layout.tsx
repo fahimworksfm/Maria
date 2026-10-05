@@ -24,9 +24,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   return (
     <div id="app-shell" className="min-h-screen flex flex-col" style={themeVars(theme) as React.CSSProperties}>
-      {/* The light everything else is translucent against. */}
-      <div className="app-ambient" aria-hidden />
-      <header className="sticky top-0 z-20 bg-bg/60 backdrop-blur-xl border-b border-line">
+      <header className="sticky top-0 z-20 bg-bg/90 backdrop-blur border-b-2 border-ink/85">
         <div className="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Link href="/home" className="font-display text-xl">Tether</Link>

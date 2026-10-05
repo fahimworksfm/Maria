@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 
 export type Mote = { id: string; withPhoto: boolean; photo: string | null };
@@ -97,6 +97,14 @@ export default function MemoryJar({ motes, onSelect }: { motes: Mote[]; onSelect
   const hostRef = useRef<HTMLDivElement>(null);
   const selectRef = useRef(onSelect);
   selectRef.current = onSelect;
+  // Switching Paper/Ink has to rebuild the scene — blending mode is baked into
+  // the materials, not something that can be toggled on the fly.
+  const [modeTick, setModeTick] = useState(0);
+  useEffect(() => {
+    const ob = new MutationObserver(() => setModeTick((n) => n + 1));
+    ob.observe(document.documentElement, { attributes: true, attributeFilter: ["data-mode"] });
+    return () => ob.disconnect();
+  }, []);
 
   useEffect(() => {
     const host = hostRef.current;
@@ -110,6 +118,10 @@ export default function MemoryJar({ motes, onSelect }: { motes: Mote[]; onSelect
     }
 
     const calm = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
+    // Additive blending only works against darkness — on paper it washes to
+    // nothing. In light mode the jar inverts: ink drawn on the page rather than
+    // light held in the dark.
+    const onPaper = document.documentElement.getAttribute("data-mode") !== "dark";
     // Themes expose --accent as space-separated RGB channels.
     const accent = getComputedStyle(host).getPropertyValue("--accent").trim();
     const [ar, ag, ab] = accent.split(/\s+/).map(Number);
@@ -138,11 +150,18 @@ export default function MemoryJar({ motes, onSelect }: { motes: Mote[]; onSelect
     const jarMat = new THREE.ShaderMaterial({
       vertexShader: FRESNEL_VERT,
       fragmentShader: FRESNEL_FRAG,
-      uniforms: { uColor: { value: accentColor.clone().lerp(new THREE.Color(1, 1, 1), 0.55) }, uOpacity: { value: 0.5 } },
+      uniforms: {
+        uColor: {
+          value: onPaper
+            ? accentColor.clone().lerp(new THREE.Color(0.11, 0.1, 0.08), 0.55)
+            : accentColor.clone().lerp(new THREE.Color(1, 1, 1), 0.55),
+        },
+        uOpacity: { value: onPaper ? 0.75 : 0.5 },
+      },
       transparent: true,
       side: THREE.DoubleSide,
       depthWrite: false,
-      blending: THREE.AdditiveBlending,
+      blending: onPaper ? THREE.NormalBlending : THREE.AdditiveBlending,
     });
     group.add(new THREE.Mesh(jarGeo, jarMat));
 
@@ -166,9 +185,10 @@ export default function MemoryJar({ motes, onSelect }: { motes: Mote[]; onSelect
       positions.set([home[i * 3], home[i * 3 + 1], home[i * 3 + 2]], i * 3);
 
       // Memories with a photo burn a little warmer and brighter.
+      const toward = onPaper ? new THREE.Color(0.11, 0.1, 0.08) : new THREE.Color(1, 1, 1);
       const c = shown[i]!.withPhoto
-        ? accentColor.clone().lerp(new THREE.Color(1, 1, 1), 0.45)
-        : accentColor.clone().lerp(new THREE.Color(1, 1, 1), 0.12);
+        ? accentColor.clone().lerp(toward, 0.45)
+        : accentColor.clone().lerp(toward, 0.12);
       colors.set([c.r, c.g, c.b], i * 3);
       sizes[i] = shown[i]!.withPhoto ? 0.3 : 0.22;
       seeds[i] = Math.random() * Math.PI * 2;
@@ -184,7 +204,7 @@ export default function MemoryJar({ motes, onSelect }: { motes: Mote[]; onSelect
       vertexColors: true,
       transparent: true,
       depthWrite: false,
-      blending: THREE.AdditiveBlending,
+      blending: onPaper ? THREE.NormalBlending : THREE.AdditiveBlending,
       sizeAttenuation: true,
     });
     const points = new THREE.Points(moteGeo, moteMat);
@@ -202,7 +222,7 @@ export default function MemoryJar({ motes, onSelect }: { motes: Mote[]; onSelect
     loader.setCrossOrigin("anonymous");
 
     let disposed = false;
-    const rimColor = accentColor.clone().lerp(new THREE.Color(1, 1, 1), 0.3);
+    const rimColor = accentColor.clone().lerp(onPaper ? new THREE.Color(0.11, 0.1, 0.08) : new THREE.Color(1, 1, 1), 0.3);
     const withPhotos = shown.map((m, i) => ({ m, i })).filter((x) => x.m.photo).slice(0, MAX_PHOTOS);
 
     for (const { m, i } of withPhotos) {
@@ -370,7 +390,7 @@ export default function MemoryJar({ motes, onSelect }: { motes: Mote[]; onSelect
       renderer.dispose();
       host.removeChild(renderer.domElement);
     };
-  }, [motes]);
+  }, [motes, modeTick]);
 
   return (
     <div

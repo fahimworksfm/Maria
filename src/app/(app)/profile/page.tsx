@@ -5,6 +5,7 @@ import { THEMES, DEFAULT_THEME } from "@/lib/themes";
 import ThemePicker from "@/components/ThemePicker";
 import SoundToggle from "@/components/SoundToggle";
 import SubmitButton from "@/components/SubmitButton";
+import ModeToggle from "@/components/ModeToggle";
 
 type Prefs = {
   wishlist?: string;
@@ -128,6 +129,11 @@ export default async function ProfilePage() {
         <Field title="Favourites" value={theirPrefs.favorites} />
         <Field title="Allergies / dislikes" value={theirPrefs.allergies} />
         {!partner && <p className="muted">Your partner hasn&apos;t signed up yet.</p>}
+      </section>
+
+      <section className="card p-4 space-y-2">
+        <h3 className="label">Appearance</h3>
+        <ModeToggle />
       </section>
 
       <form action="/auth/signout" method="post" className="pt-2">

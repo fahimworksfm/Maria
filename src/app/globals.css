@@ -2,25 +2,51 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Paper & Ink.
+   Surfaces are declared as RGB channels so Tailwind's opacity modifiers keep
+   working, and the whole palette swaps on one attribute. Light is pressed
+   paper; dark is the same world at night — warm charcoal, not black, so the
+   app still reads as a printed object rather than a terminal. */
 :root {
-  color-scheme: dark;
-  /* Default accent theme (coral). Overridden per-couple on the app shell.
-     Space-separated RGB channels so Tailwind opacity modifiers work. */
+  color-scheme: light;
+  --c-surface: 237 231 218;
+  --c-panel: 246 242 232;
+  --c-panel-2: 230 223 208;
+  --c-line: 207 197 175;
+  --c-ink: 28 26 21;
+  --c-muted: 110 101 87;
+  --c-prim-bg: 28 26 21;
+  --c-prim-fg: 246 242 232;
+
+  /* Couple accents stay as chosen, but on paper they need weight to hold their
+     own against near-black text, so they are mixed toward ink. */
   --accent: 249 115 115;
   --accent-2: 249 200 115;
   --accent-3: 168 123 255;
+  --c-accent-ink: color-mix(in srgb, rgb(var(--accent)) 62%, rgb(28 26 21));
 }
 
-/* The base colour lives on html alone. If body carries a background too, it
-   paints as an ordinary block background — which lands on top of any
-   z-index:-1 layer behind it, and the ambient wash disappears. */
+:root[data-mode="dark"] {
+  color-scheme: dark;
+  --c-surface: 20 19 15;
+  --c-panel: 28 26 22;
+  --c-panel-2: 36 33 27;
+  --c-line: 56 51 42;
+  --c-ink: 239 233 220;
+  --c-muted: 154 145 131;
+  --c-prim-bg: 239 233 220;
+  --c-prim-fg: 20 19 15;
+  /* At night the accent carries itself; lifting it toward paper keeps it legible. */
+  --c-accent-ink: color-mix(in srgb, rgb(var(--accent)) 82%, rgb(239 233 220));
+}
+
 html {
-  background: #0a0a0c;
+  background: rgb(var(--c-surface));
 }
 
 body {
   background: transparent;
-  color: #f7f6f4;
+  color: rgb(var(--c-ink));
   -webkit-font-smoothing: antialiased;
 }
 
@@ -181,70 +207,56 @@ body {
 }
 
 @layer components {
-  /* Every surface is translucent white over the ambient wash. Blur is applied
-     only where content actually scrolls behind a surface — on a smooth gradient
-     a blurred pane and a plain translucent one are indistinguishable, and
-     backdrop-filter is the most expensive thing on the page. */
+  /* Flat, ruled, printed. Depth comes from rules and weight, not shadow —
+     paper has no elevation. */
   .card {
-    @apply bg-panel border border-line rounded-xl2 shadow-soft;
+    @apply bg-panel border border-line rounded-xl2;
   }
   .card-hover {
-    @apply transition-all duration-300 hover:bg-panel2 hover:shadow-lift hover:-translate-y-0.5;
+    @apply transition-colors duration-200 hover:bg-panel2;
   }
-  /* For surfaces that genuinely sit over moving content. */
-  .glass {
-    @apply bg-panel border border-line backdrop-blur-xl;
+  /* The one card that leads a screen gets an accent rule down its edge. */
+  .card-lead {
+    @apply border-l-[3px];
+    border-left-color: var(--c-accent-ink);
   }
   .input {
-    @apply w-full bg-panel2 border border-line rounded-xl px-3.5 py-2.5 text-ink placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent/40 transition;
+    @apply w-full bg-transparent border border-line rounded-xl2 px-3.5 py-2.5 text-ink placeholder:text-muted focus:outline-none focus:border-ink focus:ring-1 focus:ring-ink/20 transition;
   }
   .btn {
-    @apply inline-flex items-center justify-center px-4 py-2.5 rounded-xl border border-line bg-panel2 hover:bg-panel text-ink text-sm font-medium transition disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply inline-flex items-center justify-center px-4 py-2.5 rounded-xl2 border border-ink/80 bg-transparent text-ink text-[12px] font-semibold uppercase tracking-[0.1em] transition hover:bg-ink/5 disabled:opacity-45 disabled:cursor-not-allowed;
   }
   .btn-primary {
-    @apply bg-accent text-bg border-accent/60 hover:bg-accent/90 shadow-[0_8px_24px_-10px_rgb(var(--accent)/0.7)];
+    background: rgb(var(--c-prim-bg));
+    color: rgb(var(--c-prim-fg));
+    @apply border-transparent hover:opacity-90;
   }
   .btn-ghost {
-    @apply bg-transparent border-transparent hover:bg-panel2;
+    @apply border-transparent hover:bg-ink/5;
   }
   .pill {
-    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs border border-line bg-panel2 text-muted;
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] border border-line bg-transparent text-muted uppercase tracking-[0.08em];
   }
   .label {
-    @apply text-[11px] uppercase tracking-[0.2em] text-muted mb-1 block;
+    @apply text-[10px] uppercase tracking-[0.2em] mb-1 block font-semibold;
+    color: var(--c-accent-ink);
   }
   .h1 {
-    @apply text-[2.1rem] sm:text-[2.5rem] leading-[1.02] tracking-[-0.02em] font-display font-medium;
+    @apply text-[2.4rem] sm:text-[2.9rem] leading-[1.0] tracking-[-0.03em] font-display font-semibold;
   }
   .h2 {
-    @apply text-xl font-display font-medium tracking-[-0.01em];
+    @apply text-xl font-display font-semibold tracking-[-0.02em];
   }
   .display {
-    @apply font-display font-medium leading-[1.02] tracking-[-0.025em];
+    @apply font-display font-semibold leading-[1.1] tracking-[-0.025em];
   }
   .muted {
     @apply text-muted text-sm;
   }
 }
 
-/* The light the glass sits in. Fixed behind the whole shell and tinted by the
-   couple's own theme, so translucency has something to be translucent against —
-   without it, every panel reads as flat grey. */
-.app-ambient {
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  /* Strong enough that a 5.5%-white panel actually reads as a pane of glass
-     over coloured light. Too subtle and every surface collapses back to grey —
-     the whole look depends on this layer carrying real colour. */
-  background:
-    radial-gradient(ellipse 90% 60% at 10% -10%, rgb(var(--accent) / 0.34), transparent 64%),
-    radial-gradient(ellipse 80% 55% at 96% 12%, rgb(var(--accent-3) / 0.30), transparent 64%),
-    radial-gradient(ellipse 100% 60% at 46% 108%, rgb(var(--accent-2) / 0.22), transparent 66%),
-    radial-gradient(ellipse 70% 50% at 70% 60%, rgb(var(--accent-3) / 0.12), transparent 70%),
-    #0a0a0c;
-}
+
+
 
 
 /* Decorative motion only when the user hasn't asked to reduce it. Reduced-motion

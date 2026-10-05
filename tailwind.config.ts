@@ -5,36 +5,32 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // Soft glass: a deep neutral base, with every surface above it made of
-        // translucent white rather than its own solid colour. Depth comes from
-        // stacked transparency, so panels pick up whatever ambient light sits
-        // behind them and each couple's theme tints the whole app.
-        bg: "#0A0A0C",
-        panel: "rgb(255 255 255 / 0.055)",
-        panel2: "rgb(255 255 255 / 0.10)",
-        line: "rgb(255 255 255 / 0.12)",
-        ink: "#F7F6F4",
-        muted: "#A2A0A8",
-        // Themeable accents — driven by --accent / --accent-2 / --accent-3
-        // (space-separated RGB channels). Opacity modifiers (bg-accent/20) work.
+        // All surfaces resolve through CSS variables so the whole palette
+        // swaps on :root[data-mode]. Channels, not hex, so bg-panel/70 works.
+        bg: "rgb(var(--c-surface) / <alpha-value>)",
+        panel: "rgb(var(--c-panel) / <alpha-value>)",
+        panel2: "rgb(var(--c-panel-2) / <alpha-value>)",
+        line: "rgb(var(--c-line) / <alpha-value>)",
+        ink: "rgb(var(--c-ink) / <alpha-value>)",
+        muted: "rgb(var(--c-muted) / <alpha-value>)",
+        // Couple accents, and the ink-weighted version used for rules and labels.
         accent: "rgb(var(--accent) / <alpha-value>)",
         accent2: "rgb(var(--accent-2) / <alpha-value>)",
         accent3: "rgb(var(--accent-3) / <alpha-value>)",
+        accentInk: "var(--c-accent-ink)",
       },
       fontFamily: {
         sans: ['ui-sans-serif', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'sans-serif'],
         display: ['"Fraunces Variable"', 'Fraunces', 'ui-serif', 'Georgia', 'serif'],
       },
       boxShadow: {
-        // Glass elevation: a lit top edge, a tight contact shadow, and a wide
-        // soft one. The top highlight is what sells a translucent surface as a
-        // pane rather than a hole.
-        soft: "inset 0 1px 0 rgba(255,255,255,0.10), 0 1px 2px rgba(0,0,0,0.35), 0 16px 40px -18px rgba(0,0,0,0.7)",
-        lift: "inset 0 1px 0 rgba(255,255,255,0.16), 0 2px 4px rgba(0,0,0,0.35), 0 28px 64px -22px rgba(0,0,0,0.8)",
+        // Paper barely lifts. Just enough to separate the leading card.
+        soft: "0 1px 2px rgb(0 0 0 / 0.05), 0 10px 24px -18px rgb(0 0 0 / 0.25)",
+        lift: "0 2px 4px rgb(0 0 0 / 0.06), 0 18px 40px -22px rgb(0 0 0 / 0.35)",
       },
       borderRadius: {
-        xl2: "1.25rem",
-        xl3: "1.75rem",
+        xl2: "4px",
+        xl3: "8px",
       },
     },
   },
