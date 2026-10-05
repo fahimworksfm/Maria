@@ -5,7 +5,7 @@
 // HTML like "/". Only GET is touched — POST (server actions, writes) always
 // hits the network.
 
-const CACHE = "tether-v6";
+const CACHE = "tether-v7";
 // Static, non-redirecting assets only. NOT "/", which redirects when signed in.
 const SHELL = ["/manifest.webmanifest", "/icon.svg"];
 
@@ -40,7 +40,7 @@ async function handleNavigation(request) {
     const cached = await cache.match(request);
     if (cached && !cached.redirected) return cached;
     return new Response(
-      "<!doctype html><meta charset=utf-8><title>Offline</title><body style=\"font-family:system-ui;background:#0b0b10;color:#e9e9f0;display:grid;place-items:center;height:100vh;margin:0\"><p>You're offline. Reconnect and try again.</p></body>",
+      "<!doctype html><meta charset=utf-8><title>Offline</title><body style=\"font-family:system-ui;background:#0a0a0c;color:#f7f6f4;display:grid;place-items:center;height:100vh;margin:0\"><p>You're offline. Reconnect and try again.</p></body>",
       { headers: { "Content-Type": "text/html; charset=utf-8" }, status: 503 }
     );
   }

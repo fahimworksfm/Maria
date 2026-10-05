@@ -16,7 +16,7 @@ const ITEMS: { href: string; label: string; Icon: LucideIcon }[] = [
 export default function BottomNav() {
   const pathname = usePathname();
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-bg/85 backdrop-blur-xl border-t border-line/80 z-30 safe-bottom">
+    <nav className="fixed bottom-0 left-0 right-0 bg-bg/60 backdrop-blur-xl border-t border-line z-30 safe-bottom">
       <div className="max-w-3xl mx-auto px-2 py-2 grid grid-cols-5">
         {ITEMS.map(({ href, label, Icon }) => {
           const active = pathname === href || (href !== "/home" && pathname.startsWith(href + "/"));

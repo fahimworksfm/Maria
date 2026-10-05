@@ -117,7 +117,7 @@ function pickToday(input: {
 
 function Stat({ href, label, value, highlight }: { href: string; label: string; value: string | number; highlight?: boolean }) {
   return (
-    <Link href={href} className={`block bg-panel2/70 border border-line rounded-xl2 py-3 px-2 text-center transition active:scale-95 hover:bg-panel2 ${highlight ? "ring-1 ring-accent/60" : ""}`}>
+    <Link href={href} className={`block bg-panel border border-line rounded-xl2 py-3 px-2 text-center transition active:scale-95 hover:bg-panel2 ${highlight ? "ring-1 ring-accent/60" : ""}`}>
       <div className={`text-xl font-display font-medium leading-tight ${highlight ? "headline-gradient" : ""}`}>{value}</div>
       <div className="muted text-[10px] uppercase tracking-wider mt-1">{label}</div>
     </Link>

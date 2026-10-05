@@ -88,7 +88,7 @@ export default async function ProfilePage() {
           <p className="muted text-xs">Sets the accent for both of you. Pick what feels like the two of you.</p>
         </div>
         <ThemePicker current={currentTheme} action={setTheme} />
-        <div className="border-t border-line/70 pt-3">
+        <div className="border-t border-line pt-3">
           <SoundToggle />
         </div>
       </section>

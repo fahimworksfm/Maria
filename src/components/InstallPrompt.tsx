@@ -136,7 +136,7 @@ export default function InstallPrompt({
 
   if (variant === "banner") {
     return (
-      <div className="card p-3 bg-panel2/80 border-accent/30">
+      <div className="card p-3 bg-panel2 backdrop-blur-xl border-accent/30">
         {inner}
       </div>
     );

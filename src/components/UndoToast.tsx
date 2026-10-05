@@ -16,7 +16,7 @@ export default function UndoToast({
   if (!show) return null;
   return (
     <div className="fixed left-1/2 -translate-x-1/2 bottom-24 z-40 toast-in">
-      <div className="flex items-center gap-3 rounded-full border border-line bg-panel2/95 backdrop-blur px-4 py-2 text-sm text-ink shadow-soft">
+      <div className="flex items-center gap-3 rounded-full border border-line bg-panel2 backdrop-blur-xl backdrop-blur px-4 py-2 text-sm text-ink shadow-soft">
         <span>{label}</span>
         <button onClick={onUndo} className="font-medium text-accent underline underline-offset-2">
           Undo

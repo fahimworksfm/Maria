@@ -10,7 +10,7 @@
     radial-gradient(ellipse 80% 50% at 20% 0%, rgba(249,115,115,0.18), transparent 60%),
     radial-gradient(ellipse 70% 50% at 80% 30%, rgba(249,200,115,0.14), transparent 60%),
     radial-gradient(ellipse 90% 60% at 50% 100%, rgba(180,120,255,0.16), transparent 60%),
-    #0c0a09;
+    #0a0a0c;
   background-size: 200% 200%;
 }
 
@@ -118,7 +118,7 @@
   width: 260px;
   height: 540px;
   border-radius: 38px;
-  background: linear-gradient(180deg, #201a15, #0c0a09);
+  background: linear-gradient(180deg, #1a1620, #0a0a0c);
   border: 2px solid #332a22;
   box-shadow: 0 30px 60px -10px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.06);
   padding: 14px;
@@ -134,14 +134,14 @@
   position: absolute;
   top: 14px; left: 50%; transform: translateX(-50%);
   width: 80px; height: 22px;
-  background: #0c0a09;
+  background: #0a0a0c;
   border-radius: 11px;
   z-index: 2;
 }
 .phone-screen {
   position: relative;
   width: 100%; height: 100%;
-  background: #0c0a09;
+  background: #0a0a0c;
   border-radius: 26px;
   overflow: hidden;
 }
@@ -172,12 +172,12 @@
   border-radius: 12px;
   padding: 10px;
   font-size: 11px;
-  color: #f1ece5;
+  color: #f7f6f4;
 }
 .mini-pill {
   display: inline-block;
   padding: 2px 8px;
-  background: #201a15;
+  background: #1a1620;
   border: 1px solid #332a22;
   border-radius: 999px;
   font-size: 9px;

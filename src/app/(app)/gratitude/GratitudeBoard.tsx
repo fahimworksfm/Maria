@@ -116,7 +116,7 @@ function Tree({ leaves, count }: { count: number; leaves: Array<{ idx: number; t
       <defs>
         <radialGradient id="bgGrad" cx="50%" cy="100%" r="80%">
           <stop offset="0%" stopColor="#1d1d27" />
-          <stop offset="100%" stopColor="#0b0b10" />
+          <stop offset="100%" stopColor="#0a0a0c" />
         </radialGradient>
       </defs>
       <rect width={w} height={h} fill="url(#bgGrad)" />

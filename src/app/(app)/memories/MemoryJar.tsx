@@ -375,7 +375,7 @@ export default function MemoryJar({ motes, onSelect }: { motes: Mote[]; onSelect
   return (
     <div
       ref={hostRef}
-      className="rounded-xl2 overflow-hidden border border-line bg-panel/40 aspect-[4/5] max-h-[420px]"
+      className="rounded-xl2 overflow-hidden border border-line bg-panel aspect-[4/5] max-h-[420px]"
       role="img"
       aria-label={`A jar holding ${motes.length} ${motes.length === 1 ? "memory" : "memories"}. Each memory is listed below.`}
     />

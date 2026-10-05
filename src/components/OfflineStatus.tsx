@@ -38,7 +38,7 @@ export default function OfflineStatus() {
 
   return (
     <div className="fixed left-1/2 -translate-x-1/2 bottom-24 z-30 pointer-events-none">
-      <div className="pointer-events-auto flex items-center gap-2 rounded-full border border-line bg-panel2/90 backdrop-blur px-3 py-1.5 text-xs text-ink shadow-soft">
+      <div className="pointer-events-auto flex items-center gap-2 rounded-full border border-line bg-panel2 backdrop-blur-xl backdrop-blur px-3 py-1.5 text-xs text-ink shadow-soft">
         <span
           className={`inline-block w-2 h-2 rounded-full ${
             count > 0 ? "bg-accent2 animate-pulse" : "bg-emerald-400"

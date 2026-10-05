@@ -175,7 +175,7 @@ export default async function Landing() {
           <InstallPrompt />
         </section>
 
-        <footer className="px-6 py-10 max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-4 border-t border-line/50 text-xs text-muted">
+        <footer className="px-6 py-10 max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-4 border-t border-line text-xs text-muted">
           <div className="flex items-center gap-2">
             <span className="inline-block w-5 h-5 rounded-md bg-gradient-to-br from-accent to-accent2" />
             <span>Tether · a private space for two</span>

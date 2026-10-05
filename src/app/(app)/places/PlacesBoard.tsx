@@ -99,7 +99,7 @@ export default function PlacesBoard({ initial, coupleId }: { initial: Place[]; c
           <ul className="absolute z-20 left-4 right-4 top-16 bg-panel2 border border-line rounded-lg overflow-hidden shadow-soft max-h-60 overflow-y-auto">
             {suggestions.map((s, i) => (
               <li key={i}>
-                <button type="button" onClick={() => pick(s)} className="w-full text-left px-3 py-2 hover:bg-panel text-sm border-b border-line/50 last:border-0">
+                <button type="button" onClick={() => pick(s)} className="w-full text-left px-3 py-2 hover:bg-panel text-sm border-b border-line last:border-0">
                   <span className="font-medium">{s.name}</span>
                   <span className="muted block text-xs truncate">{s.label}</span>
                 </button>

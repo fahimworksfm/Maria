@@ -159,7 +159,7 @@ export default function ArrowsGame({
     <div className="space-y-5">
       {won && <Confetti trigger={`arrows-${mode}-${level}`} />}
 
-      <div className="grid grid-cols-2 gap-2 p-1 rounded-xl2 bg-panel2/60 border border-line">
+      <div className="grid grid-cols-2 gap-2 p-1 rounded-xl2 bg-panel border border-line">
         {(["levels", "daily"] as Mode[]).map((m) => (
           <button key={m} onClick={() => { tap(HAPTIC.tick); setMode(m); }}
             className={`py-2 rounded-lg text-sm transition ${mode === m ? "bg-accent/15 text-ink" : "text-muted hover:text-ink"}`}>

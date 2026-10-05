@@ -11,9 +11,16 @@
   --accent-3: 168 123 255;
 }
 
-html, body {
-  background: #0c0a09;
-  color: #f1ece5;
+/* The base colour lives on html alone. If body carries a background too, it
+   paints as an ordinary block background — which lands on top of any
+   z-index:-1 layer behind it, and the ambient wash disappears. */
+html {
+  background: #0a0a0c;
+}
+
+body {
+  background: transparent;
+  color: #f7f6f4;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -174,43 +181,71 @@ body {
 }
 
 @layer components {
+  /* Every surface is translucent white over the ambient wash. Blur is applied
+     only where content actually scrolls behind a surface — on a smooth gradient
+     a blurred pane and a plain translucent one are indistinguishable, and
+     backdrop-filter is the most expensive thing on the page. */
   .card {
     @apply bg-panel border border-line rounded-xl2 shadow-soft;
   }
   .card-hover {
     @apply transition-all duration-300 hover:bg-panel2 hover:shadow-lift hover:-translate-y-0.5;
   }
+  /* For surfaces that genuinely sit over moving content. */
+  .glass {
+    @apply bg-panel border border-line backdrop-blur-xl;
+  }
   .input {
-    @apply w-full bg-panel2 border border-line rounded-lg px-3 py-2 text-ink placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-accent/50;
+    @apply w-full bg-panel2 border border-line rounded-xl px-3.5 py-2.5 text-ink placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent/40 transition;
   }
   .btn {
-    @apply inline-flex items-center justify-center px-4 py-2 rounded-lg border border-line bg-panel2 hover:bg-panel text-ink text-sm font-medium transition disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply inline-flex items-center justify-center px-4 py-2.5 rounded-xl border border-line bg-panel2 hover:bg-panel text-ink text-sm font-medium transition disabled:opacity-50 disabled:cursor-not-allowed;
   }
   .btn-primary {
-    @apply bg-accent text-bg border-accent hover:bg-accent/90;
+    @apply bg-accent text-bg border-accent/60 hover:bg-accent/90 shadow-[0_8px_24px_-10px_rgb(var(--accent)/0.7)];
   }
   .btn-ghost {
     @apply bg-transparent border-transparent hover:bg-panel2;
   }
   .pill {
-    @apply inline-flex items-center px-2 py-0.5 rounded-full text-xs border border-line bg-panel2 text-muted;
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs border border-line bg-panel2 text-muted;
   }
   .label {
-    @apply text-[11px] uppercase tracking-[0.18em] text-muted mb-1 block;
+    @apply text-[11px] uppercase tracking-[0.2em] text-muted mb-1 block;
   }
   .h1 {
-    @apply text-3xl sm:text-[2.1rem] leading-[1.05] font-display font-medium;
+    @apply text-[2.1rem] sm:text-[2.5rem] leading-[1.02] tracking-[-0.02em] font-display font-medium;
   }
   .h2 {
-    @apply text-xl font-display font-medium;
+    @apply text-xl font-display font-medium tracking-[-0.01em];
   }
   .display {
-    @apply font-display font-medium leading-[1.04] tracking-[-0.015em];
+    @apply font-display font-medium leading-[1.02] tracking-[-0.025em];
   }
   .muted {
     @apply text-muted text-sm;
   }
 }
+
+/* The light the glass sits in. Fixed behind the whole shell and tinted by the
+   couple's own theme, so translucency has something to be translucent against —
+   without it, every panel reads as flat grey. */
+.app-ambient {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  /* Strong enough that a 5.5%-white panel actually reads as a pane of glass
+     over coloured light. Too subtle and every surface collapses back to grey —
+     the whole look depends on this layer carrying real colour. */
+  background:
+    radial-gradient(ellipse 90% 60% at 10% -10%, rgb(var(--accent) / 0.34), transparent 64%),
+    radial-gradient(ellipse 80% 55% at 96% 12%, rgb(var(--accent-3) / 0.30), transparent 64%),
+    radial-gradient(ellipse 100% 60% at 46% 108%, rgb(var(--accent-2) / 0.22), transparent 66%),
+    radial-gradient(ellipse 70% 50% at 70% 60%, rgb(var(--accent-3) / 0.12), transparent 70%),
+    #0a0a0c;
+}
+
 
 /* Decorative motion only when the user hasn't asked to reduce it. Reduced-motion
    users keep the static end-state (still gradients, calm glow). */

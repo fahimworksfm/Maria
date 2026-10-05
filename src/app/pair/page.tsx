@@ -76,7 +76,7 @@ export default async function PairPage({ searchParams }: { searchParams: Promise
           <button className="btn btn-primary w-full cta-glow" type="submit">Create</button>
         </form>
 
-        <div className="border-t border-line/70 pt-5">
+        <div className="border-t border-line pt-5">
           <form action={joinCouple} className="space-y-3">
             <h2 className="h2">Join an existing one</h2>
             <p className="muted text-sm">If your partner already created one, paste their code.</p>

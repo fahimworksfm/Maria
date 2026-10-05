@@ -1,7 +1,7 @@
 // Curated couple themes. Values are space-separated RGB channels so they slot
 // into Tailwind's `rgb(var(--accent) / <alpha-value>)` colors (opacity modifiers
-// keep working). All chosen to stay legible on the #0b0b10 dark background and
-// to carry dark (#0b0b10) text on solid accent buttons.
+// keep working). All chosen to stay legible on the #0a0a0c dark background and
+// to carry dark (#0a0a0c) text on solid accent buttons.
 
 export type Theme = {
   key: string;
