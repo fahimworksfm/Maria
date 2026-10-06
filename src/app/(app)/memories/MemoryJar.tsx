@@ -11,16 +11,26 @@ const MAX_MOTES = 60;
 const MAX_PHOTOS = 18;
 
 /** Soft radial glow, drawn once into a canvas — no asset to ship or load. */
-function glowTexture(): THREE.Texture {
+function glowTexture(onPaper: boolean): THREE.Texture {
   const size = 64;
   const c = document.createElement("canvas");
   c.width = c.height = size;
   const g = c.getContext("2d")!;
   const grad = g.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
-  grad.addColorStop(0, "rgba(255,255,255,1)");
-  grad.addColorStop(0.25, "rgba(255,255,255,0.75)");
-  grad.addColorStop(0.55, "rgba(255,255,255,0.18)");
-  grad.addColorStop(1, "rgba(255,255,255,0)");
+  if (onPaper) {
+    // A mark, not a halo: solid to the edge of the dot, then a short feather so
+    // it still looks drawn rather than aliased.
+    grad.addColorStop(0, "rgba(255,255,255,1)");
+    grad.addColorStop(0.34, "rgba(255,255,255,1)");
+    grad.addColorStop(0.46, "rgba(255,255,255,0.55)");
+    grad.addColorStop(0.58, "rgba(255,255,255,0)");
+    grad.addColorStop(1, "rgba(255,255,255,0)");
+  } else {
+    grad.addColorStop(0, "rgba(255,255,255,1)");
+    grad.addColorStop(0.25, "rgba(255,255,255,0.75)");
+    grad.addColorStop(0.55, "rgba(255,255,255,0.18)");
+    grad.addColorStop(1, "rgba(255,255,255,0)");
+  }
   g.fillStyle = grad;
   g.fillRect(0, 0, size, size);
   const t = new THREE.CanvasTexture(c);
@@ -40,6 +50,10 @@ function jarProfile(): THREE.Vector2[] {
     new THREE.Vector2(0.50, 1.05),
     new THREE.Vector2(0.50, 1.22),
     new THREE.Vector2(0.56, 1.26),
+    // Fold back down inside the neck. A jar drawn with no mouth reads as a
+    // sealed vessel; the inner wall is what gives the opening its ellipse.
+    new THREE.Vector2(0.50, 1.26),
+    new THREE.Vector2(0.50, 1.10),
   ];
 }
 
@@ -59,12 +73,17 @@ const FRESNEL_VERT = `
 const FRESNEL_FRAG = `
   uniform vec3 uColor;
   uniform float uOpacity;
+  uniform float uInk;
   varying vec3 vNormalW;
   varying vec3 vViewDir;
   void main() {
     float f = 1.0 - abs(dot(normalize(vNormalW), normalize(vViewDir)));
-    f = pow(clamp(f, 0.0, 1.0), 2.4);
-    gl_FragColor = vec4(uColor, f * uOpacity);
+    f = clamp(f, 0.0, 1.0);
+    // In the dark the whole surface catches light and reads as glass. On paper
+    // that same falloff fills the silhouette with a milky wash, so the ink is
+    // confined to the contour — a drawn jar rather than a lit one.
+    float a = mix(pow(f, 2.4), smoothstep(0.86, 0.995, f), uInk);
+    gl_FragColor = vec4(uColor, a * uOpacity);
   }`;
 
 const PHOTO_VERT = `
@@ -153,10 +172,11 @@ export default function MemoryJar({ motes, onSelect }: { motes: Mote[]; onSelect
       uniforms: {
         uColor: {
           value: onPaper
-            ? accentColor.clone().lerp(new THREE.Color(0.11, 0.1, 0.08), 0.55)
+            ? accentColor.clone().lerp(new THREE.Color(0.11, 0.1, 0.08), 0.78)
             : accentColor.clone().lerp(new THREE.Color(1, 1, 1), 0.55),
         },
-        uOpacity: { value: onPaper ? 0.75 : 0.5 },
+        uOpacity: { value: onPaper ? 0.9 : 0.5 },
+        uInk: { value: onPaper ? 1 : 0 },
       },
       transparent: true,
       side: THREE.DoubleSide,
@@ -186,9 +206,9 @@ export default function MemoryJar({ motes, onSelect }: { motes: Mote[]; onSelect
 
       // Memories with a photo burn a little warmer and brighter.
       const toward = onPaper ? new THREE.Color(0.11, 0.1, 0.08) : new THREE.Color(1, 1, 1);
-      const c = shown[i]!.withPhoto
-        ? accentColor.clone().lerp(toward, 0.45)
-        : accentColor.clone().lerp(toward, 0.12);
+      // On paper the ink has to carry; in the dark the glow does.
+      const weight = onPaper ? (shown[i]!.withPhoto ? 0.55 : 0.85) : (shown[i]!.withPhoto ? 0.45 : 0.12);
+      const c = accentColor.clone().lerp(toward, weight);
       colors.set([c.r, c.g, c.b], i * 3);
       sizes[i] = shown[i]!.withPhoto ? 0.3 : 0.22;
       seeds[i] = Math.random() * Math.PI * 2;
@@ -197,9 +217,9 @@ export default function MemoryJar({ motes, onSelect }: { motes: Mote[]; onSelect
     const moteGeo = new THREE.BufferGeometry();
     moteGeo.setAttribute("position", new THREE.BufferAttribute(positions, 3));
     moteGeo.setAttribute("color", new THREE.BufferAttribute(colors, 3));
-    const tex = glowTexture();
+    const tex = glowTexture(onPaper);
     const moteMat = new THREE.PointsMaterial({
-      size: 0.26,
+      size: onPaper ? 0.17 : 0.26,
       map: tex,
       vertexColors: true,
       transparent: true,
