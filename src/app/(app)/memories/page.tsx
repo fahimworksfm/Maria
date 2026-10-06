@@ -126,7 +126,7 @@ export default async function MemoriesPage() {
       <section className="space-y-6">
         {items.length === 0 && (
           <div className="card p-8 text-center space-y-3">
-            <img src="/media/empty-jar.webp" alt="" className="ink-art mx-auto w-40 h-auto" />
+            <span className="ink-art mx-auto w-36 aspect-[7/12]" style={{ ["--art" as string]: "url(/media/empty-jar.png)" }} aria-hidden />
             <p className="font-display text-lg">Drop your first moment.</p>
             <p className="muted text-sm">A photo, a voice note, a sentence — anything you&apos;d want to remember.</p>
           </div>

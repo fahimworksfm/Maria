@@ -272,7 +272,13 @@ export default function WatchlistBoard({
             </div>
           </SwipeRow>
         ))}
-        {unwatched.length === 0 && <p className="muted">Nothing queued yet — add one above.</p>}
+        {unwatched.length === 0 && (
+          <div className="card p-8 text-center space-y-3">
+            <span className="ink-art mx-auto w-32 aspect-[7/12]" style={{ ["--art" as string]: "url(/media/empty-chair.png)" }} aria-hidden />
+            <p className="font-display text-lg">Nothing queued yet.</p>
+            <p className="muted text-sm">Search for something above, or add it by hand. Saturday will come around either way.</p>
+          </div>
+        )}
       </section>
 
       <section className="space-y-2">

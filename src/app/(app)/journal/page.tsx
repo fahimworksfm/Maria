@@ -116,7 +116,11 @@ export default async function JournalPage() {
             ))}
           </div>
         ) : (
-          <p className="muted">No past entries yet.</p>
+          <div className="card p-8 text-center space-y-3">
+            <span className="ink-art mx-auto w-32 aspect-[7/12]" style={{ ["--art" as string]: "url(/media/empty-book.png)" }} aria-hidden />
+            <p className="font-display text-lg">Nothing written down yet.</p>
+            <p className="muted text-sm">Answer today&apos;s prompt and it starts here — one page for every day you both showed up.</p>
+          </div>
         )}
       </section>
     </div>

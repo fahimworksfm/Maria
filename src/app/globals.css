@@ -402,11 +402,17 @@ input[type="search"]::-webkit-search-decoration {
   mask: url("/media/mark.png") center / contain no-repeat;
 }
 
-/* Ink drawings are on cream stock. In Ink mode they are inverted so the line
-   work reads as light on dark instead of a lit rectangle on a dark page. */
-:root[data-mode="dark"] .chapter-plate img,
-:root[data-mode="dark"] .ink-art {
+/* Line drawings ship as alpha masks rather than pictures: the paper they were
+   drawn on is gone, so they ink themselves in the current text colour and need
+   no inversion, no blend mode, and no second file for Ink mode. */
+.ink-art {
+  display: block;
+  background: rgb(var(--c-ink) / 0.82);
+  -webkit-mask: var(--art) center / contain no-repeat;
+  mask: var(--art) center / contain no-repeat;
+}
+
+/* Season plates are still photographs of ink on cream, so they do invert. */
+:root[data-mode="dark"] .chapter-plate img {
   filter: invert(1) hue-rotate(180deg) brightness(0.92);
 }
-.ink-art { mix-blend-mode: multiply; }
-:root[data-mode="dark"] .ink-art { mix-blend-mode: normal; }
