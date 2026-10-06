@@ -326,32 +326,26 @@ body {
    The hidden start state is scoped to `.chapters.ready`, a class only the
    reveal script adds. Without JS, or before hydration, the chapters render
    plainly visible — the animation can fail without taking the content with it. */
+/* A field-guide plate: the botanical is printed on the page in ink, not framed
+   and cropped inside a box. Shipping it as a mask means it inks itself in the
+   text colour, so it needs no frame, no inversion and no second asset — and
+   nothing gets cropped, because it is contained rather than covering. */
 .chapter-plate {
-  position: relative;
-  border: 1px solid rgb(var(--c-line));
-  overflow: hidden;
-  aspect-ratio: 16 / 9;
-  background: rgb(var(--c-panel));
-}
-.chapter-plate img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
   display: block;
+  width: 100%;
+  aspect-ratio: 1100 / 596;
+  background: rgb(var(--c-ink) / 0.86);
+  -webkit-mask: var(--art) center / contain no-repeat;
+  mask: var(--art) center / contain no-repeat;
 }
-.chapter-plate-label {
-  position: absolute;
-  left: 14px;
-  bottom: 10px;
+.chapter-rule {
   display: flex;
   align-items: baseline;
-  gap: 10px;
-  /* The plates are ink on cream, so the season is set in ink on a small paper
-     tab rather than reversed out with a shadow. */
-  color: rgb(var(--c-ink));
-  background: rgb(var(--c-panel) / 0.88);
-  padding: 4px 10px;
-  border: 1px solid rgb(var(--c-line));
+  justify-content: space-between;
+  gap: 12px;
+  border-top: 1px solid rgb(var(--c-ink) / 0.8);
+  padding-top: 8px;
+  margin-top: 10px;
 }
 
 .chapters.ready .chapter {
@@ -412,7 +406,3 @@ input[type="search"]::-webkit-search-decoration {
   mask: var(--art) center / contain no-repeat;
 }
 
-/* Season plates are still photographs of ink on cream, so they do invert. */
-:root[data-mode="dark"] .chapter-plate img {
-  filter: invert(1) hue-rotate(180deg) brightness(0.92);
-}

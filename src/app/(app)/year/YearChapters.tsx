@@ -57,12 +57,15 @@ export default function YearChapters({ chapters, year }: { chapters: Chapter[]; 
     <div ref={rootRef} className="chapters space-y-5">
       {chapters.map((c) => (
         <section key={c.key} className="chapter">
-          <div className="chapter-plate">
-            <img src={c.plate} alt="" loading="lazy" decoding="async" width={1200} height={896} />
-            <div className="chapter-plate-label">
-              <span className="font-display text-2xl">{c.label}</span>
-              <span className="text-xs tracking-widest opacity-80">{year}</span>
-            </div>
+          <span
+            className="chapter-plate"
+            style={{ ["--art" as string]: `url(${c.plate})` }}
+            role="img"
+            aria-label={`${c.label} — a botanical ink drawing`}
+          />
+          <div className="chapter-rule">
+            <span className="font-display text-2xl font-semibold tracking-[-0.02em]">{c.label}</span>
+            <span className="text-[11px] uppercase tracking-[0.2em] text-muted tabular-nums">{year}</span>
           </div>
 
           <div className="pt-3">
