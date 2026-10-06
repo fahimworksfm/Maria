@@ -4,7 +4,7 @@ import { supabaseServer } from "@/lib/supabase/server";
 import { BUCKET, signedUrl, userScopedPath } from "@/lib/media";
 import DeleteButton from "@/components/DeleteButton";
 import SubmitButton from "@/components/SubmitButton";
-import { Images, MapPin, Quote } from "lucide-react";
+import { MapPin, Quote } from "lucide-react";
 import MemoryJarPanel from "./MemoryJarPanel";
 
 type Memory = {
@@ -126,9 +126,7 @@ export default async function MemoriesPage() {
       <section className="space-y-6">
         {items.length === 0 && (
           <div className="card p-8 text-center space-y-3">
-            <div className="mx-auto w-12 h-12 rounded-full bg-accent/10 text-accent grid place-items-center">
-              <Images size={22} aria-hidden />
-            </div>
+            <img src="/media/empty-jar.webp" alt="" className="ink-art mx-auto w-40 h-auto" />
             <p className="font-display text-lg">Drop your first moment.</p>
             <p className="muted text-sm">A photo, a voice note, a sentence — anything you&apos;d want to remember.</p>
           </div>

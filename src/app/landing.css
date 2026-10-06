@@ -6,43 +6,10 @@
   position: fixed;
   inset: 0;
   z-index: -1;
-  background:
-    radial-gradient(ellipse 80% 50% at 20% 0%, rgba(249,115,115,0.18), transparent 60%),
-    radial-gradient(ellipse 70% 50% at 80% 30%, rgba(249,200,115,0.14), transparent 60%),
-    radial-gradient(ellipse 90% 60% at 50% 100%, rgba(180,120,255,0.16), transparent 60%),
-    #0a0a0c;
-  background-size: 200% 200%;
+  background: rgb(var(--c-surface));
 }
 
-@keyframes gradient-shift {
-  0%, 100% { background-position: 0% 0%, 100% 100%, 50% 100%; }
-  50%      { background-position: 100% 50%, 0% 50%, 50% 0%; }
-}
 
-.aurora {
-  position: fixed;
-  inset: -10%;
-  z-index: -1;
-  pointer-events: none;
-  filter: blur(70px);
-  opacity: 0.6;
-}
-.aurora-blob {
-  position: absolute;
-  width: 36vw;
-  height: 36vw;
-  border-radius: 50%;
-  mix-blend-mode: screen;
-}
-.aurora-blob.a { background: #f97373; top: 10%; left: 10%; animation-delay: 0s; }
-.aurora-blob.b { background: #f9c873; top: 50%; left: 60%; animation-delay: -7s; }
-.aurora-blob.c { background: #a87bff; top: 70%; left: 20%; animation-delay: -14s; }
-
-@keyframes drift {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  33%      { transform: translate(8vw, -6vh) scale(1.1); }
-  66%      { transform: translate(-6vw, 8vh) scale(0.95); }
-}
 
 /* Floating hearts — invisible by default; only float under no-preference */
 .heart-field {
@@ -82,13 +49,6 @@
 }
 
 /* Headline gradient — static gradient by default; shimmers under no-preference */
-.headline-gradient {
-  background: linear-gradient(120deg, #f97373 0%, #f9c873 50%, #a87bff 100%);
-  background-size: 200% 200%;
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
 @keyframes shine {
   0%, 100% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }
@@ -118,9 +78,9 @@
   width: 260px;
   height: 540px;
   border-radius: 38px;
-  background: linear-gradient(180deg, #1a1620, #0a0a0c);
-  border: 2px solid #332a22;
-  box-shadow: 0 30px 60px -10px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.06);
+  background: rgb(var(--c-ink));
+  border: 1px solid rgb(var(--c-ink));
+  box-shadow: 0 24px 48px -22px rgb(0 0 0 / 0.45);
   padding: 14px;
   overflow: hidden;
   transform: rotate(-3deg);
@@ -134,14 +94,15 @@
   position: absolute;
   top: 14px; left: 50%; transform: translateX(-50%);
   width: 80px; height: 22px;
-  background: #0a0a0c;
+  background: rgb(var(--c-ink));
   border-radius: 11px;
   z-index: 2;
 }
 .phone-screen {
   position: relative;
   width: 100%; height: 100%;
-  background: #0a0a0c;
+  background: rgb(var(--c-panel));
+  color: rgb(var(--c-ink));
   border-radius: 26px;
   overflow: hidden;
 }
@@ -167,22 +128,22 @@
 }
 
 .mini-card {
-  background: #17120f;
-  border: 1px solid #332a22;
-  border-radius: 12px;
-  padding: 10px;
+  background: rgb(var(--c-surface));
+  border: 1px solid rgb(var(--c-line));
+  border-radius: 4px;
+  padding: 9px 10px;
   font-size: 11px;
-  color: #f7f6f4;
+  line-height: 1.35;
 }
 .mini-pill {
   display: inline-block;
-  padding: 2px 8px;
-  background: #1a1620;
-  border: 1px solid #332a22;
+  border: 1px solid rgb(var(--c-line));
   border-radius: 999px;
+  padding: 2px 8px;
   font-size: 9px;
-  color: #a99f93;
-  margin-right: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgb(var(--c-muted));
 }
 
 /* Press glow on CTAs — static by default */
@@ -204,39 +165,10 @@
 /* ---- Decorative motion only when the user hasn't asked to reduce it ---- */
 @media (prefers-reduced-motion: no-preference) {
   .landing-bg { animation: gradient-shift 18s ease-in-out infinite; }
-  .aurora-blob { animation: drift 22s ease-in-out infinite; }
   .heart-field span { animation: rise linear infinite; }
   .fade-up { opacity: 0; transform: translateY(20px); animation: fadeUp .9s ease forwards; }
-  .headline-gradient { animation: shine 8s ease-in-out infinite; }
   .phone { animation: phone-float 7s ease-in-out infinite; }
   .phone-slide { animation: slide-cycle 18s infinite; }
   .cta-glow::before { animation: shine 6s linear infinite; }
 }
 
-/* Ambient hero loop. Sits between the base gradient and the aurora blobs, all
-   at z-index -1, so DOM order does the stacking.
-
-   The source is 16:9 and a phone viewport is roughly 9:19.5, so object-fit:cover
-   crops to a narrow vertical slice and upscales it several times over. The blur
-   turns that from a defect into the intent — what is left is drifting colour,
-   which is the only reason to use video here instead of another gradient, and it
-   keeps the headline legible on top. */
-.ambient-video {
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 1.4s ease;
-  filter: blur(18px) saturate(1.15);
-  /* Scale past the edges so the blur has no visible border. */
-  transform: scale(1.15);
-}
-.ambient-video.is-visible { opacity: 0.55; }
-
-@media (prefers-reduced-motion: reduce) {
-  .ambient-video { display: none; }
-}

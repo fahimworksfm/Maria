@@ -12,10 +12,7 @@
   gap: 1.75rem;
   text-align: center;
   padding: 2rem;
-  background:
-    radial-gradient(ellipse 70% 50% at 50% 38%, rgba(249, 115, 115, 0.14), transparent 60%),
-    radial-gradient(ellipse 60% 45% at 50% 70%, rgba(168, 123, 255, 0.12), transparent 60%),
-    #0a0a0c;
+  background: rgb(var(--c-surface));
 }
 
 .celebrate svg {
@@ -59,7 +56,7 @@
 }
 
 .cord-glow {
-  filter: drop-shadow(0 0 9px rgba(249, 200, 115, 0.35));
+  /* No drop-shadow on paper — ink does not glow. */
 }
 
 .celebrate .names {
@@ -144,3 +141,7 @@
 @media (prefers-reduced-motion: reduce) {
   .celebrate-bloom { display: none; }
 }
+
+/* The bloom is light on black, blended with screen — it only exists in Ink. */
+.celebrate-bloom { display: none; }
+:root[data-mode="dark"] .celebrate-bloom { display: block; }

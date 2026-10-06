@@ -7,6 +7,8 @@ import AmbientVideo from "@/components/AmbientVideo";
 export default function Celebration({ names }: { names: string[] }) {
   const router = useRouter();
   const [reduced, setReduced] = useState(false);
+  // The bloom is only visible in Ink, so on Paper it should not be downloaded.
+  const [inkMode, setInkMode] = useState(false);
 
   useEffect(() => {
     // The CSS @media(prefers-reduced-motion) backstop already forces the final
@@ -16,6 +18,7 @@ export default function Celebration({ names }: { names: string[] }) {
         ? window.matchMedia("(prefers-reduced-motion: reduce)").matches
         : false;
     setReduced(reducedNow);
+    setInkMode(document.documentElement.getAttribute("data-mode") === "dark");
     // 4.2s rather than 3s: the bloom runs 4.01s and its tail — settling back to
     // dark — is what makes the moment land instead of cutting. Reduced motion
     // plays no video and keeps the short advance. A tap still skips either way.
@@ -32,22 +35,22 @@ export default function Celebration({ names }: { names: string[] }) {
       role="button"
       aria-label="Continue to your space"
     >
-      <AmbientVideo src="/media/welcome-bloom.mp4" className="celebrate-bloom" loop={false} />
+      {inkMode && <AmbientVideo src="/media/welcome-bloom.mp4" className="celebrate-bloom" loop={false} />}
 
       <svg viewBox="0 0 512 512" aria-hidden className="cord-glow">
         <defs>
           <linearGradient id="cordGrad" x1="0%" y1="100%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#f97373" />
-            <stop offset="50%" stopColor="#f9c873" />
-            <stop offset="100%" stopColor="#a87bff" />
+            <stop offset="0%" stopColor="var(--c-accent-ink)" />
+            <stop offset="55%" stopColor="var(--c-accent-ink)" />
+            <stop offset="100%" stopColor="rgb(var(--c-ink))" />
           </linearGradient>
           <radialGradient id="knotA" cx="35%" cy="35%" r="70%">
-            <stop offset="0%" stopColor="#ffb2b2" />
-            <stop offset="100%" stopColor="#ff6a6a" />
+            <stop offset="0%" stopColor="var(--c-accent-ink)" />
+            <stop offset="100%" stopColor="var(--c-accent-ink)" />
           </radialGradient>
           <radialGradient id="knotB" cx="35%" cy="35%" r="70%">
-            <stop offset="0%" stopColor="#e0c0ff" />
-            <stop offset="100%" stopColor="#9a6cee" />
+            <stop offset="0%" stopColor="rgb(var(--c-ink))" />
+            <stop offset="100%" stopColor="rgb(var(--c-ink))" />
           </radialGradient>
         </defs>
 
@@ -67,8 +70,8 @@ export default function Celebration({ names }: { names: string[] }) {
           pathLength={1}
           d="M 152 360 C 180 248, 220 220, 256 256 C 292 292, 332 264, 360 152"
           fill="none"
-          stroke="#ffffff"
-          strokeOpacity={0.7}
+          stroke="rgb(var(--c-surface))"
+          strokeOpacity={0.55}
           strokeWidth={10}
           strokeLinecap="round"
         />

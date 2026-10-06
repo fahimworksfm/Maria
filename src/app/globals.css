@@ -88,11 +88,9 @@ body {
 }
 
 .headline-gradient {
-  background: linear-gradient(120deg, rgb(var(--accent)) 0%, rgb(var(--accent-2)) 50%, rgb(var(--accent-3)) 100%);
-  background-size: 200% 200%;
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
+  /* Kept as a name so call sites don't churn: on paper the "highlight" is
+     simply the accent ink, not a moving gradient. */
+  color: var(--c-accent-ink);
 }
 @keyframes shine {
   0%, 100% { background-position: 0% 50%; }
@@ -224,7 +222,7 @@ body {
     @apply w-full bg-transparent border border-line rounded-xl2 px-3.5 py-2.5 text-ink placeholder:text-muted focus:outline-none focus:border-ink focus:ring-1 focus:ring-ink/20 transition;
   }
   .btn {
-    @apply inline-flex items-center justify-center px-4 py-2.5 rounded-xl2 border border-ink/80 bg-transparent text-ink text-[12px] font-semibold uppercase tracking-[0.1em] transition hover:bg-ink/5 disabled:opacity-45 disabled:cursor-not-allowed;
+    @apply inline-flex items-center justify-center whitespace-nowrap px-4 py-2.5 rounded-xl2 border border-ink/80 bg-transparent text-ink text-[12px] font-semibold uppercase tracking-[0.1em] transition hover:bg-ink/5 disabled:opacity-45 disabled:cursor-not-allowed;
   }
   .btn-primary {
     background: rgb(var(--c-prim-bg));
@@ -262,7 +260,6 @@ body {
 /* Decorative motion only when the user hasn't asked to reduce it. Reduced-motion
    users keep the static end-state (still gradients, calm glow). */
 @media (prefers-reduced-motion: no-preference) {
-  .headline-gradient { animation: shine 8s ease-in-out infinite; }
   .cta-glow::before { animation: shine 6s linear infinite; }
   .pulse-button::before { animation: pulse-aura 2.4s ease-in-out infinite; }
   .pulse-button-emoji { animation: pulse-heart 2.4s ease-in-out infinite; }
@@ -331,10 +328,10 @@ body {
    plainly visible — the animation can fail without taking the content with it. */
 .chapter-plate {
   position: relative;
-  border-radius: 16px;
+  border: 1px solid rgb(var(--c-line));
   overflow: hidden;
-  border: 1px solid var(--line, #23232b);
-  aspect-ratio: 21 / 9;
+  aspect-ratio: 16 / 9;
+  background: rgb(var(--c-panel));
 }
 .chapter-plate img {
   width: 100%;
@@ -344,14 +341,17 @@ body {
 }
 .chapter-plate-label {
   position: absolute;
-  left: 16px;
-  bottom: 12px;
+  left: 14px;
+  bottom: 10px;
   display: flex;
   align-items: baseline;
   gap: 10px;
-  color: #fff;
-  /* The plates are busy; a shadow keeps the season readable over any of them. */
-  text-shadow: 0 1px 14px rgba(0, 0, 0, 0.75), 0 1px 3px rgba(0, 0, 0, 0.9);
+  /* The plates are ink on cream, so the season is set in ink on a small paper
+     tab rather than reversed out with a shadow. */
+  color: rgb(var(--c-ink));
+  background: rgb(var(--c-panel) / 0.88);
+  padding: 4px 10px;
+  border: 1px solid rgb(var(--c-line));
 }
 
 .chapters.ready .chapter {
@@ -392,3 +392,21 @@ input[type="search"]::-webkit-search-decoration {
 @media (prefers-reduced-motion: no-preference) {
   .memory-flash { transition: outline-color 0.4s ease; }
 }
+
+/* Press mark. The ornament is a luminance mask, so it inks itself in whatever
+   colour it inherits and works in both Paper and Ink without a second file. */
+.mark {
+  display: inline-block;
+  background: var(--c-accent-ink);
+  -webkit-mask: url("/media/mark.png") center / contain no-repeat;
+  mask: url("/media/mark.png") center / contain no-repeat;
+}
+
+/* Ink drawings are on cream stock. In Ink mode they are inverted so the line
+   work reads as light on dark instead of a lit rectangle on a dark page. */
+:root[data-mode="dark"] .chapter-plate img,
+:root[data-mode="dark"] .ink-art {
+  filter: invert(1) hue-rotate(180deg) brightness(0.92);
+}
+.ink-art { mix-blend-mode: multiply; }
+:root[data-mode="dark"] .ink-art { mix-blend-mode: normal; }

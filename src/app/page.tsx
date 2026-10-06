@@ -17,7 +17,6 @@ import {
 import "./landing.css";
 import { supabaseServer } from "@/lib/supabase/server";
 import InstallPrompt from "@/components/InstallPrompt";
-import AmbientVideo from "@/components/AmbientVideo";
 
 export const metadata = { title: "Tether — a private space for two" };
 
@@ -40,24 +39,17 @@ export default async function Landing() {
   return (
     <>
       <div className="landing-bg" />
-      <AmbientVideo src="/media/landing-ambient.mp4" className="ambient-video" />
-      <div className="aurora">
-        <div className="aurora-blob a" />
-        <div className="aurora-blob b" />
-        <div className="aurora-blob c" />
-      </div>
-      <HeartField />
 
       <main className="relative">
         {/* Top nav */}
         <header className="px-6 py-5 flex items-center justify-between max-w-6xl mx-auto">
           <Link href="/" className="font-display text-xl flex items-center gap-2">
-            <span className="inline-block w-7 h-7 rounded-lg bg-gradient-to-br from-accent to-accent2" />
+            <span className="mark w-7 h-7" aria-hidden />
             Tether
           </Link>
           <nav className="flex items-center gap-1">
             <Link className="btn btn-ghost text-sm" href="/login">Sign in</Link>
-            <Link className="btn btn-primary text-sm cta-glow" href="/signup">Get started</Link>
+            <Link className="btn btn-primary text-sm" href="/signup">Get started</Link>
           </nav>
         </header>
 
@@ -66,13 +58,13 @@ export default async function Landing() {
           <div>
             <p className="muted fade-up">For two. And only two.</p>
             <h1 className="text-5xl sm:text-6xl lg:text-7xl font-display leading-[1.05] mt-3 fade-up d1">
-              Your <span className="headline-gradient">private</span><br />space, together.
+              Your <em className="not-italic" style={{ color: "var(--c-accent-ink)" }}>private</em><br />space, together.
             </h1>
             <p className="mt-6 text-lg text-ink/80 max-w-md fade-up d2">
               Memories, a daily journal, dates, songs, recipes, secret gift planning. One app. Just the two of you.
             </p>
             <div className="mt-8 flex flex-wrap gap-3 fade-up d3">
-              <Link className="btn btn-primary cta-glow text-base px-5 py-3" href="/signup">Create your Tether</Link>
+              <Link className="btn btn-primary text-base px-5 py-3" href="/signup">Create your Tether</Link>
               <Link className="btn text-base px-5 py-3" href="/login">I already have one</Link>
             </div>
             <p className="muted text-xs mt-6 fade-up d4">Free forever for the two of you. No ads.</p>
@@ -215,32 +207,3 @@ function Guarantee({ title, body }: { title: string; body: string }) {
   );
 }
 
-function HeartField() {
-  // Deterministic positions so SSR matches client; CSS animation handles the motion.
-  const hearts = Array.from({ length: 12 }).map((_, i) => {
-    const seed = (i * 73) % 100;
-    return {
-      left: `${seed}%`,
-      delay: `${(i * 1.7) % 18}s`,
-      duration: `${14 + ((i * 3) % 10)}s`,
-      size: `${1 + ((i * 17) % 12) / 10}rem`,
-    };
-  });
-  return (
-    <div className="heart-field" aria-hidden>
-      {hearts.map((h, i) => (
-        <span
-          key={i}
-          style={{
-            left: h.left,
-            animationDelay: h.delay,
-            animationDuration: h.duration,
-            fontSize: h.size,
-          }}
-        >
-          ♥
-        </span>
-      ))}
-    </div>
-  );
-}
