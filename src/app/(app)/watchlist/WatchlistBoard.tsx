@@ -237,19 +237,19 @@ export default function WatchlistBoard({
         {unwatched.map((r) => (
           <SwipeRow key={r.id} onDelete={() => removeWithUndo(r.id)}>
             <div className="collection-item row flex justify-between items-start gap-3">
-              <div className="flex gap-3 min-w-0">
+              <div className="flex gap-4 min-w-0">
                 {r.poster_path && (
                   <img src={posterUrl(r.poster_path)} alt="" width={48} height={72} loading="lazy" className="w-12 h-[72px] object-cover rounded shrink-0" />
                 )}
                 <div className="min-w-0">
-                <div className="font-medium">{r.title}{r.year ? ` (${r.year})` : ""}</div>
-                <div className="flex gap-1 mt-1 flex-wrap">
+                <div className="font-medium leading-snug">{r.title}{r.year ? ` (${r.year})` : ""}</div>
+                <div className="flex gap-1 mt-1.5 flex-wrap">
                   {r.kind && <span className="pill">{r.kind}</span>}
                   {r.runtime_min && <span className="pill">{r.runtime_min}m</span>}
                   {(r.mood_tags ?? []).map((t) => <span key={t} className="pill">{t}</span>)}
                 </div>
-                {r.notes && <p className="muted text-xs mt-1">{r.notes}</p>}
-                {!r.notes && r.overview && <p className="muted text-xs mt-1 line-clamp-2">{r.overview}</p>}
+                {r.notes && <p className="muted text-xs mt-1.5 leading-relaxed">{r.notes}</p>}
+                {!r.notes && r.overview && <p className="muted text-xs mt-1.5 leading-relaxed line-clamp-2">{r.overview}</p>}
                 </div>
               </div>
               <div className="flex items-center gap-1 shrink-0">
@@ -285,13 +285,13 @@ export default function WatchlistBoard({
         <h3 className="label">Watched ({watched.length})</h3>
         {watched.map((r) => (
           <div key={r.id} className="collection-item row flex justify-between items-start gap-3 opacity-80">
-            <div className="flex gap-3 min-w-0">
+            <div className="flex gap-4 min-w-0">
               {r.poster_path && (
                 <img src={posterUrl(r.poster_path)} alt="" width={32} height={48} loading="lazy" className="w-8 h-12 object-cover rounded shrink-0" />
               )}
               <div className="min-w-0">
               <div className="font-medium">{r.title} {r.rating ? `· ${"★".repeat(r.rating)}` : ""}</div>
-              {r.notes && <p className="muted text-xs">{r.notes}</p>}
+              {r.notes && <p className="muted text-xs mt-1 leading-relaxed">{r.notes}</p>}
               </div>
             </div>
             <button className="btn btn-ghost text-xs shrink-0" onClick={() => removeWithUndo(r.id)} aria-label="Delete">×</button>

@@ -206,11 +206,14 @@ body {
   }
   /* A list row. Print separates entries with a rule, not by floating each one
      in its own box — a card per item turns a list into a pile of receipts. */
+  /* py-4, not py-3: collection rows carry a 72px poster plus a title, pills
+     and a two-line note. At 12px the rule crowded the artwork and the stack
+     read as one dense block. */
   .row {
-    @apply border-b border-line py-3 last:border-b-0;
+    @apply border-b border-line py-4 last:border-b-0;
   }
   .row-link {
-    @apply block border-b border-line py-3 transition-colors hover:bg-panel2 last:border-b-0;
+    @apply block border-b border-line py-4 transition-colors hover:bg-panel2 last:border-b-0;
   }
   /* Empty-state mark. A tinted disc is a soft-UI idiom; in print the figure is
      drawn in ink and sits inside a ruled square. */

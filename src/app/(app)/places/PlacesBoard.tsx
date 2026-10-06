@@ -130,15 +130,15 @@ export default function PlacesBoard({ initial, coupleId }: { initial: Place[]; c
           <SwipeRow key={p.id} onDelete={() => removeWithUndo(p.id)}>
             <div className="collection-item row flex justify-between items-start gap-3">
               <div className="min-w-0">
-                <div className="font-medium">{p.name}</div>
-                <div className="flex gap-1 mt-1 flex-wrap items-center">
+                <div className="font-medium leading-snug">{p.name}</div>
+                <div className="flex gap-1.5 mt-1.5 flex-wrap items-center">
                   {p.kind && <span className="pill">{p.kind}</span>}
                   {p.lat != null && p.lng != null && (
                     <a className="muted text-xs underline" target="_blank" rel="noreferrer"
                        href={`https://www.google.com/maps/search/?api=1&query=${p.lat},${p.lng}`}>Open in Maps</a>
                   )}
                 </div>
-                {p.notes && <p className="muted text-xs mt-1">{p.notes}</p>}
+                {p.notes && <p className="muted text-xs mt-1.5 leading-relaxed">{p.notes}</p>}
               </div>
               <div className="flex items-center gap-1 shrink-0">
                 <select
@@ -164,7 +164,7 @@ export default function PlacesBoard({ initial, coupleId }: { initial: Place[]; c
           <div key={p.id} className="collection-item row flex justify-between items-start gap-3 opacity-90">
             <div className="min-w-0">
               <div className="font-medium">{p.name} {p.rating ? `· ${"★".repeat(p.rating)}` : ""}</div>
-              {p.notes && <p className="muted text-xs">{p.notes}</p>}
+              {p.notes && <p className="muted text-xs mt-1 leading-relaxed">{p.notes}</p>}
             </div>
             <button className="btn btn-ghost text-xs shrink-0" onClick={() => removeWithUndo(p.id)} aria-label="Delete">×</button>
           </div>
