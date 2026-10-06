@@ -28,7 +28,7 @@ export default function AuthShell({
           <h1 className="display text-3xl">{title}</h1>
           {subtitle && <p className="muted mt-2">{subtitle}</p>}
         </div>
-        <div className="hero-glow card p-6">{children}</div>
+        <div className="card p-6">{children}</div>
         {footer && <p className="muted text-center mt-6">{footer}</p>}
       </div>
     </main>

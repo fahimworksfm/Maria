@@ -72,20 +72,6 @@ body {
 }
 
 /* Warm radial glow for heroes (uses the couple accent). */
-.hero-glow {
-  position: relative;
-  isolation: isolate;
-}
-.hero-glow::before {
-  content: "";
-  position: absolute;
-  inset: -1px;
-  z-index: -1;
-  border-radius: inherit;
-  background:
-    radial-gradient(120% 100% at 18% 0%, rgb(var(--accent) / 0.18), transparent 60%),
-    radial-gradient(120% 100% at 100% 20%, rgb(var(--accent-2) / 0.12), transparent 55%);
-}
 
 .headline-gradient {
   /* Kept as a name so call sites don't churn: on paper the "highlight" is
@@ -97,20 +83,6 @@ body {
   50% { background-position: 100% 50%; }
 }
 
-.cta-glow {
-  position: relative;
-  overflow: hidden;
-}
-.cta-glow::before {
-  content: "";
-  position: absolute; inset: -2px;
-  background: linear-gradient(120deg, rgb(var(--accent)), rgb(var(--accent-2)), rgb(var(--accent-3)), rgb(var(--accent)));
-  background-size: 300% 300%;
-  border-radius: inherit;
-  filter: blur(8px);
-  opacity: 0.5;
-  z-index: -1;
-}
 
 @keyframes phone-float {
   0%, 100% { transform: rotate(-3deg) translateY(0); }
@@ -260,7 +232,6 @@ body {
 /* Decorative motion only when the user hasn't asked to reduce it. Reduced-motion
    users keep the static end-state (still gradients, calm glow). */
 @media (prefers-reduced-motion: no-preference) {
-  .cta-glow::before { animation: shine 6s linear infinite; }
   .pulse-button::before { animation: pulse-aura 2.4s ease-in-out infinite; }
   .pulse-button-emoji { animation: pulse-heart 2.4s ease-in-out infinite; }
   /* New list items fade/slide in (only newly-mounted nodes animate). */

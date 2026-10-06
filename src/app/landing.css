@@ -55,22 +55,6 @@
 }
 
 /* Glass card */
-.glass {
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.08);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  border-radius: 1.25rem;
-}
-.glass-hover {
-  transition: transform .35s ease, box-shadow .35s ease, border-color .35s ease, background .35s ease;
-}
-.glass-hover:hover {
-  transform: translateY(-4px);
-  background: rgba(255,255,255,0.06);
-  border-color: rgba(249,115,115,0.4);
-  box-shadow: 0 20px 40px -10px rgba(249,115,115,0.25);
-}
 
 /* Phone mock */
 .phone {
@@ -147,20 +131,6 @@
 }
 
 /* Press glow on CTAs — static by default */
-.cta-glow {
-  position: relative;
-  overflow: hidden;
-}
-.cta-glow::before {
-  content: "";
-  position: absolute; inset: -2px;
-  background: linear-gradient(120deg, #f97373, #f9c873, #a87bff, #f97373);
-  background-size: 300% 300%;
-  border-radius: inherit;
-  filter: blur(8px);
-  opacity: 0.5;
-  z-index: -1;
-}
 
 /* ---- Decorative motion only when the user hasn't asked to reduce it ---- */
 @media (prefers-reduced-motion: no-preference) {
@@ -169,6 +139,5 @@
   .fade-up { opacity: 0; transform: translateY(20px); animation: fadeUp .9s ease forwards; }
   .phone { animation: phone-float 7s ease-in-out infinite; }
   .phone-slide { animation: slide-cycle 18s infinite; }
-  .cta-glow::before { animation: shine 6s linear infinite; }
 }
 

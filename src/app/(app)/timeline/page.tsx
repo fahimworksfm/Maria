@@ -171,24 +171,24 @@ export default async function TimelinePage() {
         </div>
       ) : (
         groups.map((group) => (
-          <section key={group.ym} className="space-y-3">
-            <h2 className="font-display text-xl text-muted sticky top-[57px] bg-bg/80 backdrop-blur py-1 z-10">
+          <section key={group.ym} className="space-y-2">
+            <h2 className="font-display text-lg font-semibold sticky top-[57px] bg-bg py-2 z-10 border-b-2 border-ink/80 tracking-[-0.01em]">
               {monthLabel(group.ym)}
             </h2>
-            <ol className="space-y-3">
+            <ol>
               {group.items.map((it) => {
                 const Icon = KIND_ICON[it.kind];
                 if (it.photo) {
                   return (
                     <li key={it.id}>
-                      <Link href={it.href} className="card card-hover p-0 overflow-hidden block">
+                      <Link href={it.href} className="block group border-b border-line pb-4">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={it.photo}
                           alt={it.title}
-                          className="w-full max-h-72 object-cover rounded-xl2"
+                          className="w-full max-h-72 object-cover border border-line"
                         />
-                        <div className="p-4">
+                        <div className="pt-3">
                           <div className="flex items-baseline justify-between gap-2">
                             <span className="label !mb-0 inline-flex items-center gap-1.5">
                               <Icon size={16} className="text-accent" aria-hidden />
@@ -205,7 +205,7 @@ export default async function TimelinePage() {
                 }
                 return (
                   <li key={it.id}>
-                    <Link href={it.href} className="card card-hover p-4 flex gap-3 items-start">
+                    <Link href={it.href} className="flex gap-3 items-start border-b border-line py-3.5 transition-colors hover:bg-panel2">
                       <span className="text-accent leading-none mt-0.5" aria-hidden>
                         <Icon size={20} />
                       </span>

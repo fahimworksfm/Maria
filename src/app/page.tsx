@@ -129,7 +129,7 @@ export default async function Landing() {
           <h2 className="text-3xl sm:text-4xl font-display text-center mt-2 fade-up d1">A dozen tiny apps. One quiet space.</h2>
           <div className="mt-10 grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {FEATURES.map((f, i) => (
-              <div key={f.title} className={`glass glass-hover p-5 fade-up d${(i % 6) + 1}`}>
+              <div key={f.title} className={`card card-hover p-5 fade-up d${(i % 6) + 1}`}>
                 <div className="text-accent mb-3">
                   <f.icon size={22} aria-hidden />
                 </div>
@@ -142,7 +142,7 @@ export default async function Landing() {
 
         {/* Privacy */}
         <section className="px-6 max-w-6xl mx-auto py-16">
-          <div className="glass p-8 fade-up">
+          <div className="card p-8 fade-up">
             <p className="muted text-center text-sm">Private by design</p>
             <h2 className="text-3xl sm:text-4xl font-display text-center mt-2">No one else gets a key.</h2>
             <div className="mt-8 grid sm:grid-cols-3 gap-4 text-center">
@@ -158,7 +158,7 @@ export default async function Landing() {
           <h2 className="text-4xl sm:text-5xl font-display fade-up">Ready to start your space?</h2>
           <p className="muted mt-4 fade-up d1">One sign-up. One link to send. You&apos;re paired.</p>
           <div className="mt-8 flex justify-center gap-3 fade-up d2">
-            <Link className="btn btn-primary cta-glow text-base px-6 py-3" href="/signup">Create your Tether</Link>
+            <Link className="btn btn-primary text-base px-6 py-3" href="/signup">Create your Tether</Link>
           </div>
         </section>
 

@@ -56,23 +56,25 @@ export default async function Home() {
       <RealtimeRefresh table="mood_signals" coupleId={me.coupleId} />
       <InstallPrompt variant="banner" />
 
-      {/* Editorial hero */}
-      <section className="hero-glow card p-6 sm:p-7 fade-up">
+      {/* The one card that leads the page carries the accent rule. */}
+      <section className="card card-lead p-6 sm:p-7 fade-up">
         <div className="flex items-center justify-between gap-3">
           <p className="muted">{greeting()}{me.displayName ? `, ${me.displayName}` : ""}.</p>
           <StreakLine days={streak} />
         </div>
         <h1 className="display text-[2.3rem] sm:text-5xl mt-3">{card.headline}</h1>
         <p className="text-muted mt-3 max-w-md leading-relaxed">{card.subtext}</p>
-        <Link href={card.href} className="btn btn-primary cta-glow inline-flex items-center gap-2 mt-6">
+        <Link href={card.href} className="btn btn-primary inline-flex items-center gap-2 mt-6">
           <HeroIcon size={16} aria-hidden /> {card.cta}
         </Link>
       </section>
 
-      <section className="grid grid-cols-3 gap-3">
+      {/* One ruled block with internal divisions, the way a printed table sets
+          figures — not three floating cards. */}
+      <section className="grid grid-cols-3 border border-line">
         <Stat href="/memories" label="Memories" value={memoriesCount ?? 0} />
         <Stat href="/bucket-list" label="Open dreams" value={bucketOpen ?? 0} />
-        <Stat href="/pulse" label="Pulses" value={unreadPulses ?? 0} highlight={(unreadPulses ?? 0) > 0} />
+        <Stat href="/pulse" label="Pulses" value={unreadPulses ?? 0} highlight={(unreadPulses ?? 0) > 0} last />
       </section>
 
       <ModuleDirectory />
@@ -115,11 +117,14 @@ function pickToday(input: {
   return { Icon: Mail, headline: `Waiting on ${input.partnerName}.`, subtext: "Your answer is locked in. Drop a memory or send a pulse while you wait.", cta: "Send a pulse", href: "/pulse" };
 }
 
-function Stat({ href, label, value, highlight }: { href: string; label: string; value: string | number; highlight?: boolean }) {
+function Stat({ href, label, value, highlight, last }: { href: string; label: string; value: string | number; highlight?: boolean; last?: boolean }) {
   return (
-    <Link href={href} className={`block bg-panel border border-line rounded-xl2 py-3 px-2 text-center transition active:scale-95 hover:bg-panel2 ${highlight ? "ring-1 ring-accent/60" : ""}`}>
-      <div className={`text-xl font-display font-medium leading-tight ${highlight ? "headline-gradient" : ""}`}>{value}</div>
-      <div className="muted text-[10px] uppercase tracking-wider mt-1">{label}</div>
+    <Link
+      href={href}
+      className={`block py-4 px-2 text-center transition hover:bg-panel2 ${last ? "" : "border-r border-line"}`}
+    >
+      <div className={`display text-[1.6rem] leading-none ${highlight ? "text-accentInk" : ""}`}>{value}</div>
+      <div className="muted text-[9px] uppercase tracking-[0.18em] mt-1.5">{label}</div>
     </Link>
   );
 }

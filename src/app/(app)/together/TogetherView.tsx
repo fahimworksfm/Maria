@@ -105,7 +105,7 @@ export default function TogetherView({
   return (
     <div className="space-y-6">
       {/* Hero: globe + distance + countdown */}
-      <section className="hero-glow card p-6 text-center space-y-4">
+      <section className="card p-6 text-center space-y-4">
         {globePoints && <TogetherGlobe me={globePoints.me} partner={globePoints.partner} />}
 
         {distance != null ? (
@@ -122,11 +122,13 @@ export default function TogetherView({
         {cd && !cd.done ? (
           <div>
             <div className="label !mb-1 flex items-center justify-center gap-1.5"><CalendarHeart size={13} aria-hidden /> Until {nextVisit.label || "you're together"}</div>
-            <div className="font-display font-medium leading-none flex items-end justify-center gap-3 sm:gap-4" suppressHydrationWarning>
+            {/* Ruled figures, same as the counts on Home — a printed table of
+                numbers rather than four floating columns. */}
+            <div className="grid grid-cols-4 border border-line mt-2" suppressHydrationWarning>
               <Unit n={cd.days} u="days" />
               <Unit n={cd.hours} u="hrs" />
               <Unit n={cd.mins} u="min" />
-              <Unit n={cd.secs} u="sec" />
+              <Unit n={cd.secs} u="sec" last />
             </div>
             {travelerLine && <p className="muted text-sm mt-3 flex items-center justify-center gap-1.5"><Plane size={13} aria-hidden /> {travelerLine}</p>}
           </div>
@@ -205,11 +207,11 @@ export default function TogetherView({
   );
 }
 
-function Unit({ n, u }: { n: number; u: string }) {
+function Unit({ n, u, last }: { n: number; u: string; last?: boolean }) {
   return (
-    <span className="flex flex-col items-center">
-      <span className="text-4xl sm:text-5xl tabular-nums leading-none">{String(n).padStart(2, "0")}</span>
-      <span className="label !mb-0 mt-1.5">{u}</span>
+    <span className={`flex flex-col items-center py-3 ${last ? "" : "border-r border-line"}`}>
+      <span className="display text-3xl sm:text-4xl tabular-nums leading-none">{String(n).padStart(2, "0")}</span>
+      <span className="muted text-[9px] uppercase tracking-[0.18em] mt-1.5">{u}</span>
     </span>
   );
 }
