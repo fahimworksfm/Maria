@@ -84,7 +84,7 @@ export default function BucketListBoard({ initial, coupleId }: { initial: Bucket
         <h3 className="label">Open ({open.length})</h3>
         {open.map((it) => (
           <SwipeRow key={it.id} onDelete={() => removeWithUndo(it.id)}>
-            <div className="collection-item card p-3 flex items-start justify-between gap-3">
+            <div className="collection-item row flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <div className="font-medium">{it.title}</div>
                 {it.notes && <p className="muted text-xs mt-1">{it.notes}</p>}
@@ -109,7 +109,7 @@ export default function BucketListBoard({ initial, coupleId }: { initial: Bucket
         ))}
         {open.length === 0 && done.length === 0 && (
           <div className="card p-5 text-center space-y-1">
-            <div className="mx-auto w-12 h-12 rounded-full bg-accent/10 text-accent grid place-items-center"><Globe size={22} aria-hidden /></div>
+            <div className="mark-box"><Globe size={22} aria-hidden /></div>
             <p className="font-display text-base">What&apos;s the first dream?</p>
             <p className="muted text-sm">A trip, a project, a habit, a quiet plan. Add one above.</p>
           </div>
@@ -120,7 +120,7 @@ export default function BucketListBoard({ initial, coupleId }: { initial: Bucket
       <section className="space-y-2">
         <h3 className="label">Done ({done.length})</h3>
         {done.map((it) => (
-          <div key={it.id} className="collection-item card p-3 flex items-start justify-between gap-3 opacity-60">
+          <div key={it.id} className="collection-item row flex items-start justify-between gap-3 opacity-60">
             <div className="min-w-0">
               <div className="font-medium">{it.title}</div>
               {it.notes && <p className="muted text-xs mt-1">{it.notes}</p>}

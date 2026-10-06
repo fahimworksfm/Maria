@@ -163,7 +163,7 @@ export default async function TimelinePage() {
 
       {groups.length === 0 ? (
         <div className="card p-6 text-center space-y-2">
-          <div className="mx-auto w-12 h-12 rounded-full bg-accent/10 text-accent grid place-items-center">
+          <div className="mark-box">
             <Inbox size={22} aria-hidden />
           </div>
           <p className="font-display text-lg">Your story starts here.</p>

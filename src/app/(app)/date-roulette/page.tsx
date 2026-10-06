@@ -157,7 +157,7 @@ export default async function DateRoulettePage() {
         <h3 className="label">All ideas</h3>
         <ul className="space-y-2">
           {(ideas ?? []).map((i) => (
-            <li key={i.id} className={`card p-3 flex items-start justify-between gap-3 ${i.done ? "opacity-60" : ""}`}>
+            <li key={i.id} className={`row flex items-start justify-between gap-3 ${i.done ? "opacity-60" : ""}`}>
               <div className="min-w-0">
                 <div className="font-medium truncate">{i.title}</div>
                 {i.description && <p className="muted text-xs">{i.description}</p>}
@@ -176,7 +176,7 @@ export default async function DateRoulettePage() {
           ))}
           {ideas && ideas.length === 0 && (
             <div className="card p-5 text-center space-y-1">
-              <div className="mx-auto w-12 h-12 rounded-full bg-accent/10 text-accent grid place-items-center"><Dices size={22} aria-hidden /></div>
+              <div className="mark-box"><Dices size={22} aria-hidden /></div>
               <p className="font-display text-base">Spin nothing? No fun.</p>
               <p className="muted text-sm">Generate five with AI above, or drop your own idea in.</p>
             </div>

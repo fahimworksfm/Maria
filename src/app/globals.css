@@ -204,6 +204,20 @@ body {
   .btn-ghost {
     @apply border-transparent hover:bg-ink/5;
   }
+  /* A list row. Print separates entries with a rule, not by floating each one
+     in its own box — a card per item turns a list into a pile of receipts. */
+  .row {
+    @apply border-b border-line py-3 last:border-b-0;
+  }
+  .row-link {
+    @apply block border-b border-line py-3 transition-colors hover:bg-panel2 last:border-b-0;
+  }
+  /* Empty-state mark. A tinted disc is a soft-UI idiom; in print the figure is
+     drawn in ink and sits inside a ruled square. */
+  .mark-box {
+    @apply mx-auto w-12 h-12 border border-line grid place-items-center;
+    color: var(--c-accent-ink);
+  }
   .pill {
     @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] border border-line bg-transparent text-muted uppercase tracking-[0.08em];
   }
@@ -377,3 +391,12 @@ input[type="search"]::-webkit-search-decoration {
   mask: var(--art) center / contain no-repeat;
 }
 
+
+/* Rules do the separating, so a ruled list should not also carry gaps. The
+   parents of these lists set space-y-*, whose selector outranks .row + .row on
+   specificity, so this has to be forced rather than ordered. Cancelling it here
+   keeps the fix in one place instead of editing every list's container. */
+.row + .row,
+.row-link + .row-link {
+  margin-top: 0 !important;
+}

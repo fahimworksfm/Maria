@@ -120,7 +120,7 @@ export default async function SongsPage({ searchParams }: { searchParams: Promis
 
       <section className="space-y-2">
         {(rows ?? []).map((s) => (
-          <div key={s.id} className="card p-3">
+          <div key={s.id} className="row">
             <div className="flex justify-between items-baseline gap-2">
               <div className="font-medium">{s.title}{s.artist ? ` · ${s.artist}` : ""}</div>
               <div className="flex gap-2 items-baseline">

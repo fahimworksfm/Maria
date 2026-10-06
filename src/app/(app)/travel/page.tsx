@@ -82,7 +82,7 @@ export default async function TravelPage({ searchParams }: { searchParams: Promi
       <section className="space-y-2">
         <h3 className="label">Pins ({pins?.length ?? 0})</h3>
         {(pins ?? []).map((p) => (
-          <div key={p.id} className="card p-3 flex justify-between items-start gap-3">
+          <div key={p.id} className="row flex justify-between items-start gap-3">
             <div>
               <div className="font-medium">{p.name}</div>
               <div className="muted text-xs">{p.lat.toFixed(3)}, {p.lng.toFixed(3)}{p.visited && p.visited_on ? ` · visited ${p.visited_on}` : ""}</div>

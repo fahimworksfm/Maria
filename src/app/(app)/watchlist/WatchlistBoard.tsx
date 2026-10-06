@@ -236,7 +236,7 @@ export default function WatchlistBoard({
         <h3 className="label">Unwatched ({unwatched.length})</h3>
         {unwatched.map((r) => (
           <SwipeRow key={r.id} onDelete={() => removeWithUndo(r.id)}>
-            <div className="collection-item card p-3 flex justify-between items-start gap-3">
+            <div className="collection-item row flex justify-between items-start gap-3">
               <div className="flex gap-3 min-w-0">
                 {r.poster_path && (
                   <img src={posterUrl(r.poster_path)} alt="" width={48} height={72} loading="lazy" className="w-12 h-[72px] object-cover rounded shrink-0" />
@@ -284,7 +284,7 @@ export default function WatchlistBoard({
       <section className="space-y-2">
         <h3 className="label">Watched ({watched.length})</h3>
         {watched.map((r) => (
-          <div key={r.id} className="collection-item card p-3 flex justify-between items-start gap-3 opacity-80">
+          <div key={r.id} className="collection-item row flex justify-between items-start gap-3 opacity-80">
             <div className="flex gap-3 min-w-0">
               {r.poster_path && (
                 <img src={posterUrl(r.poster_path)} alt="" width={32} height={48} loading="lazy" className="w-8 h-12 object-cover rounded shrink-0" />

@@ -70,7 +70,7 @@ export default async function LoveLanguagePage() {
         <h3 className="label">Recent</h3>
         <ul className="space-y-1 text-sm">
           {(rows ?? []).slice(0, 20).map((r) => (
-            <li key={r.id} className="card p-2 flex justify-between gap-2">
+            <li key={r.id} className="row flex justify-between gap-2">
               <span>{r.user_id === me.userId ? "You" : "Partner"} · <span className="pill">{r.category}</span></span>
               <span className="muted truncate">{r.note}</span>
             </li>

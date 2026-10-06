@@ -128,7 +128,7 @@ export default function PlacesBoard({ initial, coupleId }: { initial: Place[]; c
         <h3 className="label">Want to go ({toGo.length})</h3>
         {toGo.map((p) => (
           <SwipeRow key={p.id} onDelete={() => removeWithUndo(p.id)}>
-            <div className="collection-item card p-3 flex justify-between items-start gap-3">
+            <div className="collection-item row flex justify-between items-start gap-3">
               <div className="min-w-0">
                 <div className="font-medium">{p.name}</div>
                 <div className="flex gap-1 mt-1 flex-wrap items-center">
@@ -161,7 +161,7 @@ export default function PlacesBoard({ initial, coupleId }: { initial: Place[]; c
       <section className="space-y-2">
         <h3 className="label">Been ({been.length})</h3>
         {been.map((p) => (
-          <div key={p.id} className="collection-item card p-3 flex justify-between items-start gap-3 opacity-90">
+          <div key={p.id} className="collection-item row flex justify-between items-start gap-3 opacity-90">
             <div className="min-w-0">
               <div className="font-medium">{p.name} {p.rating ? `· ${"★".repeat(p.rating)}` : ""}</div>
               {p.notes && <p className="muted text-xs">{p.notes}</p>}

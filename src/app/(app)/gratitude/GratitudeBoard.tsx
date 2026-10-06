@@ -72,7 +72,7 @@ export default function GratitudeBoard({
 
       {items.length === 0 ? (
         <div className="card p-5 text-center space-y-1">
-          <div className="mx-auto w-12 h-12 rounded-full bg-accent/10 text-accent grid place-items-center"><Sprout size={22} aria-hidden /></div>
+          <div className="mark-box"><Sprout size={22} aria-hidden /></div>
           <p className="font-display text-base">An empty tree, waiting.</p>
           <p className="muted text-sm">Plant a small thing and watch it grow.</p>
         </div>
@@ -83,7 +83,7 @@ export default function GratitudeBoard({
             const mine = g.author_id === myUserId;
             return (
               <SwipeRow key={g.id} onDelete={() => mine && removeWithUndo(g.id)}>
-                <div className="collection-item card p-3 text-sm flex justify-between items-start gap-3">
+                <div className="collection-item row text-sm flex justify-between items-start gap-3">
                   <div className="min-w-0">
                     <span className="muted text-xs mr-2">by {mine ? "you" : partnerName}</span>
                     {g.text}

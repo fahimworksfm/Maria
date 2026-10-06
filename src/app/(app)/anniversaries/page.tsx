@@ -95,7 +95,7 @@ export default async function AnniversariesPage() {
           const d = daysUntil(r._next);
           const tone = d === 0 ? "Today" : d === 1 ? "Tomorrow" : d < 0 ? `${-d} days ago` : `${d} days`;
           return (
-            <div key={r.id} className="card p-4 flex items-center justify-between gap-3">
+            <div key={r.id} className="row flex items-center justify-between gap-3">
               <div>
                 <div className="font-medium">{r.name}</div>
                 <div className="muted text-xs">{r._next.toDateString()} · <span className="pill">{r.kind}</span></div>

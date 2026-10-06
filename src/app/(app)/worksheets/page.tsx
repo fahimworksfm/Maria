@@ -24,7 +24,7 @@ export default async function WorksheetsIndex() {
           const meStatus = mine?.completed_at ? "Done" : mine ? "In progress" : "Not started";
           const partnerStatus = partner?.completed_at ? "Done" : "Not done";
           return (
-            <Link key={w.id} href={`/worksheets/${w.id}`} className="card card-hover p-4 block">
+            <Link key={w.id} href={`/worksheets/${w.id}`} className="row-link">
               <h3 className="font-medium">{w.title}</h3>
               <p className="muted text-sm mt-1">{w.intro.split(".")[0]}.</p>
               <div className="flex gap-2 mt-2">

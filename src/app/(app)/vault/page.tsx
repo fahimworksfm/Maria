@@ -275,7 +275,7 @@ async function VaultInner() {
       <section className="space-y-2">
         <h3 className="label">Your gifts</h3>
         {(gifts ?? []).map((g) => (
-          <div key={g.id} className="card p-3">
+          <div key={g.id} className="row">
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0">
                 <div className="font-medium">{g.title}</div>

@@ -102,7 +102,7 @@ export default async function AffirmationsPage() {
       <section className="space-y-1">
         <h3 className="label">All cards ({list.length})</h3>
         {list.map((c) => (
-          <div key={c.id} className="card p-2 flex justify-between items-center gap-2 text-sm">
+          <div key={c.id} className="row flex justify-between items-center gap-2 text-sm">
             <span className="truncate">{c.text}</span>
             <form action={remove}><input type="hidden" name="id" value={c.id} /><button className="btn btn-ghost text-xs" type="submit">×</button></form>
           </div>
