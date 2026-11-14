@@ -1,9 +1,10 @@
+import { insertAuthored, partnerNameFor, sideClass, sideName, sideOf } from "@/lib/authorship";
 import { revalidatePath } from "next/cache";
 import { requireCoupled } from "@/lib/couple";
 import { supabaseServer } from "@/lib/supabase/server";
 import SubmitButton from "@/components/SubmitButton";
 
-type Row = { id: string; name: string; on_date: string; kind: string; recurring: boolean };
+type Row = { id: string; name: string; on_date: string; kind: string; recurring: boolean; author_id?: string | null };
 
 function nextOccurrence(on: string, recurring: boolean): Date {
   const [y, m, d] = on.split("-").map(Number);
@@ -23,7 +24,7 @@ export default async function AnniversariesPage() {
   const supabase = await supabaseServer();
   const { data: rows } = await supabase
     .from("anniversaries")
-    .select("id, name, on_date, kind, recurring")
+    .select("*") // includes author_id once migration 0014 has run
     .eq("couple_id", me.coupleId);
 
   // Auto-include each user's birthday from profiles
@@ -51,13 +52,13 @@ export default async function AnniversariesPage() {
     const name = String(formData.get("name") || "").trim();
     const on_date = String(formData.get("on_date") || "");
     if (!name || !on_date) return;
-    await supabase.from("anniversaries").insert({
+    await insertAuthored(supabase, "anniversaries", {
       couple_id: me.coupleId,
       name,
       on_date,
       kind: (formData.get("kind") as string) || "anniversary",
       recurring: formData.get("recurring") === "on",
-    });
+    }, me.userId);
     revalidatePath("/anniversaries");
   }
 
@@ -69,6 +70,10 @@ export default async function AnniversariesPage() {
     await supabase.from("anniversaries").delete().eq("id", id);
     revalidatePath("/anniversaries");
   }
+
+  const partnerName = await partnerNameFor(supabase, me.userId);
+  const side = (a: unknown) => sideOf(a, me.userId);
+  const who = (a: unknown) => sideName(side(a), partnerName);
 
   return (
     <div className="space-y-6">
@@ -95,8 +100,9 @@ export default async function AnniversariesPage() {
           const d = daysUntil(r._next);
           const tone = d === 0 ? "Today" : d === 1 ? "Tomorrow" : d < 0 ? `${-d} days ago` : `${d} days`;
           return (
-            <div key={r.id} className="card px-4 py-3 flex items-center justify-between gap-3">
+            <div key={r.id} className={`card px-4 py-3 flex items-center justify-between gap-3 ${sideClass(side(r.author_id))}`}>
               <div>
+                {who(r.author_id) && <div className="text-xs text-muted mb-0.5">{who(r.author_id)}</div>}
                 <div className="font-semibold">{r.name}</div>
                 <div className="text-muted text-[13px] flex items-center gap-1.5 flex-wrap mt-0.5">{r._next.toDateString()} <span className="pill">{r.kind}</span></div>
               </div>

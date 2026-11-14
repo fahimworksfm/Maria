@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { requireCoupled } from "@/lib/couple";
 import { supabaseServer } from "@/lib/supabase/server";
 import { collectionConfig } from "@/lib/collections";
+import { insertAuthored } from "@/lib/authorship";
 
 export const dynamic = "force-dynamic";
 
@@ -22,10 +23,13 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ tab
   }
   if (cfg.scope === "couple") row.couple_id = me.coupleId;
   else row.owner_id = me.userId;
-  if (cfg.setAuthor) row.author_id = me.userId;
 
   const supabase = await supabaseServer();
-  const { data, error } = await supabase.from(table).insert(row).select().single();
+  // Stamped server-side, never trusted from the client; falls back cleanly on a
+  // database that has not had the author column added yet.
+  const { data, error } = cfg.setAuthor
+    ? await insertAuthored(supabase, table, row, me.userId).then((r) => ({ data: r.data?.[0] ?? null, error: r.error }))
+    : await supabase.from(table).insert(row).select().single();
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ row: data });
 }

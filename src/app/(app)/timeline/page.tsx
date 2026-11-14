@@ -3,6 +3,7 @@ import { Images, NotebookPen, Compass, Sprout, Inbox } from "lucide-react";
 import { requireCoupled } from "@/lib/couple";
 import { supabaseServer } from "@/lib/supabase/server";
 import { signedUrl } from "@/lib/media";
+import { partnerNameFor, sideName, sideOf, type Side } from "@/lib/authorship";
 
 const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -27,6 +28,8 @@ type Item = {
   ym: string;
   sortTs: number;
   dayLabel: string;
+  // Who wrote it. Null for things you did together or dates you set.
+  side: Side;
 };
 
 function fromDateOnly(s: string) {
@@ -58,7 +61,7 @@ export default async function TimelinePage() {
   const [{ data: mems }, { data: jrn }, { data: annivs }, { data: grats }] = await Promise.all([
     supabase
       .from("memories")
-      .select("id, title, body, happened_on, location_name, created_at, media_url, media_type")
+      .select("id, title, body, happened_on, location_name, created_at, media_url, media_type, author_id")
       .eq("couple_id", me.coupleId)
       .order("created_at", { ascending: false })
       .limit(150),
@@ -74,7 +77,7 @@ export default async function TimelinePage() {
       .eq("couple_id", me.coupleId),
     supabase
       .from("gratitudes")
-      .select("id, text, created_at")
+      .select("id, text, created_at, author_id")
       .eq("couple_id", me.coupleId)
       .order("created_at", { ascending: false })
       .limit(150),
@@ -94,6 +97,7 @@ export default async function TimelinePage() {
       snippet: snip(m.body) ?? (m.location_name ? `at ${m.location_name}` : null),
       href: "/memories",
       photo,
+      side: sideOf(m.author_id, me.userId),
       ...d,
     });
   }
@@ -114,6 +118,7 @@ export default async function TimelinePage() {
       title: info.prompt,
       snippet: "You both answered.",
       href: "/journal",
+      side: null,
       ...d,
     });
   }
@@ -127,6 +132,7 @@ export default async function TimelinePage() {
       title: a.name,
       snippet: null,
       href: "/anniversaries",
+      side: null,
       ...d,
     });
   }
@@ -140,9 +146,12 @@ export default async function TimelinePage() {
       title: snip(g.text, 120) || "A small thanks",
       snippet: null,
       href: "/gratitude",
+      side: sideOf(g.author_id, me.userId),
       ...d,
     });
   }
+
+  const partnerName = await partnerNameFor(supabase, me.userId);
 
   items.sort((a, b) => b.sortTs - a.sortTs);
 
@@ -193,6 +202,34 @@ export default async function TimelinePage() {
                   );
                 }
 
+                // Something one of you wrote: a bubble on that person's side.
+                if (it.side) {
+                  const mine = it.side === "me";
+                  return (
+                    <li key={it.id} className="contents">
+                      <Link
+                        href={it.href}
+                        className={`bubble ${mine ? "bubble-me" : "bubble-them"} ${it.photo ? "!p-1.5 w-[80%]" : ""}`}
+                      >
+                        {it.photo && (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={it.photo} alt={it.title} className="w-full max-h-72 object-cover rounded-2xl" />
+                        )}
+                        <div className={it.photo ? "px-2 pt-1.5 pb-1" : ""}>
+                          <p className="font-semibold leading-snug break-words">{it.title}</p>
+                          {it.snippet && <p className="leading-snug mt-0.5 break-words opacity-90">{it.snippet}</p>}
+                        </div>
+                      </Link>
+                      <span className={`stamp mb-1.5 flex items-center gap-1.5 ${mine ? "self-end" : ""}`}>
+                        <Icon size={12} aria-hidden />
+                        {sideName(it.side, partnerName)} · {it.label} · {it.dayLabel}
+                      </span>
+                    </li>
+                  );
+                }
+
+                // Something you did together (a revealed journal day): a card
+                // across the full width, belonging to neither side.
                 return (
                   <li key={it.id} className="contents">
                     <Link

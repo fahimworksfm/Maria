@@ -1,5 +1,6 @@
 "use client";
 
+import { sideClass, sideName, sideOf } from "@/lib/authorship";
 import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { MapPin, X } from "lucide-react";
@@ -19,6 +20,7 @@ export type Place = {
   visited: boolean;
   rating: number | null;
   created_at: string;
+  author_id?: string | null;
 };
 
 type Suggestion = { label: string; name: string; lat: number; lng: number };
@@ -26,7 +28,10 @@ type Suggestion = { label: string; name: string; lat: number; lng: number };
 const sortPlaces = (a: Place, b: Place) =>
   Number(a.visited) - Number(b.visited) || (a.created_at < b.created_at ? 1 : -1);
 
-export default function PlacesBoard({ initial, coupleId }: { initial: Place[]; coupleId: string }) {
+export default function PlacesBoard({ initial, coupleId, meId, partnerName }: { initial: Place[]; coupleId: string; meId: string; partnerName: string }) {
+  // Whose it is decides which side it sits on; rows with no author stay neutral.
+  const side = (a: unknown) => sideOf(a, meId);
+  const who = (a: unknown) => sideName(side(a), partnerName);
   const { items, add, update, removeWithUndo, undo, dismissUndo, removed } = useCollection<Place>({
     table: "places",
     initial,
@@ -74,7 +79,7 @@ export default function PlacesBoard({ initial, coupleId }: { initial: Place[]; c
     setCoords(null);
     await add(
       { name: n, kind: kind.trim() || null, notes: notes.trim() || null, lat: c?.lat ?? null, lng: c?.lng ?? null },
-      { name: n, kind: kind.trim() || null, notes: notes.trim() || null, lat: c?.lat ?? null, lng: c?.lng ?? null, visited: false, rating: null, created_at: new Date().toISOString() }
+      { name: n, kind: kind.trim() || null, notes: notes.trim() || null, lat: c?.lat ?? null, lng: c?.lng ?? null, visited: false, rating: null, created_at: new Date().toISOString(), author_id: meId }
     );
   }
 
@@ -129,8 +134,9 @@ export default function PlacesBoard({ initial, coupleId }: { initial: Place[]; c
         <h3 className="label">Want to go ({toGo.length})</h3>
         {toGo.map((p) => (
           <SwipeRow key={p.id} onDelete={() => removeWithUndo(p.id)}>
-            <div className="collection-item card px-4 py-3 flex justify-between items-start gap-3">
+            <div className={`collection-item card px-4 py-3 flex justify-between items-start gap-3 ${sideClass(side(p.author_id))}`}>
               <div className="min-w-0">
+                {who(p.author_id) && <div className="text-xs text-muted mb-0.5">{who(p.author_id)}</div>}
                 <div className="font-semibold leading-snug">{p.name}</div>
                 <div className="flex gap-1.5 mt-1.5 flex-wrap items-center">
                   {p.kind && <span className="pill">{p.kind}</span>}
@@ -162,9 +168,10 @@ export default function PlacesBoard({ initial, coupleId }: { initial: Place[]; c
       <section className="space-y-2">
         <h3 className="label">Been ({been.length})</h3>
         {been.map((p) => (
-          <div key={p.id} className="collection-item card px-4 py-3 flex justify-between items-start gap-3 opacity-90">
+          <div key={p.id} className={`collection-item card px-4 py-3 flex justify-between items-start gap-3 opacity-90 ${sideClass(side(p.author_id))}`}>
             <div className="min-w-0">
-              <div className="font-semibold">{p.name} {p.rating ? `· ${"★".repeat(p.rating)}` : ""}</div>
+              {who(p.author_id) && <div className="text-xs text-muted mb-0.5">{who(p.author_id)}</div>}
+                <div className="font-semibold">{p.name} {p.rating ? `· ${"★".repeat(p.rating)}` : ""}</div>
               {p.notes && <p className="text-muted text-[13px] mt-1 leading-relaxed">{p.notes}</p>}
             </div>
             <button type="button" className="grid place-items-center w-11 h-11 shrink-0 rounded-full text-muted hover:bg-panel2 hover:text-ink transition" onClick={() => removeWithUndo(p.id)} aria-label="Delete"><X size={16} aria-hidden /></button>

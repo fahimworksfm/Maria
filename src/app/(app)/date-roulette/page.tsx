@@ -1,3 +1,4 @@
+import { partnerNameFor, sideClass, sideName, sideOf } from "@/lib/authorship";
 import { revalidatePath } from "next/cache";
 import { requireCoupled } from "@/lib/couple";
 import { supabaseServer } from "@/lib/supabase/server";
@@ -21,7 +22,7 @@ export default async function DateRoulettePage() {
   const supabase = await supabaseServer();
   const { data: ideas } = await supabase
     .from("date_ideas")
-    .select("id, title, description, budget, effort, weather, done, ai_generated")
+    .select("id, title, description, budget, effort, weather, done, ai_generated, author_id")
     .eq("couple_id", me.coupleId)
     .order("done", { ascending: true })
     .order("created_at", { ascending: false })
@@ -87,6 +88,10 @@ export default async function DateRoulettePage() {
 
   const pool = (ideas ?? []).filter((i) => !i.done);
   const spun = pool.length > 0 ? pool[Math.floor(Math.random() * pool.length)] : null;
+
+  const partnerName = await partnerNameFor(supabase, me.userId);
+  // Ideas Tether generated belong to neither of you.
+  const side = (i: { author_id: string | null; ai_generated: boolean }) => (i.ai_generated ? null : sideOf(i.author_id, me.userId));
 
   return (
     <div className="space-y-6">
@@ -157,8 +162,9 @@ export default async function DateRoulettePage() {
         <h3 className="label">All ideas</h3>
         <ul className="space-y-2">
           {(ideas ?? []).map((i) => (
-            <li key={i.id} className={`card px-4 py-3 flex items-start justify-between gap-3 ${i.done ? "opacity-60" : ""}`}>
+            <li key={i.id} className={`card px-4 py-3 flex items-start justify-between gap-3 ${i.done ? "opacity-60" : ""} ${sideClass(side(i))}`}>
               <div className="min-w-0">
+                {sideName(side(i), partnerName) && <div className="text-xs text-muted mb-0.5">{sideName(side(i), partnerName)}</div>}
                 <div className="font-semibold leading-snug">{i.title}</div>
                 {i.description && <p className="text-muted text-[13px]">{i.description}</p>}
                 <div className="flex gap-1 mt-1.5 flex-wrap">
