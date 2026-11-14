@@ -48,8 +48,8 @@ export default function MoodForm({
   }
 
   return (
-    <form onSubmit={submit} className="card p-5 space-y-3">
-      <div className="grid grid-cols-5 gap-2">
+    <form onSubmit={submit} className="card p-3.5 space-y-3">
+      <div className="grid grid-cols-5 gap-2" role="group" aria-label="How are you today?">
         {MOODS.map((emoji, i) => {
           const value = i + 1;
           const selected = mood === value;
@@ -58,10 +58,10 @@ export default function MoodForm({
               type="button"
               key={i}
               onClick={() => setMood(value)}
-              className={`text-3xl text-center py-3 rounded-lg border border-line ${
-                selected ? "bg-accent text-bg" : "bg-panel2"
-              }`}
+              className={`text-3xl text-center py-3 rounded-2xl transition ${selected ? "ring-2 ring-offset-2 ring-offset-panel" : "bg-panel2"}`}
+              style={selected ? ({ background: "rgb(var(--c-prim-bg))", "--tw-ring-color": "rgb(var(--c-prim-bg))" } as React.CSSProperties) : undefined}
               aria-pressed={selected}
+              aria-label={`Mood ${value} of 5`}
             >
               {emoji}
             </button>
@@ -71,18 +71,19 @@ export default function MoodForm({
       <textarea
         className="input"
         rows={2}
+        aria-label="A line about today (optional)"
         placeholder="A line about today (optional)"
         value={note}
         onChange={(e) => setNote(e.target.value)}
       />
-      <label className="flex items-center gap-2 text-sm">
-        <input type="checkbox" checked={share} onChange={(e) => setShare(e.target.checked)} />
+      <label className="flex items-center gap-2.5 min-h-[44px] text-[15px]">
+        <input type="checkbox" className="w-5 h-5" checked={share} onChange={(e) => setShare(e.target.checked)} />
         Share with partner
       </label>
       <button className="btn btn-primary w-full" type="submit" disabled={pending || !mood}>
         {pending ? "Saving…" : "Save"}
       </button>
-      {queued && <p className="muted text-xs">Saved offline — it&apos;ll sync when you&apos;re back online.</p>}
+      {queued && <p className="muted text-[13px]" role="status">Saved offline — it&apos;ll sync when you&apos;re back online.</p>}
     </form>
   );
 }

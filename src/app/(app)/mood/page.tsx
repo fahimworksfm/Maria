@@ -99,29 +99,29 @@ export default async function MoodPage() {
 
       <form action={saveMoodPrefs} className="card p-4 space-y-3">
         <h3 className="label">When you&apos;re having a heavy day</h3>
-        <label className="flex items-start gap-2 text-sm">
-          <input type="checkbox" name="mood_signal" defaultChecked={moodPrefs.mood_signal} className="mt-0.5" />
+        <label className="flex items-start gap-3 text-[15px] min-h-[44px]">
+          <input type="checkbox" name="mood_signal" defaultChecked={moodPrefs.mood_signal} className="mt-0.5 w-5 h-5 shrink-0" />
           <span>
             Let your partner know
-            <span className="muted block text-xs">They&apos;ll see a gentle &quot;heavy day&quot; nudge so they can reach out — never a guilt trip.</span>
+            <span className="text-muted block text-[13px]">They&apos;ll see a gentle &quot;heavy day&quot; nudge so they can reach out — never a guilt trip.</span>
           </span>
         </label>
-        <label className="flex items-start gap-2 text-sm">
-          <input type="checkbox" name="mood_share_score" defaultChecked={moodPrefs.mood_share_score} className="mt-0.5" />
+        <label className="flex items-start gap-3 text-[15px] min-h-[44px]">
+          <input type="checkbox" name="mood_share_score" defaultChecked={moodPrefs.mood_share_score} className="mt-0.5 w-5 h-5 shrink-0" />
           <span>
             Include my exact mood
-            <span className="muted block text-xs">Off by default — they&apos;ll know it&apos;s a low day without seeing the number.</span>
+            <span className="text-muted block text-[13px]">Off by default — they&apos;ll know it&apos;s a low day without seeing the number.</span>
           </span>
         </label>
         <button className="btn w-full" type="submit">Save sharing settings</button>
       </form>
 
-      <section>
+      <section className="space-y-2">
         <h3 className="label">Your last 30 days</h3>
-        <Strip rows={mine ?? []} />
+        {mine && mine.length > 0 ? <Strip rows={mine} mine /> : <p className="muted">No check-ins yet.</p>}
       </section>
 
-      <section>
+      <section className="space-y-2">
         <h3 className="label">Partner&apos;s recent (only what they shared)</h3>
         {theirs && theirs.length > 0 ? (
           <Strip rows={theirs} />
@@ -133,25 +133,30 @@ export default async function MoodPage() {
   );
 }
 
-function Strip({ rows }: { rows: Array<{ on_date: string; mood: number; note?: string | null }> }) {
+// The month at a glance, then the latest few days as messages: yours on the
+// right, theirs on the left.
+function Strip({ rows, mine }: { rows: Array<{ on_date: string; mood: number; note?: string | null }>; mine?: boolean }) {
   return (
-    <div className="card p-3 space-y-2">
-      <div className="flex gap-1 overflow-x-auto">
+    <div className="space-y-3">
+      <div className="card p-3 flex gap-2 overflow-x-auto">
         {rows.slice().reverse().map((r) => (
-          <div key={r.on_date} className="text-center" title={`${r.on_date} ${r.note ?? ""}`}>
+          <div key={r.on_date} className="text-center shrink-0" title={`${r.on_date} ${r.note ?? ""}`}>
             <div className="text-xl">{MOODS[r.mood - 1]}</div>
-            <div className="muted text-[10px]">{r.on_date.slice(5)}</div>
+            <div className="text-muted text-[11px] tabular-nums">{r.on_date.slice(5)}</div>
           </div>
         ))}
       </div>
-      <ul className="space-y-1 text-sm">
+      <div className="thread">
         {rows.slice(0, 5).map((r) => (
-          <li key={r.on_date} className="flex justify-between gap-2">
-            <span>{r.on_date} {MOODS[r.mood - 1]}</span>
-            <span className="muted truncate">{r.note}</span>
-          </li>
+          <div key={r.on_date} className="contents">
+            <div className={`bubble flex items-baseline gap-2 ${mine ? "bubble-me" : "bubble-them"}`}>
+              <span aria-hidden>{MOODS[r.mood - 1]}</span>
+              <span>{r.note || `Mood ${r.mood} of 5`}</span>
+            </div>
+            <span className={`stamp ${mine ? "self-end" : ""}`}>{r.on_date}</span>
+          </div>
         ))}
-      </ul>
+      </div>
     </div>
   );
 }
