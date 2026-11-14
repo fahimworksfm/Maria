@@ -12,18 +12,18 @@ function ModuleRow({ m }: { m: AppModule }) {
   return (
     <Link
       href={m.href}
-      className="flex items-center gap-3 rounded-xl2 px-2 py-2 border border-transparent hover:border-line hover:bg-panel2 transition active:scale-[0.99]"
+      className="flex items-center gap-3 rounded-xl2 px-2 py-2 min-h-[56px] hover:bg-panel2 transition active:scale-[0.99]"
     >
-      <span className="inline-flex items-center justify-center w-9 h-9 shrink-0 rounded-xl2 bg-accent/12 text-accent">
+      <span className="inline-flex items-center justify-center w-10 h-10 shrink-0 rounded-full bg-panel2 text-accentInk">
         <Icon size={17} aria-hidden />
       </span>
       <span className="min-w-0 flex-1">
         <span className="flex items-center gap-2">
-          <span className="font-display font-medium leading-snug truncate">{m.title}</span>
+          <span className="font-semibold text-[15px] leading-snug truncate">{m.title}</span>
           {m.badge === "private" && <span className="pill shrink-0">PIN</span>}
           {m.badge === "yours" && <span className="pill shrink-0">yours</span>}
         </span>
-        <span className="muted text-xs block truncate">{m.desc}</span>
+        <span className="text-muted text-[13px] block truncate">{m.desc}</span>
       </span>
     </Link>
   );
@@ -73,7 +73,7 @@ export default function ModuleDirectory() {
       <div className="relative">
         <Search size={15} aria-hidden className="absolute left-3 top-1/2 -translate-y-1/2 text-muted pointer-events-none" />
         <input
-          className="input pl-9 pr-9"
+          className="input pl-9 pr-9 !rounded-full !bg-panel"
           type="search"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
@@ -110,8 +110,8 @@ export default function ModuleDirectory() {
               <details key={g.key} data-group={g.key} open={g.defaultOpen} onToggle={persist} className="card px-3 py-2.5">
                 <summary className="flex items-center justify-between gap-3 cursor-pointer list-none select-none">
                   <span className="min-w-0">
-                    <span className="font-display font-medium">{g.label}</span>
-                    <span className="muted text-xs block">{g.blurb}</span>
+                    <span className="font-semibold text-[15px]">{g.label}</span>
+                    <span className="text-muted text-[13px] block">{g.blurb}</span>
                   </span>
                   <span className="flex items-center gap-2 shrink-0">
                     <span className="muted text-xs tabular-nums">{items.length}</span>

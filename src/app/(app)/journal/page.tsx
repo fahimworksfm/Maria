@@ -5,6 +5,7 @@ import { aiEnabled, chat } from "@/lib/groq";
 import Confetti from "@/components/Confetti";
 import RealtimeRefresh from "@/components/RealtimeRefresh";
 import StreakLine from "@/components/StreakLine";
+import { Lock } from "lucide-react";
 import { getTogetherStreak } from "@/lib/streak";
 
 export default async function JournalPage() {
@@ -69,48 +70,61 @@ export default async function JournalPage() {
         <p className="muted">Both answer. Both reveal together.</p>
       </header>
 
-      <section className="card p-5 space-y-3">
-        <div className="muted text-xs">Today, {today}</div>
-        <h2 className="h2">{prompt}</h2>
-        {myEntry ? (
-          <p className="text-sm">You answered. {bothAnswered ? "Both of you are in — see below." : "Waiting on your partner."}</p>
-        ) : (
-          <form action={saveEntry} className="space-y-3">
-            <input type="hidden" name="prompt" value={prompt} />
-            <textarea className="input" name="body" rows={4} placeholder="Your answer..." required />
-            <button className="btn btn-primary w-full" type="submit">Lock in my answer</button>
-          </form>
+      <section className="thread" aria-label="Today">
+        <p className="day-mark">Today</p>
+        <div className="card p-4 space-y-2">
+          <p className="label !mb-0">Tether asks you both</p>
+          <h2 className="h2">{prompt}</h2>
+        </div>
+
+        {/* Their side. Sealed until yours is in, so neither answer leans on the other. */}
+        {partnerEntry && !myEntry && (
+          <>
+            <div className="bubble bubble-them w-[70%] space-y-2" aria-label="Your partner has answered. Hidden until you answer.">
+              <span className="block h-2.5 rounded-full bg-ink/15" />
+              <span className="block h-2.5 w-[85%] rounded-full bg-ink/15" />
+              <span className="block h-2.5 w-[55%] rounded-full bg-ink/15" />
+            </div>
+            <span className="stamp flex items-center gap-1.5"><Lock size={12} aria-hidden /> Partner answered · hidden until yours is in</span>
+          </>
+        )}
+        {bothAnswered && (
+          <>
+            <div className="bubble bubble-them">{partnerEntry!.body}</div>
+            <span className="stamp">Partner</span>
+          </>
+        )}
+
+        {/* Your side. */}
+        {myEntry && (
+          <>
+            <div className="bubble bubble-me">{myEntry.body}</div>
+            <span className="stamp self-end">{bothAnswered ? "You · both revealed" : "You · waiting on your partner"}</span>
+          </>
         )}
       </section>
 
-      {bothAnswered && <Confetti trigger={today} once={`journal-${today}`} />}
-      {bothAnswered && (
-        <section className="card p-5 space-y-4">
-          <h3 className="label">Today, revealed</h3>
-          <div>
-            <div className="muted text-xs mb-1">You</div>
-            <p className="whitespace-pre-wrap">{myEntry!.body}</p>
-          </div>
-          <div>
-            <div className="muted text-xs mb-1">Partner</div>
-            <p className="whitespace-pre-wrap">{partnerEntry!.body}</p>
-          </div>
-        </section>
+      {!myEntry && (
+        <form action={saveEntry} className="card p-3.5 space-y-2.5">
+          <input type="hidden" name="prompt" value={prompt} />
+          <label htmlFor="journal-body" className="sr-only">Your answer</label>
+          <textarea id="journal-body" className="input" name="body" rows={4} placeholder="Start anywhere. Only your partner will read this." required />
+          <button className="btn btn-primary w-full" type="submit">Lock in my answer</button>
+        </form>
       )}
 
-      <section>
-        <h3 className="label">History</h3>
+      {bothAnswered && <Confetti trigger={today} once={`journal-${today}`} />}
+
+      <section className="space-y-3">
+        <h3 className="label">Earlier days</h3>
         {history && history.length > 0 ? (
           <div className="space-y-3">
             {Object.entries(groupByDate(history)).map(([date, entries]) => (
-              <div key={date} className="card p-4 space-y-2">
-                <div className="muted text-xs">{date}</div>
-                <p className="font-medium">{entries[0]!.prompt}</p>
+              <div key={date} className="thread">
+                <p className="day-mark">{date}</p>
+                <div className="card px-4 py-3 font-semibold text-[15px] leading-snug">{entries[0]!.prompt}</div>
                 {entries.map((e, i) => (
-                  <p key={i} className="text-sm whitespace-pre-wrap">
-                    <span className="muted">{e.author_id === me.userId ? "You: " : "Partner: "}</span>
-                    {e.body}
-                  </p>
+                  <div key={i} className={`bubble ${e.author_id === me.userId ? "bubble-me" : "bubble-them"}`}>{e.body}</div>
                 ))}
               </div>
             ))}
@@ -118,8 +132,8 @@ export default async function JournalPage() {
         ) : (
           <div className="card p-8 text-center space-y-3">
             <span className="ink-art mx-auto w-32 aspect-[7/12]" style={{ ["--art" as string]: "url(/media/empty-book.png)" }} aria-hidden />
-            <p className="font-display text-lg">Nothing written down yet.</p>
-            <p className="muted text-sm">Answer today&apos;s prompt and it starts here — one page for every day you both showed up.</p>
+            <p className="font-bold text-lg">Nothing written down yet.</p>
+            <p className="muted">Answer today&apos;s prompt and it starts here — one page for every day you both showed up.</p>
           </div>
         )}
       </section>

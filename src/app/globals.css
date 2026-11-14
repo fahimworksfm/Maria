@@ -2,42 +2,43 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Paper & Ink.
-   Surfaces are declared as RGB channels so Tailwind's opacity modifiers keep
-   working, and the whole palette swaps on one attribute. Light is pressed
-   paper; dark is the same world at night — warm charcoal, not black, so the
-   app still reads as a printed object rather than a terminal. */
+/* Thread.
+   The app reads as one long conversation between two people, so the palette is
+   a messaging one: a cool off-white ground, white cards, grey bubbles for your
+   partner and a deep accent for your own. Surfaces are RGB channels so
+   Tailwind's opacity modifiers keep working and the palette swaps on one
+   attribute. */
 :root {
   color-scheme: light;
-  --c-surface: 237 231 218;
-  --c-panel: 246 242 232;
-  --c-panel-2: 230 223 208;
-  --c-line: 207 197 175;
-  --c-ink: 28 26 21;
-  --c-muted: 110 101 87;
-  --c-prim-bg: 28 26 21;
-  --c-prim-fg: 246 242 232;
+  --c-surface: 247 248 250;
+  --c-panel: 255 255 255;
+  --c-panel-2: 233 235 240;
+  --c-line: 217 221 229;
+  --c-ink: 21 23 28;
+  --c-muted: 90 97 112;
+  /* Your bubbles and primary buttons. The couple theme overrides this on the
+     app shell; every theme's value carries white text. */
+  --c-prim-bg: 75 63 228;
+  --c-prim-fg: 255 255 255;
 
-  /* Couple accents stay as chosen, but on paper they need weight to hold their
-     own against near-black text, so they are mixed toward ink. */
-  --accent: 249 115 115;
-  --accent-2: 249 200 115;
-  --accent-3: 168 123 255;
-  --c-accent-ink: color-mix(in srgb, rgb(var(--accent)) 62%, rgb(28 26 21));
+  --accent: 108 99 255;
+  --accent-2: 142 134 240;
+  --accent-3: 96 165 250;
+  /* Accent as text on the light ground: the deep version, which is legible. */
+  --c-accent-ink: rgb(var(--c-prim-bg));
 }
 
 :root[data-mode="dark"] {
   color-scheme: dark;
-  --c-surface: 20 19 15;
-  --c-panel: 28 26 22;
-  --c-panel-2: 36 33 27;
-  --c-line: 56 51 42;
-  --c-ink: 239 233 220;
-  --c-muted: 154 145 131;
-  --c-prim-bg: 239 233 220;
-  --c-prim-fg: 20 19 15;
-  /* At night the accent carries itself; lifting it toward paper keeps it legible. */
-  --c-accent-ink: color-mix(in srgb, rgb(var(--accent)) 82%, rgb(239 233 220));
+  --c-surface: 17 19 24;
+  --c-panel: 27 30 37;
+  --c-panel-2: 38 42 51;
+  --c-line: 46 50 60;
+  --c-ink: 244 245 248;
+  --c-muted: 160 166 180;
+  /* On the dark ground the deep accent is too dim to read as text, so labels
+     and links use the bright accent lifted toward white. */
+  --c-accent-ink: color-mix(in srgb, rgb(var(--accent)) 78%, rgb(244 245 248));
 }
 
 html {
@@ -48,24 +49,29 @@ body {
   background: transparent;
   color: rgb(var(--c-ink));
   -webkit-font-smoothing: antialiased;
+  font-family: "Figtree Variable", Figtree, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }
 
-body {
-  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+/* The Gift Vault is the one place that goes dark on purpose, whatever the
+   mode: a private room inside the app. Redeclaring the surface tokens on the
+   wrapper is enough — everything inside reads them. */
+.private-room {
+  color-scheme: dark;
+  --c-surface: 17 19 24;
+  --c-panel: 27 30 37;
+  --c-panel-2: 38 42 51;
+  --c-line: 46 50 60;
+  --c-ink: 244 245 248;
+  --c-muted: 160 166 180;
+  --c-accent-ink: color-mix(in srgb, rgb(var(--accent)) 78%, rgb(244 245 248));
+  background: rgb(var(--c-surface));
+  color: rgb(var(--c-ink));
+  border-radius: 20px;
+  padding: 16px;
+  margin-inline: -8px;
 }
 
-/* Fine grain overlay to add warmth and kill flat banding. */
-.grain {
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  opacity: 0.035;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  mix-blend-mode: overlay;
-}
-
-/* Soft warm editorial display type */
+/* Headings */
 .font-display, .h1, .h2 {
   letter-spacing: -0.01em;
   font-optical-sizing: auto;
@@ -97,71 +103,44 @@ body {
   padding-bottom: calc(env(safe-area-inset-bottom, 0) + 6rem);
 }
 
-/* Pulse button (Pulse module) */
+/* Pulse button (Pulse module): the one big send action in the composer. */
 .pulse-button {
-  width: 184px;
-  height: 184px;
-  border-radius: 50%;
+  width: 100%;
+  min-height: 64px;
   border: none;
-  background: linear-gradient(160deg, rgb(var(--accent) / 0.92) 0%, rgb(var(--accent)) 55%, rgb(var(--accent-3)) 100%);
-  color: white;
+  border-radius: 20px;
+  background: rgb(var(--c-prim-bg));
+  color: rgb(var(--c-prim-fg));
   cursor: pointer;
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 28px auto;
-  box-shadow:
-    0 30px 60px -16px rgb(var(--accent) / 0.4),
-    inset 0 -12px 30px rgba(0, 0, 0, 0.2),
-    inset 0 10px 28px rgba(255, 255, 255, 0.2);
-  transition: transform 0.4s cubic-bezier(0.25, 0.6, 0.3, 1);
+  gap: 10px;
+  font-size: 18px;
+  font-weight: 700;
+  transition: transform 0.25s cubic-bezier(0.25, 0.6, 0.3, 1), opacity 0.2s ease;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
-  overflow: visible;
 }
-.pulse-button:hover { transform: scale(1.03); }
-.pulse-button:active { transform: scale(0.95); }
-.pulse-button::before {
-  content: "";
-  position: absolute;
-  inset: -22px;
-  border-radius: 50%;
-  background: radial-gradient(ellipse at center, rgb(var(--accent) / 0.55), transparent 70%);
-  z-index: -1;
-  pointer-events: none;
-}
-@keyframes pulse-aura {
-  0%, 100% { transform: scale(1); opacity: 0.35; }
-  50% { transform: scale(1.08); opacity: 0.6; }
-}
+.pulse-button:hover { opacity: 0.92; }
+.pulse-button:active { transform: scale(0.97); }
 .pulse-button.is-pressed::after {
   content: "";
   position: absolute;
   inset: 0;
-  border-radius: 50%;
-  border: 4px solid rgba(255, 255, 255, 0.75);
+  border-radius: 20px;
+  border: 3px solid rgb(var(--c-prim-bg));
   animation: pulse-ripple 0.8s ease-out forwards;
   pointer-events: none;
 }
 @keyframes pulse-ripple {
-  0%   { transform: scale(1);   opacity: 1; }
-  100% { transform: scale(1.9); opacity: 0; }
-}
-.pulse-button-emoji {
-  font-size: 72px;
-  line-height: 1;
-  display: inline-block;
-  text-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+  0%   { transform: scale(1);   opacity: 0.9; }
+  100% { transform: scale(1.12, 1.5); opacity: 0; }
 }
 @keyframes pulse-heart {
   0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.1); }
-}
-
-/* Bottom nav active glow */
-.nav-active {
-  background: linear-gradient(160deg, rgb(var(--accent) / 0.18), rgb(var(--accent-3) / 0.12));
+  50% { transform: scale(1.14); }
 }
 
 .sparkle {
@@ -177,24 +156,23 @@ body {
 }
 
 @layer components {
-  /* Flat, ruled, printed. Depth comes from rules and weight, not shadow —
-     paper has no elevation. */
+  /* Cards are what the app itself says in the thread: white, softly rounded,
+     separated from the ground by a hairline rather than a shadow. */
   .card {
-    @apply bg-panel border border-line rounded-xl2;
+    @apply bg-panel border border-line rounded-xl3;
   }
   .card-hover {
     @apply transition-colors duration-200 hover:bg-panel2;
   }
-  /* The one card that leads a screen gets an accent rule down its edge. */
+  /* Kept as a name so call sites don't churn; the lead card no longer carries
+     an edge rule. */
   .card-lead {
-    @apply border-l-[3px];
-    border-left-color: var(--c-accent-ink);
   }
   .input {
-    @apply w-full bg-transparent border border-line rounded-xl2 px-3.5 py-2.5 text-ink placeholder:text-muted focus:outline-none focus:border-ink focus:ring-1 focus:ring-ink/20 transition;
+    @apply w-full bg-bg border border-line rounded-xl2 px-3.5 py-2.5 text-ink text-[15px] placeholder:text-muted focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/25 transition;
   }
   .btn {
-    @apply inline-flex items-center justify-center whitespace-nowrap px-4 py-2.5 rounded-xl2 border border-ink/80 bg-transparent text-ink text-[12px] font-semibold uppercase tracking-[0.1em] transition hover:bg-ink/5 disabled:opacity-45 disabled:cursor-not-allowed;
+    @apply inline-flex items-center justify-center whitespace-nowrap min-h-[44px] px-4 py-2.5 rounded-xl2 border border-line bg-panel text-ink text-[15px] font-semibold transition hover:bg-panel2 disabled:opacity-45 disabled:cursor-not-allowed;
   }
   .btn-primary {
     background: rgb(var(--c-prim-bg));
@@ -202,55 +180,80 @@ body {
     @apply border-transparent hover:opacity-90;
   }
   .btn-ghost {
-    @apply border-transparent hover:bg-ink/5;
+    @apply border-transparent bg-transparent hover:bg-ink/5;
   }
-  /* A list row. Print separates entries with a rule, not by floating each one
-     in its own box — a card per item turns a list into a pile of receipts. */
-  /* py-4, not py-3: collection rows carry a 72px poster plus a title, pills
-     and a two-line note. At 12px the rule crowded the artwork and the stack
-     read as one dense block. */
+  /* A small action that sits in a row above the composer. */
+  .chip {
+    @apply inline-flex items-center gap-1.5 shrink-0 min-h-[44px] px-3.5 rounded-full border border-line bg-panel text-ink text-sm font-semibold transition hover:bg-panel2;
+  }
+
+  /* The thread. Messages stack in a column; your partner's sit left in grey,
+     yours sit right in the couple accent, and the tail corner points at who
+     spoke. */
+  .thread {
+    @apply flex flex-col gap-2;
+  }
+  .bubble {
+    @apply max-w-[85%] px-3.5 py-2.5 text-[15px] leading-snug rounded-[20px] whitespace-pre-wrap break-words;
+  }
+  .bubble-them {
+    @apply self-start bg-panel2 text-ink rounded-bl-md;
+  }
+  .bubble-me {
+    @apply self-end rounded-br-md;
+    background: rgb(var(--c-prim-bg));
+    color: rgb(var(--c-prim-fg));
+  }
+  /* An unread message from your partner. */
+  .bubble-new {
+    @apply font-semibold;
+    box-shadow: inset 0 0 0 2px rgb(var(--c-prim-bg));
+  }
+  /* Timestamp or status under a bubble; add self-end for your own side. */
+  .stamp {
+    @apply text-xs text-muted px-1.5;
+  }
+  .day-mark {
+    @apply self-center text-xs text-muted py-1;
+  }
+
+  /* A list row: entries are separated by a hairline, not boxed one by one. */
   .row {
     @apply border-b border-line py-4 last:border-b-0;
   }
   .row-link {
     @apply block border-b border-line py-4 transition-colors hover:bg-panel2 last:border-b-0;
   }
-  /* Empty-state mark. A tinted disc is a soft-UI idiom; in print the figure is
-     drawn in ink and sits inside a ruled square. */
+  /* Empty-state mark. */
   .mark-box {
-    @apply mx-auto w-12 h-12 border border-line grid place-items-center;
+    @apply mx-auto w-12 h-12 rounded-full bg-panel2 grid place-items-center;
     color: var(--c-accent-ink);
   }
   .pill {
-    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] border border-line bg-transparent text-muted uppercase tracking-[0.08em];
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-panel2 text-muted;
   }
   .label {
-    @apply text-[10px] uppercase tracking-[0.2em] mb-1 block font-semibold;
+    @apply text-xs uppercase tracking-[0.06em] mb-1 block font-bold;
     color: var(--c-accent-ink);
   }
   .h1 {
-    @apply text-[2.4rem] sm:text-[2.9rem] leading-[1.0] tracking-[-0.03em] font-display font-semibold;
+    @apply text-[1.75rem] leading-tight tracking-[-0.02em] font-display font-bold;
   }
   .h2 {
-    @apply text-xl font-display font-semibold tracking-[-0.02em];
+    @apply text-xl leading-snug font-display font-bold tracking-[-0.01em];
   }
   .display {
-    @apply font-display font-semibold leading-[1.1] tracking-[-0.025em];
+    @apply font-display font-bold leading-[1.1] tracking-[-0.02em];
   }
   .muted {
     @apply text-muted text-sm;
   }
 }
 
-
-
-
-
 /* Decorative motion only when the user hasn't asked to reduce it. Reduced-motion
    users keep the static end-state (still gradients, calm glow). */
 @media (prefers-reduced-motion: no-preference) {
-  .pulse-button::before { animation: pulse-aura 2.4s ease-in-out infinite; }
-  .pulse-button-emoji { animation: pulse-heart 2.4s ease-in-out infinite; }
+  .pulse-button-heart { animation: pulse-heart 2.4s ease-in-out infinite; }
   /* New list items fade/slide in (only newly-mounted nodes animate). */
   .collection-item { animation: collEnter 0.35s ease both; }
   .toast-in { animation: toastIn 0.25s ease both; }
@@ -282,7 +285,7 @@ body {
 :focus-visible {
   outline: 2px solid rgb(var(--accent));
   outline-offset: 2px;
-  border-radius: 4px;
+  border-radius: 8px;
 }
 
 /* Calm celebration: soft petals drifting up (replaces the confetti burst). */

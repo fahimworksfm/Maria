@@ -21,6 +21,7 @@ export default function ThemePicker({
       el.style.setProperty("--accent", t.accent);
       el.style.setProperty("--accent-2", t.accent2);
       el.style.setProperty("--accent-3", t.accent3);
+      el.style.setProperty("--c-prim-bg", t.prim);
     }
     start(() => { action(t.key); });
   }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Heart } from "lucide-react";
 import { tap, HAPTIC } from "@/lib/haptic";
 import { play } from "@/lib/sound";
 
@@ -17,11 +18,11 @@ export default function PulseButton() {
   return (
     <button
       type="submit"
-      aria-label="Send pulse"
       onPointerDown={handleDown}
       className={`pulse-button ${pressed ? "is-pressed" : ""}`}
     >
-      <span className="pulse-button-emoji" aria-hidden>💗</span>
+      <Heart size={22} fill="currentColor" className="pulse-button-heart" aria-hidden />
+      Send a pulse
     </button>
   );
 }

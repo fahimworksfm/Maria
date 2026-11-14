@@ -1,8 +1,9 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import Link from "next/link";
 import { useEffect, useState } from "react";
-import { MapPin, Plane, CalendarHeart, Moon } from "lucide-react";
+import { MapPin, Plane, Heart, Moon } from "lucide-react";
 import SubmitButton from "@/components/SubmitButton";
 import type { Weather } from "@/lib/weather";
 
@@ -103,57 +104,58 @@ export default function TogetherView({
       : null;
 
   return (
-    <div className="space-y-6">
-      {/* Hero: globe + distance + countdown */}
-      <section className="card p-6 text-center space-y-4">
-        {globePoints && <TogetherGlobe me={globePoints.me} partner={globePoints.partner} />}
-
+    <div className="space-y-5">
+      {/* Where each of you is right now: yours on the right in the accent,
+          theirs on the left in grey, like the two sides of the thread. */}
+      <section className="thread">
         {distance != null ? (
-          <p className="muted flex items-center justify-center gap-1.5 text-sm">
-            <MapPin size={14} aria-hidden />
-            {me.city ?? "You"} <span className="opacity-60">↔</span> {partner?.city ?? partnerName}
-            <span className="mx-1 opacity-60">·</span>
-            <span className="text-ink">{distance.toLocaleString()} miles apart</span>
+          <p className="day-mark flex items-center gap-1.5">
+            <MapPin size={13} aria-hidden />
+            {me.city ?? "You"} and {partner?.city ?? partnerName} · <span className="text-ink font-semibold">{distance.toLocaleString()} miles apart</span>
           </p>
         ) : (
-          <p className="muted text-sm">Set both your cities below to see the distance between you.</p>
+          <p className="day-mark text-center">Set both your cities below to see the distance between you.</p>
         )}
+        <div className={`grid gap-2.5 ${partner ? "grid-cols-2" : "grid-cols-1"}`}>
+          {partner && <PersonCard person={partner} rhythm={rhythmOf(partner)} now={now} lastActive={activity.partner} labelOverride={partnerName} weather={weather.partner} />}
+          <PersonCard person={me} rhythm={myRhythm} now={now} lastActive={activity.me} labelOverride={myName} weather={weather.me} isMe />
+        </div>
+        {!partner && <p className="muted text-center">{partnerName} hasn&apos;t joined yet — presence will light up once they&apos;re in.</p>}
+      </section>
 
+      {/* The countdown: one big number, the rest in a line beneath it. */}
+      <section className="card p-5 space-y-4">
         {cd && !cd.done ? (
-          <div>
-            <div className="label !mb-1 flex items-center justify-center gap-1.5"><CalendarHeart size={13} aria-hidden /> Until {nextVisit.label || "you're together"}</div>
-            {/* Ruled figures, same as the counts on Home — a printed table of
-                numbers rather than four floating columns. */}
-            <div className="grid grid-cols-4 border border-line mt-2" suppressHydrationWarning>
-              <Unit n={cd.days} u="days" />
-              <Unit n={cd.hours} u="hrs" />
-              <Unit n={cd.mins} u="min" />
-              <Unit n={cd.secs} u="sec" last />
+          <div className="space-y-2">
+            <p className="label !mb-0">Next visit{nextVisit.label ? ` · ${nextVisit.label}` : ""}</p>
+            <div className="flex items-baseline gap-2.5" suppressHydrationWarning>
+              <span className="display text-[5.5rem] leading-[0.9] tabular-nums tracking-[-0.04em]">{cd.days}</span>
+              <span className="font-semibold text-lg leading-tight">{cd.days === 1 ? "day" : "days"} until you&apos;re together</span>
             </div>
-            {travelerLine && <p className="muted text-sm mt-3 flex items-center justify-center gap-1.5"><Plane size={13} aria-hidden /> {travelerLine}</p>}
+            <p className="muted tabular-nums" suppressHydrationWarning>
+              {String(cd.hours).padStart(2, "0")}h {String(cd.mins).padStart(2, "0")}m {String(cd.secs).padStart(2, "0")}s
+            </p>
+            {travelerLine && <p className="text-[15px] flex items-center gap-1.5"><Plane size={14} className="text-accentInk" aria-hidden /> {travelerLine}</p>}
           </div>
         ) : cd?.done ? (
-          <p className="display text-3xl">You&apos;re together right now. 💛</p>
+          <p className="display text-3xl">You&apos;re together right now.</p>
         ) : (
-          <p className="muted text-sm">No visit on the calendar yet — add one below and watch it count down.</p>
+          <p className="muted">No visit on the calendar yet — add one below and watch it count down.</p>
         )}
+        {globePoints && <TogetherGlobe me={globePoints.me} partner={globePoints.partner} />}
       </section>
 
-      {/* Presence: auto-inferred, no daily tapping */}
-      <section className="space-y-3">
-        <div className={`grid gap-3 ${partner ? "grid-cols-2" : "grid-cols-1"}`}>
-          <PersonCard person={me} rhythm={myRhythm} now={now} lastActive={activity.me} labelOverride={myName} weather={weather.me} isMe />
-          {partner && <PersonCard person={partner} rhythm={rhythmOf(partner)} now={now} lastActive={activity.partner} labelOverride={partnerName} weather={weather.partner} />}
-        </div>
-        {hint && (
-          <p className="text-center text-sm rounded-xl2 border border-accent/30 bg-accent/10 text-ink py-2.5 px-3">{hint}</p>
-        )}
-        {!partner && <p className="muted text-center text-sm">{partnerName} hasn&apos;t joined yet — presence will light up once they&apos;re in.</p>}
-      </section>
+      {hint && <p className="card px-4 py-3 text-[15px] leading-snug">{hint}</p>}
+
+      {partner && (
+        <Link href="/pulse" className="btn btn-primary w-full gap-2">
+          <Heart size={16} fill="currentColor" aria-hidden /> Send {partnerName} a pulse
+        </Link>
+      )}
 
       {/* Setup — one-time; the rest runs itself */}
       <details className="card p-4">
-        <summary className="cursor-pointer font-display font-medium">Next visit</summary>
+        <summary className="cursor-pointer font-semibold">Next visit</summary>
         <form action={saveVisit} className="space-y-3 mt-3">
           <input type="hidden" name="tz" value={myRhythm.timezone} />
           <div>
@@ -179,7 +181,7 @@ export default function TogetherView({
       </details>
 
       <details className="card p-4">
-        <summary className="cursor-pointer font-display font-medium flex items-center gap-2"><Moon size={15} aria-hidden /> Your city & daily rhythm</summary>
+        <summary className="cursor-pointer font-semibold flex items-center gap-2"><Moon size={15} aria-hidden /> Your city & daily rhythm</summary>
         <p className="muted text-xs mt-2">Set once. We use it to show whether it&apos;s a good time to reach out — no daily check-ins.</p>
         <form action={saveRhythm} className="space-y-3 mt-3">
           <div className="grid grid-cols-2 gap-3">
@@ -207,15 +209,6 @@ export default function TogetherView({
   );
 }
 
-function Unit({ n, u, last }: { n: number; u: string; last?: boolean }) {
-  return (
-    <span className={`flex flex-col items-center py-3 ${last ? "" : "border-r border-line"}`}>
-      <span className="display text-3xl sm:text-4xl tabular-nums leading-none">{String(n).padStart(2, "0")}</span>
-      <span className="muted text-[9px] uppercase tracking-[0.18em] mt-1.5">{u}</span>
-    </span>
-  );
-}
-
 function PersonCard({
   person, rhythm, now, lastActive, labelOverride, weather, isMe,
 }: {
@@ -225,30 +218,36 @@ function PersonCard({
   const status = inferStatus(now, rhythm);
   const online = activeNow(lastActive, now);
   const configured = person.timezone != null;
+  // Your own card sits on the accent, so its secondary text can't use the grey
+  // meant for the light ground.
+  const soft = isMe ? "opacity-85" : "text-muted";
   return (
-    <div className="card p-4 space-y-1.5">
+    <div className={`bubble !max-w-none !self-stretch space-y-1 ${isMe ? "bubble-me" : "bubble-them"}`}>
       <div className="flex items-center gap-2">
-        <span className="font-display font-medium truncate">{labelOverride}</span>
+        <span className="text-[13px] font-semibold truncate">{isMe ? "You" : labelOverride}</span>
         {online && <span className="relative inline-flex shrink-0"><span className="absolute inline-flex h-2 w-2 rounded-full bg-emerald-400 opacity-75 animate-ping" /><span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" /></span>}
       </div>
-      <div className="text-xs" suppressHydrationWarning>
-        {online ? <span className="text-emerald-400">here now</span> : <span className="text-muted">{lastSeenLabel(lastActive, now)}</span>}
+      <div className="text-[1.7rem] font-bold leading-none tracking-[-0.02em] tabular-nums" suppressHydrationWarning>
+        {clockLabel(now, rhythm.timezone)}
       </div>
-      <div className="flex items-baseline gap-2 pt-0.5" suppressHydrationWarning>
-        <span className="text-2xl" aria-hidden>{status.emoji}</span>
-        <span className="text-ink leading-tight">{status.label}</span>
+      <div className="flex items-baseline gap-1.5 text-[15px] leading-tight" suppressHydrationWarning>
+        <span aria-hidden>{status.emoji}</span>
+        <span>{status.label}</span>
       </div>
-      <p className="muted text-xs" suppressHydrationWarning>
-        {person.city ? `${person.city} · ` : ""}{clockLabel(now, rhythm.timezone)}
+      <p className={`text-[13px] ${soft}`} suppressHydrationWarning>
+        {person.city ?? ""}
         {weather && (
           <>
-            {" · "}
+            {person.city ? " · " : ""}
             <span aria-label={`${weather.label}, ${weather.tempF} degrees`}>
               <span aria-hidden>{weather.emoji}</span> {weather.tempF}°
             </span>
           </>
         )}
         {!configured && !isMe ? " · typical hours" : ""}
+      </p>
+      <p className={`text-xs ${soft}`} suppressHydrationWarning>
+        {online ? "Here now" : lastSeenLabel(lastActive, now)}
       </p>
     </div>
   );

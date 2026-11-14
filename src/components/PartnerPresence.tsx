@@ -62,7 +62,7 @@ export default function PartnerPresence({
   if (!online) return null;
 
   return (
-    <span className="flex items-center gap-1.5 text-xs text-muted" title={`${partnerName} is online`}>
+    <span className="flex items-center gap-1.5 text-[13px] leading-tight text-muted" title={`${partnerName} is online`}>
       <span className="relative inline-flex">
         <span className="absolute inline-flex h-2 w-2 rounded-full bg-emerald-400 opacity-75 animate-ping" />
         <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
