@@ -34,14 +34,14 @@ export default function OfflineStatus() {
   const flushing = isFlushing();
   const label = count > 0
     ? (flushing ? "syncing…" : `saved · will sync${count > 1 ? ` (${count})` : ""}`)
-    : "synced ✓";
+    : "synced";
 
   return (
     <div className="fixed left-1/2 -translate-x-1/2 bottom-24 z-30 pointer-events-none">
-      <div className="pointer-events-auto flex items-center gap-2 rounded-full border border-line bg-panel2 backdrop-blur-xl backdrop-blur px-3 py-1.5 text-xs text-ink shadow-soft">
+      <div className="pointer-events-auto flex items-center gap-2 rounded-full border border-line bg-panel px-3.5 py-2 text-xs font-semibold text-ink shadow-soft">
         <span
           className={`inline-block w-2 h-2 rounded-full ${
-            count > 0 ? "bg-accent2 animate-pulse" : "bg-emerald-400"
+            count > 0 ? "bg-accent animate-pulse" : "bg-emerald-500"
           }`}
         />
         {label}

@@ -53,20 +53,20 @@ async function LoginInner({ searchParamsP }: { searchParamsP: Promise<{ redirect
     <AuthShell
       title="Welcome back"
       subtitle="Sign in to your space."
-      footer={<>New here? <Link className="text-ink underline" href="/signup">Create an account</Link></>}
+      footer={<>New here? <Link className="text-accentInk font-semibold underline underline-offset-2 inline-flex items-center min-h-[44px]" href="/signup">Create an account</Link></>}
     >
       <form action={signIn} className="space-y-3">
         <input type="hidden" name="redirect" value={sp.redirect ?? "/"} />
         <div>
-          <label className="label">Email</label>
-          <input className="input" name="email" type="email" autoComplete="email" required />
+          <label className="label" htmlFor="login-email">Email</label>
+          <input id="login-email" className="input" name="email" type="email" autoComplete="email" required />
         </div>
         <div>
-          <label className="label">Password</label>
-          <input className="input" name="password" type="password" autoComplete="current-password" required />
+          <label className="label" htmlFor="login-password">Password</label>
+          <input id="login-password" className="input" name="password" type="password" autoComplete="current-password" required />
         </div>
-        {sp.error && <p className="text-accent text-sm">{sp.error}</p>}
-        <button className="btn btn-primary w-full cta-glow" type="submit">Sign in</button>
+        {sp.error && <p className="text-accentInk text-sm font-semibold" role="alert">{sp.error}</p>}
+        <button className="btn btn-primary w-full" type="submit">Sign in</button>
       </form>
     </AuthShell>
   );

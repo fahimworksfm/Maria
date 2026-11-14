@@ -1,5 +1,5 @@
 import { revalidatePath } from "next/cache";
-import { Lock } from "lucide-react";
+import { Lock, Mic } from "lucide-react";
 import { requireCoupled } from "@/lib/couple";
 import { supabaseServer } from "@/lib/supabase/server";
 import { BUCKET, signedUrl, userScopedPath } from "@/lib/media";
@@ -58,42 +58,57 @@ export default async function VoiceLettersPage() {
         <p className="muted">Record on your phone, upload here. Optional unlock date.</p>
       </header>
 
-      <form action={upload} className="card p-4 space-y-3" encType="multipart/form-data">
+      <form action={upload} className="card p-3.5 space-y-3" encType="multipart/form-data">
         <VoiceRecorder name="audio" />
-        <textarea className="input" name="transcript" rows={2} placeholder="Transcript (optional)" />
-        <div className="grid grid-cols-2 gap-2">
-          <input className="input" name="unlock_at" type="datetime-local" />
-          <label className="flex items-center gap-2 text-sm"><input type="checkbox" name="is_private" /> Private (only for you)</label>
+        <div>
+          <label className="label" htmlFor="letter-transcript">Transcript (optional)</label>
+          <textarea id="letter-transcript" className="input" name="transcript" rows={2} placeholder="What you said, in words" />
         </div>
+        <div>
+          <label className="label" htmlFor="letter-unlock">Unlock date (optional)</label>
+          <input id="letter-unlock" className="input" name="unlock_at" type="datetime-local" />
+        </div>
+        <label className="flex items-center gap-2.5 min-h-[44px] text-[15px]"><input type="checkbox" name="is_private" className="w-5 h-5" /> Private (only for you)</label>
         <SubmitButton className="btn btn-primary w-full">Save letter</SubmitButton>
       </form>
 
-      <section className="space-y-3">
+      <section className="thread" aria-label="Voice letters">
         {items.map((r) => {
-          const locked = r.unlock_at && new Date(r.unlock_at) > new Date() && r.author_id !== me.userId;
+          const mine = r.author_id === me.userId;
+          const locked = r.unlock_at && new Date(r.unlock_at) > new Date() && !mine;
           return (
-            <article key={r.id} className="card p-4 space-y-2">
-              <div className="muted text-xs">
-                {r.is_private ? "Private · " : ""}
-                {r.author_id === me.userId ? "You" : "Partner"}
-                {r.unlock_at ? <> · unlocks <LocalTime iso={r.unlock_at} mode="absolute" /></> : ""}
+            <div key={r.id} className="contents">
+              <article className={`bubble w-[85%] space-y-2 ${mine ? "bubble-me" : "bubble-them"}`}>
+                {locked ? (
+                  <p className="inline-flex items-center gap-1.5"><Lock size={16} aria-hidden /> Sealed until the unlock date.</p>
+                ) : r.signed ? (
+                  <audio controls src={r.signed} className="w-full" />
+                ) : null}
+                {!locked && r.transcript && <p className="whitespace-pre-wrap">{r.transcript}</p>}
+              </article>
+              <div className={`stamp flex items-center gap-1.5 flex-wrap mb-2 ${mine ? "self-end justify-end" : ""}`}>
+                <span>
+                  {r.is_private ? "Private · " : ""}
+                  {mine ? "You" : "Partner"}
+                  {r.unlock_at ? <> · unlocks <LocalTime iso={r.unlock_at} mode="absolute" /></> : ""}
+                </span>
+                {mine && (
+                  <form action={remove} className="inline-flex">
+                    <input type="hidden" name="id" value={r.id} />
+                    <DeleteButton className="underline underline-offset-2 hover:text-ink min-h-[32px] px-1" confirmText="Delete this voice letter? It can't be undone." />
+                  </form>
+                )}
               </div>
-              {locked ? (
-                <p className="text-sm muted inline-flex items-center gap-1.5"><Lock size={16} className="text-accent" aria-hidden /> Sealed until the unlock date.</p>
-              ) : r.signed ? (
-                <audio controls src={r.signed} className="w-full" />
-              ) : null}
-              {!locked && r.transcript && <p className="text-sm whitespace-pre-wrap">{r.transcript}</p>}
-              {r.author_id === me.userId && (
-                <form action={remove}>
-                  <input type="hidden" name="id" value={r.id} />
-                  <DeleteButton confirmText="Delete this voice letter? It can't be undone." />
-                </form>
-              )}
-            </article>
+            </div>
           );
         })}
-        {items.length === 0 && <p className="muted">No letters yet.</p>}
+        {items.length === 0 && (
+          <div className="card p-5 text-center space-y-1">
+            <div className="mark-box"><Mic size={20} aria-hidden /></div>
+            <p className="font-bold pt-2">No letters yet.</p>
+            <p className="muted">Record one above. They can open it whenever you choose.</p>
+          </div>
+        )}
       </section>
     </div>
   );

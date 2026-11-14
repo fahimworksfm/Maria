@@ -31,15 +31,17 @@ export default async function InvitePage() {
   return (
     <AuthShell title="Send this to your partner" subtitle="One link. They sign up and you're paired.">
       <div className="text-center space-y-4">
-        <div className="bg-panel2 border border-line rounded-xl2 p-4 break-all text-sm font-mono">
-          {inviteUrl}
+        {/* The link as the message you're about to send. */}
+        <div className="thread">
+          <div className="bubble bubble-me break-all text-left">{inviteUrl}</div>
+          <span className="stamp self-end">Your invite link</span>
         </div>
 
         <CopyButton url={inviteUrl} name={me.displayName} />
 
-        <details className="text-xs muted">
-          <summary className="cursor-pointer">Or share the 6-character code instead</summary>
-          <div className="text-3xl font-display tracking-widest mt-3 text-ink">{couple.invite_code}</div>
+        <details className="text-[13px] text-muted">
+          <summary className="cursor-pointer inline-flex items-center min-h-[44px]">Or share the 6-character code instead</summary>
+          <div className="text-3xl font-bold tracking-[0.3em] mt-2 text-ink">{couple.invite_code}</div>
           <p className="mt-2">They can enter it manually on the join page.</p>
         </details>
 
