@@ -52,6 +52,25 @@ body {
   font-family: "Figtree Variable", Figtree, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }
 
+/* The Gift Vault is the one place that goes dark on purpose, whatever the
+   mode: a private room inside the app. Redeclaring the surface tokens on the
+   wrapper is enough — everything inside reads them. */
+.private-room {
+  color-scheme: dark;
+  --c-surface: 17 19 24;
+  --c-panel: 27 30 37;
+  --c-panel-2: 38 42 51;
+  --c-line: 46 50 60;
+  --c-ink: 244 245 248;
+  --c-muted: 160 166 180;
+  --c-accent-ink: color-mix(in srgb, rgb(var(--accent)) 78%, rgb(244 245 248));
+  background: rgb(var(--c-surface));
+  color: rgb(var(--c-ink));
+  border-radius: 20px;
+  padding: 16px;
+  margin-inline: -8px;
+}
+
 /* Headings */
 .font-display, .h1, .h2 {
   letter-spacing: -0.01em;

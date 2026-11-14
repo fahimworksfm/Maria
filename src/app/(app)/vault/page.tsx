@@ -8,6 +8,7 @@ import { hashPin, verifyPin } from "@/lib/crypto";
 import { aiEnabled, chatJson } from "@/lib/groq";
 import { isVaultUnlocked, lockVault, unlockVault } from "@/lib/vault";
 import SubmitButton from "@/components/SubmitButton";
+import { Lock } from "lucide-react";
 
 export default async function VaultPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
   const me = await requireCoupled();
@@ -58,25 +59,43 @@ function SetupPinView({ error }: { error?: string }) {
   }
 
   return (
-    <div className="space-y-4">
-      <header>
-        <h1 className="h1">Gift Vault</h1>
-        <p className="muted">Set a PIN. Only you ever see what&apos;s inside.</p>
-      </header>
-      <form action={setupPin} className="card p-5 space-y-3">
+    <div className="private-room space-y-4">
+      <VaultHeader sub="A thread with only you in it" />
+      <div className="thread">
+        <p className="bubble bubble-them">This side of Tether goes dark on purpose. Your partner never sees anything in here.</p>
+        <p className="bubble bubble-them">Choose a PIN to set it up. You&apos;ll need it each time you come back.</p>
+      </div>
+      <form action={setupPin} className="card p-3.5 space-y-3">
         <div>
-          <label className="label">Choose a PIN (4–12 chars)</label>
-          <input className="input" type="password" inputMode="numeric" name="pin" autoComplete="new-password" required minLength={4} maxLength={12} />
+          <label className="label" htmlFor="vault-pin">Choose a PIN (4–12 characters)</label>
+          <input id="vault-pin" className="input tracking-[0.2em]" type="password" inputMode="numeric" name="pin" autoComplete="new-password" required minLength={4} maxLength={12} />
         </div>
         <div>
-          <label className="label">Confirm PIN</label>
-          <input className="input" type="password" inputMode="numeric" name="confirm" autoComplete="new-password" required minLength={4} maxLength={12} />
+          <label className="label" htmlFor="vault-confirm">Confirm PIN</label>
+          <input id="vault-confirm" className="input tracking-[0.2em]" type="password" inputMode="numeric" name="confirm" autoComplete="new-password" required minLength={4} maxLength={12} />
         </div>
-        {error && <p className="text-accent text-sm">{error}</p>}
+        {error && <p className="text-accentInk text-sm font-semibold" role="alert">{error}</p>}
         <SubmitButton className="btn btn-primary w-full">Create vault</SubmitButton>
       </form>
       <p className="muted text-xs">Tether scopes vault rows to your user ID at the database level — your partner cannot read them even with the app open on their phone.</p>
     </div>
+  );
+}
+
+function VaultHeader({ sub, children }: { sub: string; children?: React.ReactNode }) {
+  return (
+    <header className="flex items-center justify-between gap-3">
+      <div className="flex items-center gap-3 min-w-0">
+        <span className="grid place-items-center w-10 h-10 shrink-0 rounded-full" style={{ background: "rgb(var(--c-prim-bg))", color: "rgb(var(--c-prim-fg))" }} aria-hidden>
+          <Lock size={18} />
+        </span>
+        <div className="min-w-0">
+          <h1 className="font-bold leading-tight">Gift Vault</h1>
+          <p className="text-muted text-[13px] leading-tight">{sub}</p>
+        </div>
+      </div>
+      {children}
+    </header>
   );
 }
 
@@ -103,15 +122,19 @@ function UnlockView({ error }: { error?: string }) {
   }
 
   return (
-    <div className="space-y-4">
-      <header>
-        <h1 className="h1">Gift Vault</h1>
-        <p className="muted">Enter your PIN to unlock.</p>
-      </header>
-      <form action={unlock} className="card p-5 space-y-3">
-        <input className="input" type="password" inputMode="numeric" name="pin" autoComplete="current-password" required autoFocus />
-        {error && <p className="text-accent text-sm">{error}</p>}
-        <button className="btn btn-primary w-full" type="submit">Unlock</button>
+    <div className="private-room space-y-4">
+      <VaultHeader sub="A thread with only you in it" />
+      <div className="thread">
+        <p className="bubble bubble-them">This side of Tether goes dark on purpose. Your partner never sees anything in here.</p>
+        <p className="bubble bubble-them">Enter your PIN to unlock your gift ideas and their wishlist.</p>
+      </div>
+      <form action={unlock} className="card p-3.5 space-y-2.5">
+        <label className="label" htmlFor="vault-unlock">Your PIN</label>
+        <div className="flex gap-2">
+          <input id="vault-unlock" className="input tracking-[0.2em] min-w-0" type="password" inputMode="numeric" name="pin" autoComplete="current-password" required autoFocus />
+          <button className="btn btn-primary shrink-0" type="submit">Unlock</button>
+        </div>
+        {error && <p className="text-accentInk text-sm font-semibold" role="alert">{error}</p>}
       </form>
     </div>
   );
@@ -224,21 +247,17 @@ async function VaultInner() {
   const fmtMoney = (c: number | null) => (c == null ? "" : `$${(c / 100).toFixed(2)}`);
 
   return (
-    <div className="space-y-6">
-      <header className="flex items-start justify-between gap-3">
-        <div>
-          <h1 className="h1">Gift Vault</h1>
-          <p className="muted">Private to you. Unlocks for 30 min.</p>
-        </div>
-        <form action={lock}><button className="btn btn-ghost text-xs" type="submit">Lock now</button></form>
-      </header>
+    <div className="private-room space-y-5">
+      <VaultHeader sub="Private to you. Unlocks for 30 min.">
+        <form action={lock}><button className="btn btn-ghost text-sm shrink-0" type="submit">Lock now</button></form>
+      </VaultHeader>
 
-      <section className="card p-4 space-y-2">
-        <h3 className="label">Partner&apos;s wishlist (read-only)</h3>
-        <p className="text-sm whitespace-pre-wrap">
-          {readWishlist(partnerProfile?.prefs) || <span className="muted">They haven&apos;t added one yet.</span>}
+      {/* Their side of this private thread: the wishlist they chose to share. */}
+      <section className="thread">
+        <p className="bubble bubble-them">
+          {readWishlist(partnerProfile?.prefs) || "They haven't added a wishlist yet."}
         </p>
-        <p className="muted text-xs">Sizes & favourites: {readSizes(partnerProfile?.prefs) || "—"}</p>
+        <span className="stamp">Their wishlist · read-only · Sizes &amp; favourites: {readSizes(partnerProfile?.prefs) || "—"}</span>
       </section>
 
       <section className="card p-4 space-y-3">
@@ -252,34 +271,14 @@ async function VaultInner() {
         </form>
       </section>
 
-      <section className="card p-4 space-y-3">
-        <h3 className="label">Add a gift idea</h3>
-        <form action={add} className="space-y-2">
-          <input className="input" name="title" placeholder="What is it?" required />
-          <textarea className="input" name="description" placeholder="Notes" rows={2} />
-          <div className="grid grid-cols-3 gap-2">
-            <input className="input" name="occasion" placeholder="Occasion" />
-            <input className="input" name="budget" type="number" step="0.01" placeholder="Budget $" />
-            <input className="input" name="due_on" type="date" />
-          </div>
-          <select className="input" name="status" defaultValue="idea">
-            <option value="idea">Idea</option>
-            <option value="planned">Planned</option>
-            <option value="bought">Bought</option>
-            <option value="given">Given</option>
-          </select>
-          <SubmitButton className="btn w-full">Save</SubmitButton>
-        </form>
-      </section>
-
-      <section className="space-y-2">
-        <h3 className="label">Your gifts</h3>
+      <section>
+        <h3 className="label">Your ideas</h3>
         {(gifts ?? []).map((g) => (
           <div key={g.id} className="row">
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0">
-                <div className="font-medium">{g.title}</div>
-                {g.description && <p className="muted text-xs">{g.description}</p>}
+                <div className="font-semibold">{g.title}</div>
+                {g.description && <p className="muted">{g.description}</p>}
                 <div className="flex gap-1 mt-1 flex-wrap">
                   {g.occasion && <span className="pill">{g.occasion}</span>}
                   {g.budget_cents != null && <span className="pill">{fmtMoney(g.budget_cents)}</span>}
@@ -307,6 +306,26 @@ async function VaultInner() {
           </div>
         ))}
         {gifts && gifts.length === 0 && <p className="muted">No ideas yet.</p>}
+      </section>
+
+      <section className="card p-4 space-y-3">
+        <h3 className="label">Add a gift idea</h3>
+        <form action={add} className="space-y-2">
+          <input className="input" name="title" placeholder="What is it?" required />
+          <textarea className="input" name="description" placeholder="Notes" rows={2} />
+          <div className="grid grid-cols-3 gap-2">
+            <input className="input" name="occasion" placeholder="Occasion" />
+            <input className="input" name="budget" type="number" step="0.01" placeholder="Budget $" />
+            <input className="input" name="due_on" type="date" />
+          </div>
+          <select className="input" name="status" defaultValue="idea">
+            <option value="idea">Idea</option>
+            <option value="planned">Planned</option>
+            <option value="bought">Bought</option>
+            <option value="given">Given</option>
+          </select>
+          <SubmitButton className="btn w-full">Save</SubmitButton>
+        </form>
       </section>
 
       <p className="muted text-xs">

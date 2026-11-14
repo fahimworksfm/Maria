@@ -4,7 +4,7 @@ import { supabaseServer } from "@/lib/supabase/server";
 import { BUCKET, signedUrl, userScopedPath } from "@/lib/media";
 import DeleteButton from "@/components/DeleteButton";
 import SubmitButton from "@/components/SubmitButton";
-import { MapPin, Quote } from "lucide-react";
+import { MapPin } from "lucide-react";
 import MemoryJarPanel from "./MemoryJarPanel";
 
 type Memory = {
@@ -123,82 +123,57 @@ export default async function MemoriesPage() {
         })}
       />
 
-      <section className="space-y-6">
+      {/* The jar as a thread: your memories on the right, theirs on the left,
+          newest first so the one you just dropped in is right under the form. */}
+      <section className="thread" aria-label="Memories">
         {items.length === 0 && (
           <div className="card p-8 text-center space-y-3">
             <span className="ink-art mx-auto w-36 aspect-[7/12]" style={{ ["--art" as string]: "url(/media/empty-jar.png)" }} aria-hidden />
-            <p className="font-display text-lg">Drop your first moment.</p>
-            <p className="muted text-sm">A photo, a voice note, a sentence — anything you&apos;d want to remember.</p>
+            <p className="font-bold text-lg">Drop your first moment.</p>
+            <p className="muted">A photo, a voice note, a sentence — anything you&apos;d want to remember.</p>
           </div>
         )}
         {items.map((m) => {
           const when = m.happened_on ?? m.created_at.slice(0, 10);
-          const author = m.author_id === me.userId ? "you" : partnerName;
-          const meta = (
-            <div className="flex justify-between items-center gap-3 text-xs">
-              <span className="muted inline-flex items-center gap-1.5">
-                {m.location_name && (
-                  <span className="inline-flex items-center gap-1">
-                    <MapPin size={14} className="text-accent" aria-hidden />
-                    {m.location_name}
-                  </span>
-                )}
-                {m.location_name && <span aria-hidden>·</span>}
-                <span>{when}</span>
-                <span aria-hidden>·</span>
-                <span>by {author}</span>
-              </span>
-              {m.author_id === me.userId && (
-                <form action={deleteMemory}>
-                  <input type="hidden" name="id" value={m.id} />
-                  <DeleteButton confirmText="Delete this memory? It can't be undone." />
-                </form>
-              )}
+          const mine = m.author_id === me.userId;
+          const hasMedia = Boolean(m.signed && (m.media_type === "image" || m.media_type === "audio" || m.media_type === "video"));
+          const text = (m.title || m.body) && (
+            <div className={hasMedia ? "px-2 pb-1.5 pt-0.5 space-y-0.5" : "space-y-0.5"}>
+              {m.title && <h3 className="font-bold leading-snug">{m.title}</h3>}
+              {m.body && <p className="whitespace-pre-wrap">{m.body}</p>}
             </div>
           );
-
-          // Photo-forward: image leads, text settles beneath it.
-          if (m.signed && m.media_type === "image") {
-            return (
-              <article key={m.id} id={`memory-${m.id}`} className="card overflow-hidden">
-                <img
-                  src={m.signed}
-                  alt={m.title || ""}
-                  className="rounded-xl2 w-full max-h-96 object-cover"
-                />
-                <div className="p-4 space-y-2">
-                  {m.title && <h3 className="display text-xl leading-tight">{m.title}</h3>}
-                  {m.body && <p className="text-sm whitespace-pre-wrap">{m.body}</p>}
-                  {meta}
-                </div>
-              </article>
-            );
-          }
-
-          // Audio / video keep their players, framed simply.
-          if (m.signed && (m.media_type === "audio" || m.media_type === "video")) {
-            return (
-              <article key={m.id} id={`memory-${m.id}`} className="card p-4 space-y-3">
-                {m.title && <h3 className="display text-xl leading-tight">{m.title}</h3>}
-                {m.media_type === "audio" ? (
-                  <audio controls src={m.signed} className="w-full" />
-                ) : (
-                  <video controls src={m.signed} className="w-full rounded-xl2" />
-                )}
-                {m.body && <p className="text-sm whitespace-pre-wrap">{m.body}</p>}
-                {meta}
-              </article>
-            );
-          }
-
-          // Text-only: a warm quote card.
           return (
-            <article key={m.id} id={`memory-${m.id}`} className="card p-6 space-y-3">
-              <Quote size={18} className="text-accent/70" aria-hidden />
-              {m.title && <h3 className="display text-xl leading-tight">{m.title}</h3>}
-              {m.body && <p className="whitespace-pre-wrap leading-relaxed">{m.body}</p>}
-              {meta}
-            </article>
+            <div key={m.id} className="contents">
+              <article
+                id={`memory-${m.id}`}
+                className={`bubble ${mine ? "bubble-me" : "bubble-them"} ${hasMedia ? "!p-1.5 w-[80%] space-y-1.5" : ""}`}
+              >
+                {m.signed && m.media_type === "image" && (
+                  <img src={m.signed} alt={m.title || ""} className="rounded-2xl w-full max-h-96 object-cover" />
+                )}
+                {m.signed && m.media_type === "audio" && <audio controls src={m.signed} className="w-full" />}
+                {m.signed && m.media_type === "video" && <video controls src={m.signed} className="w-full rounded-2xl" />}
+                {text}
+              </article>
+              <div className={`stamp flex items-center gap-1.5 flex-wrap mb-2 ${mine ? "self-end justify-end" : ""}`}>
+                <span>{mine ? "You" : partnerName}</span>
+                <span aria-hidden>·</span>
+                <span>{when}</span>
+                {m.location_name && (
+                  <>
+                    <span aria-hidden>·</span>
+                    <span className="inline-flex items-center gap-1"><MapPin size={12} aria-hidden />{m.location_name}</span>
+                  </>
+                )}
+                {mine && (
+                  <form action={deleteMemory} className="inline-flex">
+                    <input type="hidden" name="id" value={m.id} />
+                    <DeleteButton className="underline underline-offset-2 hover:text-ink min-h-[32px] px-1" confirmText="Delete this memory? It can't be undone." />
+                  </form>
+                )}
+              </div>
+            </div>
           );
         })}
       </section>
