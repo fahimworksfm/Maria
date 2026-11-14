@@ -1,5 +1,5 @@
-/* Pairing celebration. Route-scoped (only loaded by /welcome). Reuses the
-   existing gradient tokens: accent #f97373, accent2 #f9c873, violet #a87bff. */
+/* Pairing celebration. Route-scoped (only loaded by /welcome). Colours come
+   from the shared tokens. */
 
 .celebrate {
   position: fixed;
@@ -15,54 +15,30 @@
   background: rgb(var(--c-surface));
 }
 
-.celebrate svg {
-  width: 200px;
-  height: 200px;
+/* The two bubbles slide in from their own sides and settle together. */
+.celebrate-thread {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: min(280px, 80vw);
 }
-
-.cord {
-  stroke-dasharray: 1;
-  stroke-dashoffset: 1;
-  animation: cord-draw 1.25s 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-}
-@keyframes cord-draw {
-  to { stroke-dashoffset: 0; }
-}
-
-/* shine sweep that runs along the cord just after it's drawn */
-.shine {
-  stroke-dasharray: 0.12 0.88;
-  stroke-dashoffset: 1;
+.celebrate-thread .bubble {
+  font-weight: 700;
+  font-size: 1.125rem;
   opacity: 0;
-  animation: cord-shine 0.9s 1.5s ease-out forwards;
+  animation: bubble-in 0.6s cubic-bezier(0.25, 0.6, 0.3, 1) forwards;
 }
-@keyframes cord-shine {
-  0% { opacity: 0; stroke-dashoffset: 1; }
-  25% { opacity: 0.9; }
-  100% { opacity: 0; stroke-dashoffset: 0.12; }
-}
-
-.knot {
-  opacity: 0;
-  transform-box: fill-box;
-  transform-origin: center;
-  transform: scale(0.4);
-  animation: knot-pop 0.5s ease forwards;
-}
-.knot-a { animation-delay: 0.1s; }
-.knot-b { animation-delay: 1.35s; }
-@keyframes knot-pop {
-  to { opacity: 1; transform: scale(1); }
-}
-
-.cord-glow {
-  /* No drop-shadow on paper — ink does not glow. */
+.tether-left { --from: -28px; animation-delay: 0.2s; }
+.tether-right { --from: 28px; animation-delay: 0.85s; }
+@keyframes bubble-in {
+  from { opacity: 0; transform: translateX(var(--from, 0)) scale(0.96); }
+  to { opacity: 1; transform: none; }
 }
 
 .celebrate .names {
   opacity: 0;
   transform: translateY(10px);
-  animation: names-in 0.9s 1.75s ease forwards;
+  animation: names-in 0.7s 1.5s ease forwards;
 }
 @keyframes names-in {
   to { opacity: 1; transform: none; }
@@ -70,25 +46,21 @@
 
 .celebrate .kicker {
   opacity: 0;
-  animation: names-in 0.9s 2.05s ease forwards;
+  animation: names-in 0.7s 1.8s ease forwards;
 }
 
 /* JS-applied reduced state: jump straight to the final frame */
-.celebrate.reduced .cord { animation: none; stroke-dashoffset: 0; }
-.celebrate.reduced .knot { animation: none; opacity: 1; transform: scale(1); }
-.celebrate.reduced .shine { display: none; }
+.celebrate.reduced .celebrate-thread .bubble { animation: none; opacity: 1; transform: none; }
 .celebrate.reduced .names,
 .celebrate.reduced .kicker { animation: none; opacity: 1; transform: none; }
 
 /* Backstop for users who prefer reduced motion */
 @media (prefers-reduced-motion: reduce) {
-  .cord { animation: none; stroke-dashoffset: 0; }
-  .knot { animation: none; opacity: 1; transform: scale(1); }
-  .shine { display: none; }
+  .celebrate-thread .bubble { animation: none; opacity: 1; transform: none; }
   .names, .kicker { animation: none; opacity: 1; transform: none; }
 }
 
-/* Bloom behind the cord.
+/* Bloom behind the bubbles.
 
    `screen` blending is doing real work here: the clip is light on near-black,
    so its dark ground drops out and only the bloom itself lands on the gradient.
@@ -111,7 +83,7 @@
   mix-blend-mode: screen;
   /* Screen blending over a near-black ground lifts everything it touches, which
      at full frame washes the whole screen grey and takes the kicker's contrast
-     with it. Masking to an ellipse keeps the light where the cord is and leaves
+     with it. Masking to an ellipse keeps the light where the bubbles are and leaves
      the edges — where the type sits — properly dark. */
   -webkit-mask-image: radial-gradient(ellipse 60% 40% at 50% 44%, #000 0%, rgba(0, 0, 0, 0.5) 52%, transparent 76%);
   mask-image: radial-gradient(ellipse 60% 40% at 50% 44%, #000 0%, rgba(0, 0, 0, 0.5) 52%, transparent 76%);
@@ -131,8 +103,7 @@
   100% { opacity: 0; }
 }
 
-/* Keep the cord and the names above the bloom. */
-.celebrate > svg,
+/* Keep the bubbles and the names above the bloom. */
 .celebrate > div {
   position: relative;
   z-index: 1;
@@ -142,6 +113,6 @@
   .celebrate-bloom { display: none; }
 }
 
-/* The bloom is light on black, blended with screen — it only exists in Ink. */
+/* The bloom is light on black, blended with screen — it only exists in dark mode. */
 .celebrate-bloom { display: none; }
 :root[data-mode="dark"] .celebrate-bloom { display: block; }

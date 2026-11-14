@@ -5,6 +5,7 @@ import { useCollection } from "@/lib/useCollection";
 import UndoToast from "@/components/UndoToast";
 import SwipeRow from "@/components/SwipeRow";
 import type { TmdbResult, WatchKind } from "@/lib/tmdb";
+import { X } from "lucide-react";
 
 // Built here rather than imported so the server-only tmdb module (and its key
 // handling) never gets pulled into the client bundle.
@@ -161,18 +162,18 @@ export default function WatchlistBoard({
                 <li key={r.tmdbId}>
                   <button
                     type="button"
-                    className="w-full text-left flex items-center gap-3 p-2 rounded-xl2 hover:bg-ink/5 disabled:opacity-50"
+                    className="w-full text-left flex items-center gap-3 p-2 rounded-xl2 min-h-[44px] hover:bg-panel2 disabled:opacity-50"
                     onClick={() => pick(r)}
                     disabled={picking}
                   >
                     {r.posterPath ? (
-                      <img src={posterUrl(r.posterPath)} alt="" width={40} height={60} loading="lazy" className="w-10 h-[60px] object-cover rounded shrink-0" />
+                      <img src={posterUrl(r.posterPath)} alt="" width={40} height={60} loading="lazy" className="w-10 h-[60px] object-cover rounded-lg shrink-0" />
                     ) : (
-                      <span className="w-10 h-[60px] rounded bg-ink/10 shrink-0" aria-hidden />
+                      <span className="w-10 h-[60px] rounded-lg bg-ink/10 shrink-0" aria-hidden />
                     )}
                     <span className="min-w-0">
-                      <span className="block font-medium truncate">{r.title}</span>
-                      <span className="muted text-xs">{r.year ?? "Year unknown"}</span>
+                      <span className="block font-semibold truncate">{r.title}</span>
+                      <span className="text-muted text-[13px]">{r.year ?? "Year unknown"}</span>
                     </span>
                   </button>
                 </li>
@@ -180,9 +181,9 @@ export default function WatchlistBoard({
             </ul>
           )}
 
-          {searching && <p className="muted text-xs">Searching…</p>}
+          {searching && <p className="text-muted text-[13px]">Searching…</p>}
           {!searching && query.trim().length >= 2 && results.length === 0 && (
-            <p className="muted text-xs">No matches — add it by hand below.</p>
+            <p className="text-muted text-[13px]">No matches — add it by hand below.</p>
           )}
         </div>
       )}
@@ -191,6 +192,7 @@ export default function WatchlistBoard({
         <input
           className="input"
           placeholder="Title"
+          aria-label="Title"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           autoComplete="off"
@@ -205,12 +207,14 @@ export default function WatchlistBoard({
             className="input"
             type="number"
             placeholder="Mins"
+            aria-label="Runtime in minutes"
             value={runtime}
             onChange={(e) => setRuntime(e.target.value)}
           />
           <input
             className="input"
             placeholder="Tags (comma)"
+            aria-label="Mood tags, comma separated"
             value={tags}
             onChange={(e) => setTags(e.target.value)}
           />
@@ -220,12 +224,13 @@ export default function WatchlistBoard({
             className="input"
             rows={2}
             placeholder="Notes"
+            aria-label="Notes"
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
           />
         )}
         <div className="flex gap-2">
-          <button type="button" className="btn text-sm" onClick={() => setExpanded((v) => !v)}>
+          <button type="button" className="btn" onClick={() => setExpanded((v) => !v)}>
             {expanded ? "Less" : "Notes"}
           </button>
           <button type="submit" className="btn btn-primary flex-1" disabled={!title.trim()}>Add</button>
@@ -236,25 +241,25 @@ export default function WatchlistBoard({
         <h3 className="label">Unwatched ({unwatched.length})</h3>
         {unwatched.map((r) => (
           <SwipeRow key={r.id} onDelete={() => removeWithUndo(r.id)}>
-            <div className="collection-item row flex justify-between items-start gap-3">
+            <div className="collection-item card px-4 py-3 flex justify-between items-start gap-3">
               <div className="flex gap-4 min-w-0">
                 {r.poster_path && (
-                  <img src={posterUrl(r.poster_path)} alt="" width={48} height={72} loading="lazy" className="w-12 h-[72px] object-cover rounded shrink-0" />
+                  <img src={posterUrl(r.poster_path)} alt="" width={48} height={72} loading="lazy" className="w-12 h-[72px] object-cover rounded-lg shrink-0" />
                 )}
                 <div className="min-w-0">
-                <div className="font-medium leading-snug">{r.title}{r.year ? ` (${r.year})` : ""}</div>
+                <div className="font-semibold leading-snug">{r.title}{r.year ? ` (${r.year})` : ""}</div>
                 <div className="flex gap-1 mt-1.5 flex-wrap">
                   {r.kind && <span className="pill">{r.kind}</span>}
                   {r.runtime_min && <span className="pill">{r.runtime_min}m</span>}
                   {(r.mood_tags ?? []).map((t) => <span key={t} className="pill">{t}</span>)}
                 </div>
-                {r.notes && <p className="muted text-xs mt-1.5 leading-relaxed">{r.notes}</p>}
-                {!r.notes && r.overview && <p className="muted text-xs mt-1.5 leading-relaxed line-clamp-2">{r.overview}</p>}
+                {r.notes && <p className="text-muted text-[13px] mt-1.5 leading-relaxed">{r.notes}</p>}
+                {!r.notes && r.overview && <p className="text-muted text-[13px] mt-1.5 leading-relaxed line-clamp-2">{r.overview}</p>}
                 </div>
               </div>
               <div className="flex items-center gap-1 shrink-0">
                 <select
-                  className="input text-xs py-1"
+                  className="input !w-auto text-sm"
                   aria-label="Rating"
                   defaultValue=""
                   onChange={(e) =>
@@ -267,7 +272,7 @@ export default function WatchlistBoard({
                   <option value="">Watched…</option>
                   {[1, 2, 3, 4, 5].map((n) => <option key={n} value={n}>{"★".repeat(n)}</option>)}
                 </select>
-                <button className="btn btn-ghost text-xs" onClick={() => removeWithUndo(r.id)} aria-label="Delete">×</button>
+                <button type="button" className="grid place-items-center w-11 h-11 shrink-0 rounded-full text-muted hover:bg-panel2 hover:text-ink transition" onClick={() => removeWithUndo(r.id)} aria-label="Delete"><X size={16} aria-hidden /></button>
               </div>
             </div>
           </SwipeRow>
@@ -275,8 +280,8 @@ export default function WatchlistBoard({
         {unwatched.length === 0 && (
           <div className="card p-8 text-center space-y-3">
             <span className="ink-art mx-auto w-32 aspect-[7/12]" style={{ ["--art" as string]: "url(/media/empty-chair.png)" }} aria-hidden />
-            <p className="font-display text-lg">Nothing queued yet.</p>
-            <p className="muted text-sm">Search for something above, or add it by hand. Saturday will come around either way.</p>
+            <p className="font-bold text-lg">Nothing queued yet.</p>
+            <p className="muted">Search for something above, or add it by hand. Saturday will come around either way.</p>
           </div>
         )}
       </section>
@@ -284,17 +289,17 @@ export default function WatchlistBoard({
       <section className="space-y-2">
         <h3 className="label">Watched ({watched.length})</h3>
         {watched.map((r) => (
-          <div key={r.id} className="collection-item row flex justify-between items-start gap-3 opacity-80">
+          <div key={r.id} className="collection-item card px-4 py-3 flex justify-between items-start gap-3 opacity-80">
             <div className="flex gap-4 min-w-0">
               {r.poster_path && (
-                <img src={posterUrl(r.poster_path)} alt="" width={32} height={48} loading="lazy" className="w-8 h-12 object-cover rounded shrink-0" />
+                <img src={posterUrl(r.poster_path)} alt="" width={32} height={48} loading="lazy" className="w-8 h-12 object-cover rounded-lg shrink-0" />
               )}
               <div className="min-w-0">
-              <div className="font-medium">{r.title} {r.rating ? `· ${"★".repeat(r.rating)}` : ""}</div>
-              {r.notes && <p className="muted text-xs mt-1 leading-relaxed">{r.notes}</p>}
+              <div className="font-semibold">{r.title} {r.rating ? `· ${"★".repeat(r.rating)}` : ""}</div>
+              {r.notes && <p className="text-muted text-[13px] mt-1 leading-relaxed">{r.notes}</p>}
               </div>
             </div>
-            <button className="btn btn-ghost text-xs shrink-0" onClick={() => removeWithUndo(r.id)} aria-label="Delete">×</button>
+            <button type="button" className="grid place-items-center w-11 h-11 shrink-0 rounded-full text-muted hover:bg-panel2 hover:text-ink transition" onClick={() => removeWithUndo(r.id)} aria-label="Delete"><X size={16} aria-hidden /></button>
           </div>
         ))}
       </section>

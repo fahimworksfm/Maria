@@ -5,6 +5,7 @@ import { supabaseAdmin } from "@/lib/supabase/admin";
 import { addToPlaylist, spotifyConfigured, tokenForCouple } from "@/lib/spotify";
 import SongSearch from "./SongSearch";
 import SubmitButton from "@/components/SubmitButton";
+import { Music, X } from "lucide-react";
 
 export default async function SongsPage({ searchParams }: { searchParams: Promise<{ connected?: string; error?: string }> }) {
   const me = await requireCoupled();
@@ -80,24 +81,24 @@ export default async function SongsPage({ searchParams }: { searchParams: Promis
       </header>
 
       {sp.connected === "1" && <p className="card p-3 text-sm">Spotify connected. A private Tether playlist was created on your account.</p>}
-      {sp.error && <p className="card p-3 text-sm text-accent">{sp.error}</p>}
+      {sp.error && <p className="card p-3 text-sm font-semibold text-accentInk" role="alert">{sp.error}</p>}
 
       {!spotifyConfigured() ? (
-        <div className="card p-4 text-sm muted">
+        <div className="card p-4 muted">
           To enable Spotify search and a shared playlist, set <code>SPOTIFY_CLIENT_ID</code> and <code>SPOTIFY_CLIENT_SECRET</code> in your env.
         </div>
       ) : connected ? (
         <div className="card p-4 space-y-3">
           <div className="flex items-baseline justify-between gap-3">
             <div>
-              <div className="font-medium">Connected to Spotify</div>
-              <div className="muted text-xs">via {coupleRow?.spotify_user_name ?? "your partner"}{coupleRow?.spotify_connected_by === me.userId ? " (you)" : ""}</div>
+              <div className="font-semibold">Connected to Spotify</div>
+              <div className="text-muted text-[13px]">via {coupleRow?.spotify_user_name ?? "your partner"}{coupleRow?.spotify_connected_by === me.userId ? " (you)" : ""}</div>
             </div>
             <form action="/api/spotify/disconnect" method="post">
-              <button className="btn btn-ghost text-xs" type="submit">Disconnect</button>
+              <button className="btn btn-ghost text-sm" type="submit">Disconnect</button>
             </form>
           </div>
-          <a className="btn btn-ghost text-xs" href={`https://open.spotify.com/playlist/${coupleRow?.spotify_playlist_id}`} target="_blank" rel="noreferrer">
+          <a className="btn btn-ghost text-sm" href={`https://open.spotify.com/playlist/${coupleRow?.spotify_playlist_id}`} target="_blank" rel="noreferrer">
             Open playlist in Spotify
           </a>
           <SongSearch addAction={addFromSpotify} />
@@ -111,27 +112,39 @@ export default async function SongsPage({ searchParams }: { searchParams: Promis
 
       <form action={addManual} className="card p-4 space-y-2">
         <h3 className="label">Add manually</h3>
-        <input className="input" name="title" placeholder="Song title" required />
-        <input className="input" name="artist" placeholder="Artist" />
-        <input className="input" name="spotify_url" placeholder="Spotify URL (optional)" />
-        <textarea className="input" name="why" rows={2} placeholder="Why this song made it in" />
+        <input className="input" name="title" placeholder="Song title" aria-label="Song title" required />
+        <input className="input" name="artist" placeholder="Artist" aria-label="Artist" />
+        <input className="input" name="spotify_url" placeholder="Spotify URL (optional)" aria-label="Spotify URL" />
+        <textarea className="input" name="why" rows={2} placeholder="Why this song made it in" aria-label="Why this song made it in" />
         <SubmitButton className="btn w-full">Save</SubmitButton>
       </form>
 
       <section className="space-y-2">
         {(rows ?? []).map((s) => (
-          <div key={s.id} className="row">
-            <div className="flex justify-between items-baseline gap-2">
-              <div className="font-medium">{s.title}{s.artist ? ` · ${s.artist}` : ""}</div>
-              <div className="flex gap-2 items-baseline">
-                {s.spotify_url && <a className="muted text-xs underline" href={s.spotify_url} target="_blank" rel="noreferrer">Play</a>}
-                <form action={deleteSong}><input type="hidden" name="id" value={s.id} /><button className="btn btn-ghost text-xs" type="submit">×</button></form>
+          <div key={s.id} className="card px-4 py-3 space-y-1">
+            <div className="flex justify-between items-center gap-3">
+              <div className="flex items-center gap-3 min-w-0">
+                <span className="grid place-items-center w-10 h-10 shrink-0 rounded-full bg-panel2 text-accentInk" aria-hidden><Music size={17} /></span>
+                <div className="min-w-0">
+                  <div className="font-semibold truncate">{s.title}</div>
+                  {s.artist && <div className="text-muted text-[13px] truncate">{s.artist}</div>}
+                </div>
+              </div>
+              <div className="flex gap-1 items-center shrink-0">
+                {s.spotify_url && <a className="btn btn-ghost text-sm text-accentInk" href={s.spotify_url} target="_blank" rel="noreferrer">Play</a>}
+                <form action={deleteSong}><input type="hidden" name="id" value={s.id} /><button className="grid place-items-center w-11 h-11 shrink-0 rounded-full text-muted hover:bg-panel2 hover:text-ink transition" type="submit" aria-label="Delete"><X size={16} aria-hidden /></button></form>
               </div>
             </div>
-            {s.why && <p className="text-sm muted">{s.why}</p>}
+            {s.why && <p className="text-[15px] leading-snug pl-[52px]">{s.why}</p>}
           </div>
         ))}
-        {rows && rows.length === 0 && <p className="muted">No songs yet.</p>}
+        {rows && rows.length === 0 && (
+          <div className="card p-5 text-center space-y-1">
+            <div className="mark-box"><Music size={20} aria-hidden /></div>
+            <p className="font-bold text-lg pt-2">No songs yet.</p>
+            <p className="muted">Add the first one, and say why it made it in.</p>
+          </div>
+        )}
       </section>
     </div>
   );

@@ -86,43 +86,50 @@ export default async function ProfilePage() {
       <section className="card p-4 space-y-3">
         <div>
           <h3 className="label">Your theme</h3>
-          <p className="muted text-xs">Sets the accent for both of you. Pick what feels like the two of you.</p>
+          <p className="text-muted text-[13px]">Sets the colour of your bubbles and buttons for both of you.</p>
         </div>
         <ThemePicker current={currentTheme} action={setTheme} />
-        <div className="border-t border-line pt-3">
+      </section>
+
+      <section className="card px-4">
+        <div className="row flex items-center justify-between gap-3 !py-3">
+          <span className="text-[15px] font-semibold">Appearance</span>
+          <ModeToggle />
+        </div>
+        <div className="row !py-3">
           <SoundToggle />
         </div>
       </section>
 
       <form action={save} className="card p-4 space-y-3">
         <div>
-          <label className="label">Display name</label>
-          <input className="input" name="display_name" defaultValue={own?.display_name ?? ""} />
+          <label className="label" htmlFor="pref-display_name">Display name</label>
+          <input className="input" id="pref-display_name" name="display_name" defaultValue={own?.display_name ?? ""} />
         </div>
         <div>
-          <label className="label">Birthday</label>
-          <input className="input" name="birthday" type="date" defaultValue={own?.birthday ?? ""} />
+          <label className="label" htmlFor="pref-birthday">Birthday</label>
+          <input className="input" id="pref-birthday" name="birthday" type="date" defaultValue={own?.birthday ?? ""} />
         </div>
         <div>
-          <label className="label">Wishlist (free-form)</label>
-          <textarea className="input" name="wishlist" rows={4} defaultValue={myPrefs.wishlist ?? ""} placeholder="Books, things you'd love, experiences..." />
+          <label className="label" htmlFor="pref-wishlist">Wishlist (free-form)</label>
+          <textarea className="input" id="pref-wishlist" name="wishlist" rows={4} defaultValue={myPrefs.wishlist ?? ""} placeholder="Books, things you'd love, experiences..." />
         </div>
         <div>
-          <label className="label">Sizes</label>
-          <textarea className="input" name="sizes" rows={2} defaultValue={myPrefs.sizes ?? ""} placeholder="Shirt M, shoe US 9, ring 6..." />
+          <label className="label" htmlFor="pref-sizes">Sizes</label>
+          <textarea className="input" id="pref-sizes" name="sizes" rows={2} defaultValue={myPrefs.sizes ?? ""} placeholder="Shirt M, shoe US 9, ring 6..." />
         </div>
         <div>
-          <label className="label">Favourites</label>
-          <textarea className="input" name="favorites" rows={2} defaultValue={myPrefs.favorites ?? ""} placeholder="Coffee order, snack, scent, colour..." />
+          <label className="label" htmlFor="pref-favorites">Favourites</label>
+          <textarea className="input" id="pref-favorites" name="favorites" rows={2} defaultValue={myPrefs.favorites ?? ""} placeholder="Coffee order, snack, scent, colour..." />
         </div>
         <div>
-          <label className="label">Allergies / dislikes</label>
-          <textarea className="input" name="allergies" rows={2} defaultValue={myPrefs.allergies ?? ""} />
+          <label className="label" htmlFor="pref-allergies">Allergies / dislikes</label>
+          <textarea className="input" id="pref-allergies" name="allergies" rows={2} defaultValue={myPrefs.allergies ?? ""} />
         </div>
         <SubmitButton className="btn btn-primary w-full">Save</SubmitButton>
       </form>
 
-      <section className="card p-4 space-y-2">
+      <section className="thread">
         <h3 className="label">Partner&apos;s preferences (read-only)</h3>
         <Field title="Wishlist" value={theirPrefs.wishlist} />
         <Field title="Sizes" value={theirPrefs.sizes} />
@@ -131,13 +138,8 @@ export default async function ProfilePage() {
         {!partner && <p className="muted">Your partner hasn&apos;t signed up yet.</p>}
       </section>
 
-      <section className="card p-4 space-y-2">
-        <h3 className="label">Appearance</h3>
-        <ModeToggle />
-      </section>
-
-      <form action="/auth/signout" method="post" className="pt-2">
-        <button className="btn w-full" type="submit">Sign out</button>
+      <form action="/auth/signout" method="post" className="pt-2 text-center">
+        <button className="btn btn-ghost text-muted" type="submit">Sign out</button>
       </form>
     </div>
   );
@@ -146,9 +148,9 @@ export default async function ProfilePage() {
 function Field({ title, value }: { title: string; value?: string }) {
   if (!value) return null;
   return (
-    <div>
-      <div className="muted text-xs">{title}</div>
-      <p className="text-sm whitespace-pre-wrap">{value}</p>
-    </div>
+    <>
+      <p className="bubble bubble-them">{value}</p>
+      <span className="stamp mb-1">{title}</span>
+    </>
   );
 }

@@ -71,21 +71,23 @@ export default async function PairPage({ searchParams }: { searchParams: Promise
       <div className="space-y-5">
         <form action={createCouple} className="space-y-3">
           <h2 className="h2">Start a new one</h2>
-          <p className="muted text-sm">You&apos;ll get a link to send your partner.</p>
-          <input className="input" name="name" placeholder="A name for your space (optional)" />
-          <button className="btn btn-primary w-full cta-glow" type="submit">Create</button>
+          <p className="muted">You&apos;ll get a link to send your partner.</p>
+          <label className="sr-only" htmlFor="pair-name">A name for your space (optional)</label>
+          <input id="pair-name" className="input" name="name" placeholder="A name for your space (optional)" />
+          <button className="btn btn-primary w-full" type="submit">Create</button>
         </form>
 
         <div className="border-t border-line pt-5">
           <form action={joinCouple} className="space-y-3">
             <h2 className="h2">Join an existing one</h2>
-            <p className="muted text-sm">If your partner already created one, paste their code.</p>
-            <input className="input uppercase tracking-widest text-center" name="code" placeholder="ABC123" maxLength={6} required />
+            <p className="muted">If your partner already created one, paste their code.</p>
+            <label className="sr-only" htmlFor="pair-code">Invite code</label>
+            <input id="pair-code" className="input uppercase tracking-[0.3em] text-center font-bold text-lg" name="code" placeholder="ABC123" maxLength={6} required />
             <button className="btn w-full" type="submit">Join</button>
           </form>
         </div>
 
-        {sp.error && <p className="text-accent text-sm text-center">{sp.error}</p>}
+        {sp.error && <p className="text-accentInk text-sm font-semibold text-center" role="alert">{sp.error}</p>}
       </div>
     </AuthShell>
   );

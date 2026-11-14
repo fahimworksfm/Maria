@@ -102,27 +102,33 @@ export default async function QuizPage() {
   return (
     <div className="space-y-6">
       <header>
-        <h1 className="h1">How Well Do You Know Me?</h1>
+        <h1 className="h1">Know Me</h1>
         <p className="muted">Both answer. The person it&apos;s about answers truthfully. The other one guesses.</p>
       </header>
 
-      <section className="card p-4 space-y-3">
+      <section className="card p-3.5 space-y-3">
+        <form action={addQuestion} className="space-y-2.5">
+          <div>
+            <label className="label" htmlFor="quiz-question">Ask a question</label>
+            <input id="quiz-question" className="input" name="question" placeholder="e.g. What's my comfort meal?" required />
+          </div>
+          <div>
+            <label className="label" htmlFor="quiz-about">Who is it about?</label>
+            <select id="quiz-about" className="input" name="about" defaultValue="me">
+              <option value="me">About me</option>
+              <option value="partner">About my partner</option>
+            </select>
+          </div>
+          <SubmitButton className="btn btn-primary w-full">Add question</SubmitButton>
+        </form>
         <form action={generateQuestions}>
-          <SubmitButton className="btn btn-primary w-full" disabled={!aiEnabled()} pendingLabel="Generating…">
+          <SubmitButton className="btn w-full" disabled={!aiEnabled()} pendingLabel="Generating…">
             {aiEnabled() ? "Generate 6 questions with AI" : "Set GROQ_API_KEY to enable"}
           </SubmitButton>
         </form>
-        <form action={addQuestion} className="space-y-2">
-          <input className="input" name="question" placeholder="Ask a question..." required />
-          <select className="input" name="about" defaultValue="me">
-            <option value="me">About me</option>
-            <option value="partner">About my partner</option>
-          </select>
-          <SubmitButton className="btn w-full">Add question</SubmitButton>
-        </form>
       </section>
 
-      <section className="space-y-3">
+      <section className="space-y-6">
         {(questions ?? []).map((q) => {
           const list = byQ.get(q.id) ?? [];
           const truthAuthor = list.find((a) => a.answerer_id === q.about_user);
@@ -132,28 +138,41 @@ export default async function QuizPage() {
           const aboutMe = q.about_user === me.userId;
 
           return (
-            <article key={q.id} className="card p-4 space-y-2">
-              <div className="muted text-xs">{aboutMe ? "About you" : "About your partner"}</div>
-              <h3 className="font-medium">{q.question}</h3>
-              {myAnswer ? (
-                <p className="text-sm muted">You answered.</p>
-              ) : (
-                <form action={answer} className="space-y-2">
+            <article key={q.id} className="thread">
+              {/* The question is the app speaking; the two answers are yours and theirs. */}
+              <div className="card px-4 py-3 space-y-1">
+                <p className="label !mb-0">{aboutMe ? "About you" : "About your partner"}</p>
+                <h3 className="font-semibold text-[15px] leading-snug">{q.question}</h3>
+              </div>
+              {bothAnswered ? (
+                <>
+                  {[truthAuthor!, guessAuthor!].map((a) => {
+                    const mine = a.answerer_id === me.userId;
+                    const isTruth = a === truthAuthor;
+                    return (
+                      <div key={a.answerer_id} className="contents">
+                        <div className={`bubble ${mine ? "bubble-me" : "bubble-them"}`}>{a.answer}</div>
+                        <span className={`stamp ${mine ? "self-end" : ""}`}>
+                          {mine ? "You" : "Partner"} · {isTruth ? "the truth" : "the guess"}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </>
+              ) : myAnswer ? (
+                <span className="stamp self-end">You answered · waiting on your partner</span>
+              ) : null}
+              {!myAnswer && (
+                <form action={answer} className="flex gap-2 pt-1">
                   <input type="hidden" name="question_id" value={q.id} />
-                  <input className="input" name="answer" placeholder={aboutMe ? "The truth" : "Your guess"} required />
-                  <SubmitButton className="btn w-full">Submit</SubmitButton>
+                  <input className="input min-w-0" name="answer" aria-label={aboutMe ? "The truth" : "Your guess"} placeholder={aboutMe ? "The truth" : "Your guess"} required />
+                  <SubmitButton className="btn btn-primary shrink-0">Send</SubmitButton>
                 </form>
-              )}
-              {bothAnswered && (
-                <div className="pt-2 border-t border-line space-y-1 text-sm">
-                  <div><span className="muted">Truth: </span>{truthAuthor!.answer}</div>
-                  <div><span className="muted">Guess: </span>{guessAuthor!.answer}</div>
-                </div>
               )}
             </article>
           );
         })}
-        {questions && questions.length === 0 && <p className="muted">No questions yet. Generate some with AI above.</p>}
+        {questions && questions.length === 0 && <p className="muted text-center">No questions yet. Add one above or generate some with AI.</p>}
       </section>
     </div>
   );

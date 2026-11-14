@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { Mic } from "lucide-react";
 import { tap, HAPTIC } from "@/lib/haptic";
 
 type State = "idle" | "recording" | "ready";
@@ -91,35 +92,35 @@ export default function VoiceRecorder({ name = "audio" }: { name?: string }) {
     <div className="space-y-3">
       {state === "idle" && (
         <>
-          <button type="button" onClick={start} className="btn btn-primary w-full text-base py-3">
-            🎙️ Record voice letter
+          <button type="button" onClick={start} className="btn btn-primary w-full gap-2 !min-h-[52px]">
+            <Mic size={18} aria-hidden /> Record voice letter
           </button>
-          <details className="text-xs muted">
-            <summary className="cursor-pointer">Or upload an audio file</summary>
-            <input className="input mt-2" name={name} type="file" accept="audio/*" />
+          <details className="text-sm text-muted">
+            <summary className="cursor-pointer min-h-[44px] flex items-center">Or upload an audio file</summary>
+            <input className="input mt-1" name={name} type="file" accept="audio/*" aria-label="Audio file" />
           </details>
         </>
       )}
       {state === "recording" && (
-        <div className="card p-3 flex items-center justify-between gap-3 border-accent/40 bg-accent/5">
+        <div className="rounded-xl2 bg-panel2 p-3 flex items-center justify-between gap-3" role="status">
           <div className="flex items-center gap-2">
-            <span className="inline-block w-3 h-3 rounded-full bg-accent animate-pulse" />
-            <span className="font-mono text-sm">Recording · {formatSeconds(seconds)}</span>
+            <span className="inline-block w-3 h-3 rounded-full animate-pulse" style={{ background: "rgb(var(--c-prim-bg))" }} aria-hidden />
+            <span className="text-[15px] font-semibold tabular-nums">Recording · {formatSeconds(seconds)}</span>
           </div>
-          <button type="button" onClick={stop} className="btn btn-primary text-sm">Stop</button>
+          <button type="button" onClick={stop} className="btn btn-primary">Stop</button>
         </div>
       )}
       {state === "ready" && url && (
-        <div className="card p-3 space-y-2">
+        <div className="rounded-xl2 bg-panel2 p-3 space-y-2">
           <audio src={url} controls className="w-full" />
           <div className="flex justify-between items-center">
             <span className="muted text-xs">{formatSeconds(seconds)} · ready to send</span>
-            <button type="button" onClick={discard} className="btn btn-ghost text-xs">Re-record</button>
+            <button type="button" onClick={discard} className="btn btn-ghost text-sm">Re-record</button>
           </div>
           <input ref={hiddenRef} name={name} type="file" accept="audio/*" hidden />
         </div>
       )}
-      {error && <p className="text-accent text-xs">{error}</p>}
+      {error && <p className="text-accentInk text-sm font-semibold" role="alert">{error}</p>}
     </div>
   );
 }

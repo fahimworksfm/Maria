@@ -119,32 +119,32 @@ export default async function RandomActsPage() {
       </header>
 
       <section className="card p-4 space-y-3">
-        <div className="flex items-baseline justify-between">
-          <h3 className="label">This week ({thisWeek})</h3>
+        <div className="flex items-center justify-between gap-3">
+          <h3 className="label !mb-0">Tether · this week ({thisWeek})</h3>
           {thisWeekItems.length === 0 && (
             <form action={generate}>
-              <SubmitButton className="btn btn-primary text-sm" disabled={!aiEnabled()} pendingLabel="Generating…">
+              <SubmitButton className="btn btn-primary" disabled={!aiEnabled()} pendingLabel="Generating…">
                 {aiEnabled() ? "Generate with AI" : "Set GROQ_API_KEY"}
               </SubmitButton>
             </form>
           )}
         </div>
-        {thisWeekItems.length === 0 && <p className="muted text-sm">No acts yet. Generate or add a custom one below.</p>}
+        {thisWeekItems.length === 0 && <p className="muted">No acts yet. Generate or add a custom one below.</p>}
         <ul className="space-y-2">
           {thisWeekItems.map((a) => (
-            <li key={a.id} className={`bg-panel2 border border-line rounded-lg p-3 flex items-center justify-between gap-3 ${a.done ? "opacity-60 line-through" : ""}`}>
-              <div className="text-sm">
-                <span className="pill mr-2">{a.for_user === me.userId ? "for you" : `for ${partnerName}`}</span>
+            <li key={a.id} className={`bg-panel2 rounded-xl2 p-3 flex items-center justify-between gap-3 ${a.done ? "opacity-60 line-through" : ""}`}>
+              <div className="text-[15px] leading-snug">
+                <span className="pill !bg-panel mr-2">{a.for_user === me.userId ? "for you" : `for ${partnerName}`}</span>
                 {a.act}
               </div>
-              <form action={toggleDone}><input type="hidden" name="id" value={a.id} /><button className="btn btn-ghost text-xs" type="submit">{a.done ? "Undo" : "Done"}</button></form>
+              <form action={toggleDone}><input type="hidden" name="id" value={a.id} /><button className="btn btn-ghost text-sm" type="submit">{a.done ? "Undo" : "Done"}</button></form>
             </li>
           ))}
         </ul>
         <form action={addCustom} className="space-y-2 pt-2">
-          <input className="input" name="act" placeholder="Add a custom act" required />
+          <input className="input" name="act" placeholder="Add a custom act" aria-label="Add a custom act" required />
           <div className="grid grid-cols-2 gap-2">
-            <select className="input" name="target" defaultValue="partner">
+            <select className="input" name="target" aria-label="Who it is for" defaultValue="partner">
               <option value="partner">For my partner</option>
               <option value="me">For me</option>
             </select>
@@ -156,13 +156,13 @@ export default async function RandomActsPage() {
       <section>
         <h3 className="label">Past weeks</h3>
         {Array.from(groups.entries()).filter(([w]) => w !== thisWeek).map(([w, items]) => (
-          <div key={w} className="card p-3 mt-2">
-            <div className="muted text-xs mb-1">Week of {w}</div>
-            <ul className="text-sm space-y-1">
+          <div key={w} className="card px-4 py-3 mt-2">
+            <div className="text-muted text-[13px] mb-1.5">Week of {w}</div>
+            <ul className="text-[15px] space-y-1.5">
               {items!.map((a) => (
                 <li key={a.id} className={`flex items-center gap-2 ${a.done ? "opacity-70 line-through" : ""}`}>
                   {a.done ? (
-                    <Check size={16} className="text-accent shrink-0" aria-hidden />
+                    <Check size={16} className="text-accentInk shrink-0" aria-hidden />
                   ) : (
                     <span className="w-1.5 h-1.5 rounded-full bg-line shrink-0" aria-hidden />
                   )}

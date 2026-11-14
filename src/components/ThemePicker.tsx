@@ -35,7 +35,7 @@ export default function ThemePicker({
             key={t.key}
             type="button"
             onClick={() => choose(t)}
-            className="flex flex-col items-center gap-1.5"
+            className="flex flex-col items-center gap-1.5 min-w-[44px]"
             aria-pressed={isSel}
             title={t.label}
           >
@@ -44,12 +44,12 @@ export default function ThemePicker({
                 isSel ? "ring-2 ring-offset-2 ring-offset-panel border-transparent" : "border-line"
               }`}
               style={{
-                backgroundImage: `linear-gradient(135deg, rgb(${t.accent}), rgb(${t.accent2}) 55%, rgb(${t.accent3}))`,
-                // ring uses the swatch's own accent
-                ...(isSel ? ({ "--tw-ring-color": `rgb(${t.accent})` } as React.CSSProperties) : {}),
+                // The swatch is the colour your bubbles will actually be.
+                background: `rgb(${t.prim})`,
+                ...(isSel ? ({ "--tw-ring-color": `rgb(${t.prim})` } as React.CSSProperties) : {}),
               }}
             />
-            <span className={`text-xs ${isSel ? "text-ink" : "text-muted"}`}>{t.label}</span>
+            <span className={`text-xs ${isSel ? "text-ink font-bold" : "text-muted font-semibold"}`}>{t.label}</span>
           </button>
         );
       })}

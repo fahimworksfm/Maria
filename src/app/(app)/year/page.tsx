@@ -43,23 +43,27 @@ export default async function YearPage({ searchParams }: { searchParams: Promise
 
   return (
     <div className="space-y-6">
-      <header className="flex items-baseline justify-between">
+      <header className="space-y-3">
         <div>
           <h1 className="h1">Year in Review</h1>
           <p className="muted">Auto-pulled from everything you logged.</p>
         </div>
-        <form className="flex gap-1 items-end">
-          <input className="input w-24" name="year" type="number" defaultValue={year} />
-          <button className="btn" type="submit">Load</button>
+        <form className="flex gap-2 items-center">
+          <label htmlFor="year-input" className="sr-only">Year</label>
+          <input id="year-input" className="input !w-28 !rounded-full" name="year" type="number" defaultValue={year} />
+          <button className="btn !rounded-full" type="submit">Load</button>
         </form>
       </header>
 
-      <div className="grid grid-cols-2 gap-3 text-center">
-        <Stat label="Memories" value={mem?.length ?? 0} />
-        <Stat label="Journal entries" value={jrn?.length ?? 0} />
-        <Stat label="Bucket items done" value={buc?.length ?? 0} />
-        <Stat label="Dates done" value={dt?.length ?? 0} />
-      </div>
+      <section className="card p-4 space-y-3">
+        <p className="label !mb-0">{year}, counted</p>
+        <div className="grid grid-cols-2 gap-x-3 gap-y-4">
+          <Stat label="Memories" value={mem?.length ?? 0} />
+          <Stat label="Journal entries" value={jrn?.length ?? 0} />
+          <Stat label="Bucket items done" value={buc?.length ?? 0} />
+          <Stat label="Dates done" value={dt?.length ?? 0} />
+        </div>
+      </section>
 
       <form>
         <input type="hidden" name="year" value={year} />
@@ -68,15 +72,18 @@ export default async function YearPage({ searchParams }: { searchParams: Promise
       </form>
 
       {narrative && (
-        <article className="card p-5 whitespace-pre-wrap text-sm leading-relaxed">{narrative}</article>
+        <article className="card p-4 space-y-2">
+          <p className="label !mb-0">Tether · your {year}</p>
+          <p className="whitespace-pre-wrap text-[15px] leading-relaxed">{narrative}</p>
+        </article>
       )}
 
       <YearChapters chapters={chapters} year={year} />
 
       <Link href={`/year/book?year=${year}`} className="card card-hover p-5 block text-center">
         <div className="mark-box mb-2"><BookOpen size={22} aria-hidden /></div>
-        <div className="font-display text-lg">Make the book</div>
-        <div className="muted text-sm mt-1">Lay {year} out as a printable A5 keepsake — memories, photos, and journal entries. Save it as a PDF.</div>
+        <div className="font-bold text-lg">Make the book</div>
+        <div className="muted mt-1">Lay {year} out as a printable A5 keepsake — memories, photos, and journal entries. Save it as a PDF.</div>
       </Link>
     </div>
   );
@@ -84,9 +91,9 @@ export default async function YearPage({ searchParams }: { searchParams: Promise
 
 function Stat({ label, value }: { label: string; value: number }) {
   return (
-    <div className="card p-4">
-      <div className="text-2xl font-display">{value}</div>
-      <div className="muted text-xs">{label}</div>
+    <div>
+      <div className="display text-[2.4rem] leading-none tabular-nums">{value}</div>
+      <div className="text-muted text-[13px] mt-1">{label}</div>
     </div>
   );
 }

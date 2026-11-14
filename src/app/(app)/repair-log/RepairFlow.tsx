@@ -99,25 +99,27 @@ export default function RepairFlow({
   }
 
   return (
-    <div className="card p-5 space-y-4">
-      {/* progress dots */}
-      <div className="flex items-center gap-2">
+    <div className="card p-4 space-y-4">
+      {/* progress */}
+      <div className="flex items-center gap-2" aria-hidden>
         {STEPS.map((s, i) => (
           <span
             key={s.key}
-            className={`h-1.5 flex-1 rounded-full transition ${i <= step ? "bg-accent" : "bg-line"}`}
+            className={`h-1.5 flex-1 rounded-full transition ${i <= step ? "" : "bg-line"}`}
+            style={i <= step ? { background: "rgb(var(--c-prim-bg))" } : undefined}
           />
         ))}
       </div>
 
       <div>
-        <div className="muted text-xs">Step {step + 1} of {STEPS.length}</div>
+        <p className="label !mb-0">Step {step + 1} of {STEPS.length}</p>
         <h2 className="h2 mt-1">{current.title}</h2>
-        <p className="muted text-sm">{current.hint}</p>
+        <p className="muted">{current.hint}</p>
       </div>
 
       <textarea
         className="input"
+        aria-label={current.title}
         rows={3}
         placeholder={current.placeholder}
         value={value}
@@ -129,7 +131,7 @@ export default function RepairFlow({
         <div className="space-y-3">
           <button
             type="button"
-            className="btn btn-ghost text-xs"
+            className="chip"
             onClick={soften}
             disabled={!aiEnabled || softening || !value.trim()}
           >
@@ -139,12 +141,12 @@ export default function RepairFlow({
               "Softening…"
             ) : (
               <span className="inline-flex items-center gap-1.5">
-                <Sparkles size={16} className="text-accent" aria-hidden />
+                <Sparkles size={16} className="text-accentInk" aria-hidden />
                 Soften this — kinder, first person
               </span>
             )}
           </button>
-          {softenErr && <p className="text-accent text-xs">{softenErr}</p>}
+          {softenErr && <p className="text-accentInk text-sm font-semibold" role="alert">{softenErr}</p>}
 
           {softened && (
             <div className="grid sm:grid-cols-2 gap-3">
@@ -172,7 +174,7 @@ export default function RepairFlow({
         )}
         <button
           type="button"
-          className="btn btn-primary flex-1 cta-glow"
+          className="btn btn-primary flex-1"
           onClick={next}
           disabled={!canAdvance || pending}
         >
@@ -180,7 +182,7 @@ export default function RepairFlow({
         </button>
       </div>
 
-      {saved && <p className="muted text-xs text-center">Saved. Be gentle with yourself. 🤍</p>}
+      {saved && <p className="muted text-center" role="status">Saved. Be gentle with yourself.</p>}
     </div>
   );
 }
@@ -199,10 +201,10 @@ function Choice({
   highlight?: boolean;
 }) {
   return (
-    <div className={`rounded-xl2 border p-3 space-y-2 ${highlight ? "border-accent/40 bg-accent/5" : "border-line bg-panel2"}`}>
+    <div className={`rounded-[20px] p-3 space-y-2 ${highlight ? "bg-panel2 ring-2 ring-accent/60" : "bg-panel2"}`}>
       <div className="label">{label}</div>
-      <p className="text-sm whitespace-pre-wrap">{text}</p>
-      <button type="button" className="btn btn-ghost text-xs w-full" onClick={onPick}>{cta}</button>
+      <p className="text-[15px] leading-snug whitespace-pre-wrap">{text}</p>
+      <button type="button" className="btn w-full" onClick={onPick}>{cta}</button>
     </div>
   );
 }

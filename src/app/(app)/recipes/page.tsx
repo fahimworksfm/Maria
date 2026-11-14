@@ -66,33 +66,33 @@ export default async function RecipesPage() {
       <header><h1 className="h1">Recipes</h1><p className="muted">What we cook together.</p></header>
 
       <form action={fromPantry} className="card p-4 space-y-2">
-        <h3 className="label">AI: from pantry</h3>
-        <textarea className="input" name="pantry" rows={2} placeholder="chicken, lemon, rice, eggs..." />
+        <h3 className="label">Ask Tether · from the pantry</h3>
+        <textarea className="input" name="pantry" rows={2} placeholder="chicken, lemon, rice, eggs..." aria-label="chicken, lemon, rice, eggs" />
         <SubmitButton className="btn w-full" disabled={!aiEnabled()} pendingLabel="Generating…">{aiEnabled() ? "Suggest a recipe" : "Set GROQ_API_KEY to enable"}</SubmitButton>
       </form>
 
       <form action={add} className="card p-4 space-y-2">
-        <input className="input" name="title" placeholder="Recipe title" required />
-        <textarea className="input" name="ingredients" rows={4} placeholder="One ingredient per line" />
-        <textarea className="input" name="steps" rows={4} placeholder="Steps" />
-        <input className="input" name="source_url" placeholder="Source URL (optional)" />
+        <input className="input" name="title" placeholder="Recipe title" aria-label="Recipe title" required />
+        <textarea className="input" name="ingredients" rows={4} placeholder="One ingredient per line" aria-label="One ingredient per line" />
+        <textarea className="input" name="steps" rows={4} placeholder="Steps" aria-label="Steps" />
+        <input className="input" name="source_url" placeholder="Source URL (optional)" aria-label="Source URL" />
         <SubmitButton className="btn btn-primary w-full">Save</SubmitButton>
       </form>
 
       <section className="space-y-3">
         {(rows ?? []).map((r) => (
           <article key={r.id} className="card p-4 space-y-2">
-            <div className="flex justify-between items-baseline">
-              <h3 className="font-medium">{r.title}</h3>
-              <form action={cookedOnce}><input type="hidden" name="id" value={r.id} /><button className="btn btn-ghost text-xs" type="submit">Cooked ×{r.cooked_count}</button></form>
+            <div className="flex justify-between items-center gap-3">
+              <h3 className="font-bold text-lg leading-snug">{r.title}</h3>
+              <form action={cookedOnce}><input type="hidden" name="id" value={r.id} /><button className="btn btn-ghost text-sm" type="submit">Cooked ×{r.cooked_count}</button></form>
             </div>
             {r.ingredients && r.ingredients.length > 0 && (
-              <ul className="text-sm grid grid-cols-2 gap-x-3 list-disc pl-5">
+              <ul className="text-[15px] grid grid-cols-2 gap-x-3 list-disc pl-5">
                 {r.ingredients.map((i: string, k: number) => <li key={k}>{i}</li>)}
               </ul>
             )}
-            {r.steps && <p className="whitespace-pre-wrap text-sm">{r.steps}</p>}
-            {r.source_url && <a className="muted text-xs underline" href={r.source_url} target="_blank" rel="noreferrer">Source</a>}
+            {r.steps && <p className="whitespace-pre-wrap text-[15px] leading-snug">{r.steps}</p>}
+            {r.source_url && <a className="text-accentInk text-[13px] font-semibold underline underline-offset-2" href={r.source_url} target="_blank" rel="noreferrer">Source</a>}
           </article>
         ))}
         {rows && rows.length === 0 && <p className="muted">No recipes yet.</p>}

@@ -26,8 +26,8 @@ export default function CopyButton({ url, name }: { url: string; name: string | 
   }
 
   return (
-    <button type="button" className="btn btn-primary cta-glow w-full text-base py-3" onClick={share}>
-      {copied ? "Copied ✓" : "Share invite link"}
+    <button type="button" className="btn btn-primary w-full text-base py-3" onClick={share}>
+      {copied ? "Copied" : "Share invite link"}
     </button>
   );
 }

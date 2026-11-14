@@ -118,32 +118,32 @@ async function SignupInner({ searchParamsP }: { searchParamsP: Promise<{ error?:
     <AuthShell
       title={title}
       subtitle={subtitle}
-      footer={<>Already have an account? <Link className="text-ink underline" href="/login">Sign in</Link></>}
+      footer={<>Already have an account? <Link className="text-accentInk font-semibold underline underline-offset-2 inline-flex items-center min-h-[44px]" href="/login">Sign in</Link></>}
     >
       <form action={signUp} className="space-y-3">
           {code && <input type="hidden" name="code" value={code} />}
           <div>
-            <label className="label">Your name</label>
-            <input className="input" name="display_name" type="text" required />
+            <label className="label" htmlFor="signup-name">Your name</label>
+            <input id="signup-name" className="input" name="display_name" type="text" required />
           </div>
           <div>
-            <label className="label">Email</label>
-            <input className="input" name="email" type="email" autoComplete="email" required />
+            <label className="label" htmlFor="signup-email">Email</label>
+            <input id="signup-email" className="input" name="email" type="email" autoComplete="email" required />
           </div>
           <div>
-            <label className="label">Password</label>
-            <input className="input" name="password" type="password" autoComplete="new-password" minLength={8} required />
+            <label className="label" htmlFor="signup-password">Password</label>
+            <input id="signup-password" className="input" name="password" type="password" autoComplete="new-password" minLength={8} required />
           </div>
-          {sp.error && <p className="text-accent text-sm">{sp.error}</p>}
-          <label className="flex items-start gap-2 text-xs muted">
-            <input type="checkbox" name="agree" required className="mt-0.5" />
+          {sp.error && <p className="text-accentInk text-sm font-semibold" role="alert">{sp.error}</p>}
+          <label className="flex items-start gap-3 text-[13px] text-muted leading-snug py-1.5 min-h-[44px]">
+            <input type="checkbox" name="agree" required className="mt-0.5 w-5 h-5 shrink-0 accent-[rgb(var(--c-prim-bg))]" />
             <span>
               I&apos;m 18 or older and I agree to the{" "}
-              <Link href="/terms" className="underline text-ink">Terms</Link> and{" "}
-              <Link href="/privacy" className="underline text-ink">Privacy Policy</Link>.
+              <Link href="/terms" className="underline underline-offset-2 text-ink font-semibold">Terms</Link> and{" "}
+              <Link href="/privacy" className="underline underline-offset-2 text-ink font-semibold">Privacy Policy</Link>.
             </span>
           </label>
-          <button className="btn btn-primary w-full cta-glow" type="submit">
+          <button className="btn btn-primary w-full" type="submit">
             {code ? "Create account & join" : "Create my space"}
           </button>
         </form>

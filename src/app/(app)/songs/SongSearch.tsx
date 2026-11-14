@@ -64,12 +64,13 @@ export default function SongSearch({ addAction }: Props) {
         <input
           className="input flex-1"
           placeholder="Search Spotify..."
+          aria-label="Search Spotify"
           value={q}
           onChange={(e) => setQ(e.target.value)}
         />
         <button className="btn" type="submit" disabled={busy || !q.trim()}>{busy ? "..." : "Search"}</button>
       </form>
-      {err && <p className="text-accent text-sm">{err}</p>}
+      {err && <p className="text-accentInk text-sm">{err}</p>}
 
       {items.length > 0 && (
         <ul className="space-y-2">
@@ -77,18 +78,18 @@ export default function SongSearch({ addAction }: Props) {
             const isPicked = picked?.id === t.id;
             const isAdded = added.has(t.id);
             return (
-              <li key={t.id} className="bg-panel2 border border-line rounded-lg p-2 flex items-center gap-3">
-                {t.image && <img src={t.image} alt="" className="w-10 h-10 rounded" />}
+              <li key={t.id} className="bg-panel2 rounded-xl2 p-2 flex items-center gap-3">
+                {t.image && <img src={t.image} alt="" className="w-10 h-10 rounded-lg" />}
                 <div className="min-w-0 flex-1">
-                  <div className="text-sm truncate">{t.name}</div>
-                  <div className="muted text-xs truncate">{t.artists}</div>
+                  <div className="text-[15px] font-semibold truncate">{t.name}</div>
+                  <div className="text-muted text-[13px] truncate">{t.artists}</div>
                 </div>
                 {isAdded ? (
                   <span className="pill">Added</span>
                 ) : (
                   <button
                     type="button"
-                    className="btn btn-ghost text-xs"
+                    className="btn btn-ghost text-sm"
                     onClick={() => setPicked(isPicked ? null : t)}
                   >
                     {isPicked ? "Cancel" : "Pick"}
@@ -101,12 +102,13 @@ export default function SongSearch({ addAction }: Props) {
       )}
 
       {picked && (
-        <div className="card p-3 space-y-2">
-          <div className="text-sm">Adding: <span className="font-medium">{picked.name}</span> · {picked.artists}</div>
+        <div className="rounded-xl2 border border-line p-3 space-y-2">
+          <div className="text-sm">Adding: <span className="font-semibold">{picked.name}</span> · {picked.artists}</div>
           <textarea
             className="input"
             rows={2}
             placeholder="Why this song made it in (optional)"
+            aria-label="Why this song made it in"
             value={why}
             onChange={(e) => setWhy(e.target.value)}
           />

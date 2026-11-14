@@ -1,6 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import Link from "next/link";
+import { ChevronLeft } from "lucide-react";
 import { requireCoupled } from "@/lib/couple";
 import { supabaseServer } from "@/lib/supabase/server";
 import { WORKSHEETS } from "@/lib/worksheets";
@@ -68,35 +69,46 @@ export default async function WorksheetPage({ params }: { params: Promise<{ id: 
   return (
     <div className="space-y-6">
       <header>
-        <Link href="/worksheets" className="muted text-sm">← All worksheets</Link>
-        <h1 className="h1 mt-1">{sheet.title}</h1>
-        <p className="muted">{sheet.intro}</p>
+        <Link href="/worksheets" className="inline-flex items-center gap-1 min-h-[44px] text-sm font-semibold text-accentInk">
+          <ChevronLeft size={16} aria-hidden /> All worksheets
+        </Link>
+        <h1 className="h1">{sheet.title}</h1>
       </header>
 
-      {completed && (
-        <section className="card p-4 space-y-2">
-          <h3 className="label">Your result</h3>
-          <p className="font-display text-xl">{sheet.summarize(myAnswers)}</p>
-          {partnerDone && (
-            <>
-              <h3 className="label mt-3">Partner&apos;s result</h3>
-              <p className="font-display text-xl">{sheet.summarize(partnerAnswers)}</p>
-            </>
-          )}
-          <p className="muted text-sm mt-2">{sheet.outro}</p>
-          <form action={reset} className="pt-2">
-            <button className="btn btn-ghost text-xs" type="submit">Retake</button>
-          </form>
-        </section>
-      )}
+      {/* The worksheet speaks first, then each of you answers on your own side. */}
+      <section className="thread">
+        <div className="card p-4 space-y-1.5">
+          <p className="label !mb-0">Tether</p>
+          <p className="text-[15px] leading-snug">{sheet.intro}</p>
+        </div>
+
+        {completed && (
+          <>
+            {partnerDone && (
+              <>
+                <p className="bubble bubble-them font-semibold">{sheet.summarize(partnerAnswers)}</p>
+                <span className="stamp">Partner&apos;s result</span>
+              </>
+            )}
+            <p className="bubble bubble-me font-semibold">{sheet.summarize(myAnswers)}</p>
+            <span className="stamp self-end">Your result{partnerDone ? "" : " · partner hasn't finished yet"}</span>
+            <div className="card p-4 mt-2 space-y-2">
+              <p className="text-[15px] leading-snug">{sheet.outro}</p>
+              <form action={reset}>
+                <button className="btn btn-ghost -ml-3" type="submit">Retake</button>
+              </form>
+            </div>
+          </>
+        )}
+      </section>
 
       {!completed && (
         <form action={save} className="space-y-4">
           {sheet.questions.map((q) => (
             <div key={q.id} className="card p-4 space-y-2">
-              <h3 className="font-medium">{q.text}</h3>
+              <h3 className="font-semibold leading-snug">{q.text}</h3>
               {q.kind === "choice" ? (
-                <div className="space-y-1">
+                <div className="space-y-1.5">
                   {q.options.map((opt) => (
                     <label key={opt.value} className="block cursor-pointer">
                       <input
@@ -107,20 +119,20 @@ export default async function WorksheetPage({ params }: { params: Promise<{ id: 
                         className="peer sr-only"
                         required
                       />
-                      <div className="px-3 py-2 rounded-lg border border-line bg-panel2 text-sm peer-checked:bg-accent/20 peer-checked:border-accent/40">
+                      <div className="flex items-center min-h-[44px] px-3.5 py-2 rounded-xl2 border border-line bg-bg text-[15px] leading-snug transition peer-checked:border-accent peer-checked:bg-accent/15 peer-checked:font-semibold peer-focus-visible:ring-2 peer-focus-visible:ring-accent/40">
                         {opt.label}
                       </div>
                     </label>
                   ))}
                 </div>
               ) : (
-                <textarea className="input" name={q.id} rows={2} defaultValue={myAnswers[q.id] ?? ""} placeholder={q.placeholder} />
+                <textarea className="input" name={q.id} aria-label={q.text} rows={2} defaultValue={myAnswers[q.id] ?? ""} placeholder={q.placeholder} />
               )}
             </div>
           ))}
           <div className="flex gap-2">
             <button className="btn flex-1" type="submit" name="finish" value="0">Save progress</button>
-            <button className="btn btn-primary flex-1 cta-glow" type="submit" name="finish" value="1">Finish</button>
+            <button className="btn btn-primary flex-1" type="submit" name="finish" value="1">Finish</button>
           </div>
         </form>
       )}

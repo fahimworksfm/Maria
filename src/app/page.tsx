@@ -13,6 +13,7 @@ import {
   Map,
   Mic,
   CalendarRange,
+  Heart,
 } from "lucide-react";
 import "./landing.css";
 import { supabaseServer } from "@/lib/supabase/server";
@@ -42,110 +43,106 @@ export default async function Landing() {
 
       <main className="relative">
         {/* Top nav */}
-        <header className="px-6 py-5 flex items-center justify-between max-w-6xl mx-auto">
-          <Link href="/" className="font-display text-xl flex items-center gap-2">
-            <span className="mark w-7 h-7" aria-hidden />
+        <header className="px-5 py-4 flex items-center justify-between max-w-6xl mx-auto">
+          <Link href="/" className="font-bold text-xl tracking-[-0.01em] flex items-center gap-2.5 min-h-[44px]">
+            <span
+              className="grid place-items-center w-8 h-8 rounded-full text-sm font-bold"
+              style={{ background: "rgb(var(--c-prim-bg))", color: "rgb(var(--c-prim-fg))" }}
+              aria-hidden
+            >
+              T
+            </span>
             Tether
           </Link>
-          <nav className="flex items-center gap-1">
-            <Link className="btn btn-ghost text-sm" href="/login">Sign in</Link>
-            <Link className="btn btn-primary text-sm" href="/signup">Get started</Link>
+          <nav className="flex items-center gap-1.5">
+            <Link className="btn btn-ghost" href="/login">Sign in</Link>
+            <Link className="btn btn-primary" href="/signup">Get started</Link>
           </nav>
         </header>
 
         {/* Hero */}
-        <section className="px-6 max-w-6xl mx-auto pt-12 pb-24 grid lg:grid-cols-2 gap-10 items-center">
+        <section className="px-5 max-w-6xl mx-auto pt-10 pb-20 grid lg:grid-cols-2 gap-10 items-center">
           <div>
-            <p className="muted fade-up">For two. And only two.</p>
-            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-display leading-[1.05] mt-3 fade-up d1">
-              Your <em className="not-italic" style={{ color: "var(--c-accent-ink)" }}>private</em><br />space, together.
+            <p className="label fade-up">For two. And only two.</p>
+            <h1 className="text-[2.6rem] sm:text-6xl lg:text-7xl font-bold tracking-[-0.03em] leading-[1.02] mt-2 fade-up d1">
+              Your <span style={{ color: "var(--c-accent-ink)" }}>private</span><br />space, together.
             </h1>
-            <p className="mt-6 text-lg text-ink/80 max-w-md fade-up d2">
+            <p className="mt-5 text-lg text-muted max-w-md leading-relaxed fade-up d2">
               Memories, a daily journal, dates, songs, recipes, secret gift planning. One app. Just the two of you.
             </p>
-            <div className="mt-8 flex flex-wrap gap-3 fade-up d3">
+            <div className="mt-7 flex flex-wrap gap-3 fade-up d3">
               <Link className="btn btn-primary text-base px-5 py-3" href="/signup">Create your Tether</Link>
               <Link className="btn text-base px-5 py-3" href="/login">I already have one</Link>
             </div>
-            <p className="muted text-xs mt-6 fade-up d4">Free forever for the two of you. No ads.</p>
+            <p className="muted text-xs mt-5 fade-up d4">Free forever for the two of you. No ads.</p>
           </div>
 
-          {/* Phone mockup */}
-          <div className="flex justify-center fade-up d3">
-            <div className="phone" aria-hidden="true">
-              <div className="phone-screen">
-                <div className="phone-slides">
-                  <div className="phone-slide">
-                    <div className="text-[10px] text-muted uppercase tracking-widest">Memory Jar · today</div>
-                    <div className="font-display text-base">Sunday morning</div>
-                    <div className="mini-card">
-                      <div className="text-[10px] text-muted">our kitchen</div>
-                      <div>Pancakes, the cat sat on the recipe again.</div>
-                    </div>
-                    <div className="mini-card">
-                      <div className="text-[10px] text-muted">last week · the park</div>
-                      <div>You picked up that yellow leaf for me.</div>
-                    </div>
-                    <div>
-                      <span className="mini-pill">Photo</span>
-                      <span className="mini-pill">Voice</span>
-                    </div>
-                  </div>
-                  <div className="phone-slide">
-                    <div className="text-[10px] text-muted uppercase tracking-widest">Journal · prompt</div>
-                    <div className="font-display text-base leading-snug">What small thing did you appreciate about us this week?</div>
-                    <div className="mini-card">
-                      <div className="text-[10px] text-muted">You</div>
-                      <div>The way you hum when you make coffee.</div>
-                    </div>
-                    <div className="mini-card opacity-60">
-                      <div className="text-[10px] text-muted">Partner</div>
-                      <div>… answering …</div>
-                    </div>
-                  </div>
-                  <div className="phone-slide">
-                    <div className="text-[10px] text-muted uppercase tracking-widest">Date Roulette</div>
-                    <div className="mini-card text-center">
-                      <div className="text-[10px] text-muted">Tonight, maybe…</div>
-                      <div className="font-display text-base mt-1">Cook the wrong recipe on purpose</div>
-                      <div className="mt-2">
-                        <span className="mini-pill">low</span>
-                        <span className="mini-pill">indoor</span>
-                        <span className="mini-pill">AI</span>
-                      </div>
-                    </div>
-                    <div className="mini-card">Sushi-making night</div>
-                    <div className="mini-card">Park stargazing</div>
-                  </div>
+          {/* The product in its own idiom: one conversation, with the app
+              speaking up in the middle of it. Illustrative, so hidden from
+              assistive tech. */}
+          <div className="flex justify-center fade-up d3" aria-hidden="true">
+            <div className="w-full max-w-sm card overflow-hidden">
+              <div className="flex items-center gap-3 px-4 py-3 border-b border-line">
+                <span
+                  className="grid place-items-center w-10 h-10 shrink-0 rounded-full font-bold"
+                  style={{ background: "rgb(var(--c-prim-bg))", color: "rgb(var(--c-prim-fg))" }}
+                >
+                  A
+                </span>
+                <span className="flex flex-col leading-tight">
+                  <span className="font-bold">You &amp; Alex</span>
+                  <span className="text-[13px] text-muted">Alex is here</span>
+                </span>
+              </div>
+              <div className="thread bg-bg p-4">
+                <span className="day-mark">Today</span>
+                <div className="bubble bubble-them flex items-center gap-2">
+                  <Heart size={15} fill="currentColor" className="shrink-0" />
+                  Thinking of you.
                 </div>
+                <span className="stamp">A pulse · just now</span>
+                <div className="bubble bubble-me">You picked up that yellow leaf for me.</div>
+                <span className="stamp self-end">Added to the Memory Jar</span>
+                <div className="card p-3.5 mt-1 space-y-2">
+                  <p className="label !mb-0">Tether asks you both</p>
+                  <p className="font-bold leading-snug">What small thing did you appreciate about us this week?</p>
+                  <span className="btn btn-primary w-full">Answer the prompt</span>
+                </div>
+                <div className="bubble bubble-them w-[62%] space-y-2">
+                  <span className="block h-2.5 rounded-full bg-ink/15" />
+                  <span className="block h-2.5 w-[70%] rounded-full bg-ink/15" />
+                </div>
+                <span className="stamp">Alex answered · hidden until yours is in</span>
               </div>
             </div>
           </div>
         </section>
 
         {/* Features */}
-        <section className="px-6 max-w-6xl mx-auto py-16">
-          <p className="muted text-center fade-up">What&apos;s inside</p>
-          <h2 className="text-3xl sm:text-4xl font-display text-center mt-2 fade-up d1">A dozen tiny apps. One quiet space.</h2>
-          <div className="mt-10 grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <section className="px-5 max-w-6xl mx-auto py-14">
+          <p className="label text-center fade-up">What&apos;s inside</p>
+          <h2 className="text-3xl sm:text-4xl font-bold tracking-[-0.02em] text-center mt-1 fade-up d1">A dozen tiny apps. One quiet space.</h2>
+          <div className="mt-9 grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {FEATURES.map((f, i) => (
-              <div key={f.title} className={`card card-hover p-5 fade-up d${(i % 6) + 1}`}>
-                <div className="text-accent mb-3">
-                  <f.icon size={22} aria-hidden />
+              <div key={f.title} className={`card p-4 flex items-start gap-3 fade-up d${(i % 6) + 1}`}>
+                <span className="grid place-items-center w-10 h-10 shrink-0 rounded-full bg-panel2 text-accentInk">
+                  <f.icon size={18} aria-hidden />
+                </span>
+                <div>
+                  <h3 className="font-semibold">{f.title}</h3>
+                  <p className="muted mt-0.5">{f.desc}</p>
                 </div>
-                <h3 className="font-medium">{f.title}</h3>
-                <p className="muted text-sm mt-1">{f.desc}</p>
               </div>
             ))}
           </div>
         </section>
 
         {/* Privacy */}
-        <section className="px-6 max-w-6xl mx-auto py-16">
-          <div className="card p-8 fade-up">
-            <p className="muted text-center text-sm">Private by design</p>
-            <h2 className="text-3xl sm:text-4xl font-display text-center mt-2">No one else gets a key.</h2>
-            <div className="mt-8 grid sm:grid-cols-3 gap-4 text-center">
+        <section className="px-5 max-w-6xl mx-auto py-14">
+          <div className="card p-6 sm:p-8 fade-up">
+            <p className="label text-center">Private by design</p>
+            <h2 className="text-3xl sm:text-4xl font-bold tracking-[-0.02em] text-center mt-1">No one else gets a key.</h2>
+            <div className="mt-7 grid sm:grid-cols-3 gap-5 sm:text-center">
               <Guarantee title="Couple-scoped" body="Your data lives inside a couple container only the two of you can read. Enforced at the database, not just the app." />
               <Guarantee title="PIN-locked vault" body="Gift planning is private to its owner — your partner can&apos;t read it even if they&apos;re logged in on your phone." />
               <Guarantee title="No ads, no resale" body="We don&apos;t monetize your memories. Ever." />
@@ -154,28 +151,25 @@ export default async function Landing() {
         </section>
 
         {/* Final CTA */}
-        <section className="px-6 max-w-3xl mx-auto py-20 text-center">
-          <h2 className="text-4xl sm:text-5xl font-display fade-up">Ready to start your space?</h2>
-          <p className="muted mt-4 fade-up d1">One sign-up. One link to send. You&apos;re paired.</p>
-          <div className="mt-8 flex justify-center gap-3 fade-up d2">
+        <section className="px-5 max-w-3xl mx-auto py-16 text-center">
+          <h2 className="text-4xl sm:text-5xl font-bold tracking-[-0.03em] fade-up">Ready to start your space?</h2>
+          <p className="text-muted mt-3 fade-up d1">One sign-up. One link to send. You&apos;re paired.</p>
+          <div className="mt-7 flex justify-center gap-3 fade-up d2">
             <Link className="btn btn-primary text-base px-6 py-3" href="/signup">Create your Tether</Link>
           </div>
         </section>
 
         {/* Install prompt — only renders on phone, hides if installed/dismissed */}
-        <section className="px-6 max-w-2xl mx-auto pb-12">
+        <section className="px-5 max-w-2xl mx-auto pb-12">
           <InstallPrompt />
         </section>
 
-        <footer className="px-6 py-10 max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-4 border-t border-line text-xs text-muted">
-          <div className="flex items-center gap-2">
-            <span className="inline-block w-5 h-5 rounded-md bg-gradient-to-br from-accent to-accent2" />
-            <span>Tether · a private space for two</span>
-          </div>
-          <nav className="flex gap-4">
-            <Link href="/terms" className="hover:text-ink">Terms</Link>
-            <Link href="/privacy" className="hover:text-ink">Privacy</Link>
-            <Link href="/login" className="hover:text-ink">Sign in</Link>
+        <footer className="px-5 py-8 max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-4 border-t border-line text-xs text-muted">
+          <span>Tether · a private space for two</span>
+          <nav className="flex gap-1">
+            <Link href="/terms" className="inline-flex items-center min-h-[44px] px-2 hover:text-ink">Terms</Link>
+            <Link href="/privacy" className="inline-flex items-center min-h-[44px] px-2 hover:text-ink">Privacy</Link>
+            <Link href="/login" className="inline-flex items-center min-h-[44px] px-2 hover:text-ink">Sign in</Link>
           </nav>
         </footer>
       </main>
@@ -201,8 +195,8 @@ const FEATURES = [
 function Guarantee({ title, body }: { title: string; body: string }) {
   return (
     <div>
-      <h3 className="font-medium">{title}</h3>
-      <p className="muted text-sm mt-1">{body}</p>
+      <h3 className="font-semibold">{title}</h3>
+      <p className="muted mt-1">{body}</p>
     </div>
   );
 }

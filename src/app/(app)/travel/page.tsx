@@ -3,6 +3,7 @@ import { requireCoupled } from "@/lib/couple";
 import { supabaseServer } from "@/lib/supabase/server";
 import { aiEnabled, chat } from "@/lib/groq";
 import SubmitButton from "@/components/SubmitButton";
+import { MapPin } from "lucide-react";
 
 export default async function TravelPage({ searchParams }: { searchParams: Promise<{ plan_for?: string }> }) {
   const me = await requireCoupled();
@@ -62,34 +63,40 @@ export default async function TravelPage({ searchParams }: { searchParams: Promi
       <header><h1 className="h1">Travel</h1><p className="muted">Pins for now and someday.</p></header>
 
       <form action={add} className="card p-4 space-y-2">
-        <input className="input" name="name" placeholder="Place name" required />
+        <input className="input" name="name" placeholder="Place name" aria-label="Place name" required />
         <div className="grid grid-cols-2 gap-2">
-          <input className="input" name="lat" type="number" step="any" placeholder="Latitude" required />
-          <input className="input" name="lng" type="number" step="any" placeholder="Longitude" required />
+          <input className="input" name="lat" type="number" step="any" placeholder="Latitude" aria-label="Latitude" required />
+          <input className="input" name="lng" type="number" step="any" placeholder="Longitude" aria-label="Longitude" required />
         </div>
-        <textarea className="input" name="notes" rows={2} placeholder="Why here?" />
-        <p className="muted text-xs">Tip: in Google/Apple Maps, long-press a place to copy its coordinates.</p>
+        <textarea className="input" name="notes" rows={2} placeholder="Why here?" aria-label="Why here?" />
+        <p className="text-muted text-[13px]">Tip: in Google/Apple Maps, long-press a place to copy its coordinates.</p>
         <SubmitButton className="btn btn-primary w-full">Add pin</SubmitButton>
       </form>
 
       <form className="card p-4 space-y-2">
         <h3 className="label">Plan a day</h3>
-        <input className="input" name="plan_for" placeholder="City or filter (e.g. Lisbon)" defaultValue={sp.plan_for ?? ""} />
+        <input className="input" name="plan_for" placeholder="City or filter (e.g. Lisbon)" aria-label="City or filter" defaultValue={sp.plan_for ?? ""} />
         <button className="btn w-full" type="submit" disabled={!aiEnabled()}>{aiEnabled() ? "Draft itinerary from matching pins" : "Set GROQ_API_KEY to enable"}</button>
-        {itinerary && <pre className="whitespace-pre-wrap text-sm bg-panel2 border border-line rounded-lg p-3">{itinerary}</pre>}
+        {itinerary && (
+          <div className="rounded-xl2 bg-panel2 p-3.5 space-y-1">
+            <p className="label !mb-0">Tether&apos;s draft</p>
+            <p className="whitespace-pre-wrap text-[15px] leading-snug">{itinerary}</p>
+          </div>
+        )}
       </form>
 
       <section className="space-y-2">
         <h3 className="label">Pins ({pins?.length ?? 0})</h3>
         {(pins ?? []).map((p) => (
-          <div key={p.id} className="row flex justify-between items-start gap-3">
-            <div>
-              <div className="font-medium">{p.name}</div>
-              <div className="muted text-xs">{p.lat.toFixed(3)}, {p.lng.toFixed(3)}{p.visited && p.visited_on ? ` · visited ${p.visited_on}` : ""}</div>
-              {p.notes && <p className="muted text-xs mt-1">{p.notes}</p>}
+          <div key={p.id} className="card px-4 py-3 flex justify-between items-center gap-3">
+            <span className="grid place-items-center w-10 h-10 shrink-0 rounded-full bg-panel2 text-accentInk" aria-hidden><MapPin size={17} /></span>
+            <div className="min-w-0 flex-1">
+              <div className="font-semibold">{p.name}</div>
+              <div className="text-muted text-[13px]">{p.lat.toFixed(3)}, {p.lng.toFixed(3)}{p.visited && p.visited_on ? ` · visited ${p.visited_on}` : ""}</div>
+              {p.notes && <p className="text-[15px] leading-snug mt-1">{p.notes}</p>}
             </div>
             {!p.visited && (
-              <form action={visit}><input type="hidden" name="id" value={p.id} /><button className="btn btn-ghost text-xs" type="submit">Been</button></form>
+              <form action={visit}><input type="hidden" name="id" value={p.id} /><button className="btn btn-ghost text-sm" type="submit">Been</button></form>
             )}
           </div>
         ))}

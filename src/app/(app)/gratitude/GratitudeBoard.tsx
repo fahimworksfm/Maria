@@ -49,16 +49,53 @@ export default function GratitudeBoard({
   }
 
   return (
-    <div className="space-y-6">
-      <div className="card p-2">
+    <div className="space-y-5">
+      <div className="card p-2 overflow-hidden">
         <Tree
           count={items.length}
           leaves={items.slice(0, 40).map((g, i) => ({ idx: i, text: g.text, mine: g.author_id === myUserId }))}
         />
       </div>
 
-      <form onSubmit={submit} className="card p-4 space-y-2">
+      {items.length === 0 ? (
+        <div className="card p-5 text-center space-y-1">
+          <div className="mark-box"><Sprout size={22} aria-hidden /></div>
+          <p className="font-bold pt-2">An empty tree, waiting.</p>
+          <p className="muted">Plant a small thing and watch it grow.</p>
+        </div>
+      ) : (
+        <section className="thread" aria-label={`Recent leaves (${items.length})`}>
+          <p className="day-mark">{items.length} {items.length === 1 ? "leaf" : "leaves"} · newest first</p>
+          {items.slice(0, 30).map((g) => {
+            const mine = g.author_id === myUserId;
+            return (
+              <SwipeRow key={g.id} onDelete={() => mine && removeWithUndo(g.id)}>
+                <div className="collection-item flex flex-col gap-1">
+                  <div className={`bubble ${mine ? "bubble-me" : "bubble-them"}`}>{g.text}</div>
+                  <div className={`stamp flex items-center gap-1.5 ${mine ? "self-end" : ""}`}>
+                    <span>{mine ? "You" : partnerName}</span>
+                    {mine && (
+                      <button
+                        type="button"
+                        className="underline underline-offset-2 hover:text-ink min-h-[32px] px-1"
+                        onClick={() => removeWithUndo(g.id)}
+                      >
+                        Delete
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </SwipeRow>
+            );
+          })}
+        </section>
+      )}
+
+      {/* The composer. */}
+      <form onSubmit={submit} className="card p-3.5 space-y-2.5">
+        <label htmlFor="gratitude-text" className="sr-only">Something you&apos;re grateful for</label>
         <textarea
+          id="gratitude-text"
           className="input"
           value={text}
           onChange={(e) => setText(e.target.value)}
@@ -70,40 +107,6 @@ export default function GratitudeBoard({
         </button>
       </form>
 
-      {items.length === 0 ? (
-        <div className="card p-5 text-center space-y-1">
-          <div className="mark-box"><Sprout size={22} aria-hidden /></div>
-          <p className="font-display text-base">An empty tree, waiting.</p>
-          <p className="muted text-sm">Plant a small thing and watch it grow.</p>
-        </div>
-      ) : (
-        <section className="space-y-1">
-          <h3 className="label">Recent ({items.length})</h3>
-          {items.slice(0, 30).map((g) => {
-            const mine = g.author_id === myUserId;
-            return (
-              <SwipeRow key={g.id} onDelete={() => mine && removeWithUndo(g.id)}>
-                <div className="collection-item row text-sm flex justify-between items-start gap-3">
-                  <div className="min-w-0">
-                    <span className="muted text-xs mr-2">by {mine ? "you" : partnerName}</span>
-                    {g.text}
-                  </div>
-                  {mine && (
-                    <button
-                      className="btn btn-ghost text-xs shrink-0"
-                      onClick={() => removeWithUndo(g.id)}
-                      aria-label="Delete"
-                    >
-                      ×
-                    </button>
-                  )}
-                </div>
-              </SwipeRow>
-            );
-          })}
-        </section>
-      )}
-
       <UndoToast show={Boolean(removed)} label="Leaf removed" onUndo={undo} onDismiss={dismissUndo} />
     </div>
   );
@@ -112,23 +115,15 @@ export default function GratitudeBoard({
 function Tree({ leaves, count }: { count: number; leaves: Array<{ idx: number; text: string; mine: boolean }> }) {
   const w = 360, h = 360;
   return (
-    <svg viewBox={`0 0 ${w} ${h}`} width="100%" height="auto" aria-label="Gratitude tree">
-      <defs>
-        <radialGradient id="bgGrad" cx="50%" cy="100%" r="80%">
-          <stop offset="0%" stopColor="#1d1d27" />
-          <stop offset="100%" stopColor="#0a0a0c" />
-        </radialGradient>
-      </defs>
-      <rect width={w} height={h} fill="url(#bgGrad)" />
-
+    <svg viewBox={`0 0 ${w} ${h}`} width="100%" height="auto" role="img" aria-label={`Gratitude tree with ${count} ${count === 1 ? "leaf" : "leaves"}`} className="text-muted">
       {/* trunk */}
       <path d={`M ${w / 2} ${h} C ${w / 2 - 4} ${h - 80}, ${w / 2 + 4} ${h - 120}, ${w / 2} ${h - 180}`}
-            stroke="#5a3a2a" strokeWidth="10" fill="none" strokeLinecap="round" />
+            stroke="currentColor" strokeOpacity="0.55" strokeWidth="10" fill="none" strokeLinecap="round" />
       {/* branches */}
       {BRANCHES.map((b, i) => (
         <path key={i}
           d={`M ${w / 2} ${h - 180} Q ${w / 2 + b.cx} ${h - 180 + b.cy}, ${w / 2 + b.x} ${h - 180 + b.y}`}
-          stroke="#5a3a2a" strokeWidth={b.sw} fill="none" strokeLinecap="round" />
+          stroke="currentColor" strokeOpacity="0.55" strokeWidth={b.sw} fill="none" strokeLinecap="round" />
       ))}
 
       {/* leaves */}
@@ -136,12 +131,12 @@ function Tree({ leaves, count }: { count: number; leaves: Array<{ idx: number; t
         const pos = leafPos(idx, w, h);
         return (
           <g key={idx} transform={`translate(${pos.x} ${pos.y}) rotate(${pos.r})`}>
-            <ellipse rx="8" ry="14" fill={mine ? "#f97373" : "#f9c873"} opacity="0.9" />
+            <ellipse rx="8" ry="14" style={{ fill: mine ? "rgb(var(--c-prim-bg))" : "rgb(var(--accent-2))" }} opacity="0.9" />
           </g>
         );
       })}
 
-      <text x={w - 12} y={h - 12} textAnchor="end" fontFamily="ui-serif, Georgia, serif" fill="#9a9aaa" fontSize="12">
+      <text x={w - 12} y={h - 12} textAnchor="end" fill="currentColor" fontSize="12">
         {count} {count === 1 ? "leaf" : "leaves"}
       </text>
     </svg>

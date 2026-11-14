@@ -48,16 +48,16 @@ export default async function LoveLanguagePage() {
     <div className="space-y-6">
       <header><h1 className="h1">Love Language</h1><p className="muted">Notice the small moments that matter.</p></header>
 
-      <form action={add} className="card p-4 space-y-2">
-        <div className="grid grid-cols-5 gap-2">
+      <form action={add} className="card p-3.5 space-y-2.5">
+        <div className="grid grid-cols-5 gap-1.5" role="radiogroup" aria-label="Which love language?">
           {CATS.map((c) => (
             <label key={c.id} className="cursor-pointer">
               <input type="radio" name="category" value={c.id} className="peer sr-only" required />
-              <div className="text-center py-2 rounded-lg border border-line bg-panel2 peer-checked:bg-accent peer-checked:text-bg text-sm">{c.label}</div>
+              <div className="grid place-items-center min-h-[44px] px-1 rounded-xl2 border border-transparent bg-panel2 text-[13px] font-semibold text-center peer-checked:bg-[rgb(var(--c-prim-bg))] peer-checked:text-[rgb(var(--c-prim-fg))] peer-checked:border-transparent peer-focus-visible:ring-2 peer-focus-visible:ring-accent">{c.label}</div>
             </label>
           ))}
         </div>
-        <input className="input" name="note" placeholder="A small note (optional)" />
+        <input className="input" name="note" aria-label="A small note (optional)" placeholder="A small note (optional)" />
         <SubmitButton className="btn btn-primary w-full">Log</SubmitButton>
       </form>
 
@@ -66,16 +66,21 @@ export default async function LoveLanguagePage() {
         <Bars title="Partner logged" data={tally(theirs)} />
       </section>
 
-      <section>
+      <section className="space-y-2">
         <h3 className="label">Recent</h3>
-        <ul className="space-y-1 text-sm">
-          {(rows ?? []).slice(0, 20).map((r) => (
-            <li key={r.id} className="row flex justify-between gap-2">
-              <span>{r.user_id === me.userId ? "You" : "Partner"} · <span className="pill">{r.category}</span></span>
-              <span className="muted truncate">{r.note}</span>
-            </li>
-          ))}
-        </ul>
+        <div className="thread">
+          {(rows ?? []).slice(0, 20).map((r) => {
+            const mine = r.user_id === me.userId;
+            const label = CATS.find((c) => c.id === r.category)?.label ?? r.category;
+            return (
+              <div key={r.id} className="contents">
+                <div className={`bubble ${mine ? "bubble-me" : "bubble-them"}`}>{r.note || label}</div>
+                <span className={`stamp ${mine ? "self-end" : ""}`}>{mine ? "You" : "Partner"} · {label}</span>
+              </div>
+            );
+          })}
+          {(rows ?? []).length === 0 && <p className="muted text-center">Nothing logged yet.</p>}
+        </div>
       </section>
     </div>
   );
@@ -86,14 +91,14 @@ function Bars({ title, data }: { title: string; data: Record<string, number> }) 
   return (
     <div className="card p-3">
       <div className="label">{title}</div>
-      <div className="space-y-1">
+      <div className="space-y-1.5">
         {CATS.map((c) => (
-          <div key={c.id} className="flex items-center gap-2 text-xs">
-            <span className="w-12 muted">{c.label}</span>
-            <div className="h-2 flex-1 bg-panel2 rounded">
-              <div className="h-2 bg-accent rounded" style={{ width: `${((data[c.id] ?? 0) / max) * 100}%` }} />
+          <div key={c.id} className="flex items-center gap-2 text-[13px]">
+            <span className="w-12 text-muted truncate">{c.label}</span>
+            <div className="h-2 flex-1 bg-panel2 rounded-full">
+              <div className="h-2 rounded-full" style={{ width: `${((data[c.id] ?? 0) / max) * 100}%`, background: "rgb(var(--c-prim-bg))" }} />
             </div>
-            <span className="w-6 text-right">{data[c.id] ?? 0}</span>
+            <span className="w-6 text-right tabular-nums">{data[c.id] ?? 0}</span>
           </div>
         ))}
       </div>

@@ -56,31 +56,31 @@ export default function YearChapters({ chapters, year }: { chapters: Chapter[]; 
   return (
     <div ref={rootRef} className="chapters space-y-5">
       {chapters.map((c) => (
-        <section key={c.key} className="chapter">
+        <section key={c.key} className="chapter card p-4">
           <span
             className="chapter-plate"
             style={{ ["--art" as string]: `url(${c.plate})` }}
             role="img"
             aria-label={`${c.label} — a botanical ink drawing`}
           />
-          <div className="chapter-rule">
-            <span className="font-display text-2xl font-semibold tracking-[-0.02em]">{c.label}</span>
-            <span className="text-[11px] uppercase tracking-[0.2em] text-muted tabular-nums">{year}</span>
+          <div className="flex items-baseline justify-between gap-3 pt-3">
+            <span className="h2">{c.label}</span>
+            <span className="pill tabular-nums">{year}</span>
           </div>
 
-          <div className="pt-3">
+          <div className="pt-2">
             {c.memories.length === 0 && c.journalCount === 0 ? (
-              <p className="muted text-sm">Nothing logged this season.</p>
+              <p className="muted">Nothing logged this season.</p>
             ) : (
               <>
-                <p className="muted text-xs mb-2">
+                <p className="text-muted text-[13px] mb-2">
                   {c.memories.length} {c.memories.length === 1 ? "memory" : "memories"}
                   {c.journalCount > 0 && ` · ${c.journalCount} journal ${c.journalCount === 1 ? "entry" : "entries"}`}
                 </p>
                 <ul className="space-y-1.5">
                   {c.memories.slice(0, MAX_LISTED).map((m, i) => (
-                    <li key={`${m.title}-${i}`} className="flex gap-2 text-sm">
-                      <span className="muted tabular-nums shrink-0 w-14">{m.date ?? ""}</span>
+                    <li key={`${m.title}-${i}`} className="flex gap-2 text-[15px] leading-snug">
+                      <span className="text-muted text-[13px] tabular-nums shrink-0 w-14 pt-px">{m.date ?? ""}</span>
                       <span className="min-w-0">
                         {m.title}
                         {m.place && <span className="muted"> · {m.place}</span>}

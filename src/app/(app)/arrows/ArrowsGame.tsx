@@ -159,10 +159,10 @@ export default function ArrowsGame({
     <div className="space-y-5">
       {won && <Confetti trigger={`arrows-${mode}-${level}`} />}
 
-      <div className="grid grid-cols-2 gap-2 p-1 rounded-xl2 bg-panel border border-line">
+      <div className="grid grid-cols-2 gap-1 p-1 rounded-full bg-panel2" role="group" aria-label="Mode">
         {(["levels", "daily"] as Mode[]).map((m) => (
-          <button key={m} onClick={() => { tap(HAPTIC.tick); setMode(m); }}
-            className={`py-2 rounded-lg text-sm transition ${mode === m ? "bg-accent/15 text-ink" : "text-muted hover:text-ink"}`}>
+          <button key={m} type="button" aria-pressed={mode === m} onClick={() => { tap(HAPTIC.tick); setMode(m); }}
+            className={`min-h-[44px] rounded-full text-sm font-semibold transition ${mode === m ? "bg-panel text-ink shadow-soft" : "text-muted hover:text-ink"}`}>
             {m === "levels" ? "Levels" : "Daily ♥"}
           </button>
         ))}
@@ -170,24 +170,24 @@ export default function ArrowsGame({
 
       <div className="flex items-center justify-between">
         <div className="flex gap-1">
-          <button onClick={undo} disabled={removed.length === 0 || won || failed} className="btn btn-ghost p-2" aria-label="Undo"><Undo2 size={18} aria-hidden /></button>
-          <button onClick={hint} disabled={won || failed} className="btn btn-ghost p-2" aria-label="Hint"><Lightbulb size={18} aria-hidden /></button>
-          <button onClick={restart} className="btn btn-ghost p-2" aria-label="Restart"><RotateCcw size={18} aria-hidden /></button>
+          <button onClick={undo} disabled={removed.length === 0 || won || failed} className="btn btn-ghost !rounded-full !p-0 w-11 h-11" aria-label="Undo"><Undo2 size={18} aria-hidden /></button>
+          <button onClick={hint} disabled={won || failed} className="btn btn-ghost !rounded-full !p-0 w-11 h-11" aria-label="Hint"><Lightbulb size={18} aria-hidden /></button>
+          <button onClick={restart} className="btn btn-ghost !rounded-full !p-0 w-11 h-11" aria-label="Restart"><RotateCcw size={18} aria-hidden /></button>
         </div>
-        <div className="flex gap-1">
+        <div className="flex gap-1" role="img" aria-label={`${lives} of ${LIVES} hearts left`}>
           {Array.from({ length: LIVES }).map((_, i) => (
             <Heart key={i} size={20} aria-hidden fill={i < lives ? RED : "transparent"} color={i < lives ? RED : "#46506e"} />
           ))}
         </div>
       </div>
 
-      <div className="flex items-center justify-between text-center">
+      <div className="card grid grid-cols-3 px-4 py-3">
         <Stat label={mode === "levels" ? "Level" : "Today"} value={mode === "levels" ? String(level) : dailyDate.slice(5)} />
         <Stat label="Moves" value={String(moves)} />
         <Stat label="Time" value={fmtTime(elapsed)} />
       </div>
 
-      <div className="relative mx-auto w-full rounded-xl2 overflow-hidden" style={{ maxWidth: 380, aspectRatio: "1 / 1", background: NAVY, boxShadow: won ? "0 0 0 1px rgba(170,180,255,.4), 0 0 36px rgba(170,180,255,.25)" : "none", transition: "box-shadow .6s ease" }}>
+      <div className="relative mx-auto w-full rounded-xl3 overflow-hidden" style={{ maxWidth: 380, aspectRatio: "1 / 1", background: NAVY, boxShadow: won ? "0 0 0 1px rgba(170,180,255,.4), 0 0 36px rgba(170,180,255,.25)" : "none", transition: "box-shadow .6s ease" }}>
         <svg viewBox={`0 0 ${size} ${size}`} className="absolute inset-0 w-full h-full" style={{ overflow: "visible" }}>
           {board.pieces.map((p) => {
             const exiting = exitingId === p.id;
@@ -221,27 +221,27 @@ export default function ArrowsGame({
         </svg>
         {failed && (
           <div className="absolute inset-0 grid place-items-center" style={{ background: "rgba(10,12,22,0.72)" }}>
-            <p className="font-display text-lg text-ink">Out of hearts — resetting…</p>
+            <p className="font-bold text-lg text-white">Out of hearts — resetting…</p>
           </div>
         )}
       </div>
 
       {won ? (
-        <p className="text-center font-display text-lg">{mode === "levels" ? "Cleared. Next one…" : `Solved in ${moves} moves · ${fmtTime(elapsed)}`}</p>
+        <p className="text-center font-bold text-lg">{mode === "levels" ? "Cleared. Next one…" : `Solved in ${moves} moves · ${fmtTime(elapsed)}`}</p>
       ) : (
-        <p className="muted text-center text-sm">Tap an arrow to glide it off. Clear them all.</p>
+        <p className="muted text-center">Tap an arrow to glide it off. Clear them all.</p>
       )}
 
       {mode === "levels" && partnerLevel != null && (
-        <p className="muted text-center text-xs">You: level {level} · {partnerName}: level {partnerLevel}</p>
+        <p className="flex justify-center gap-2"><span className="pill">You · level {level}</span><span className="pill">{partnerName} · level {partnerLevel}</span></p>
       )}
 
       {mode === "daily" && (
-        <div className="card p-4 space-y-2">
-          <h3 className="label">Today&apos;s heart · you vs {partnerName}</h3>
-          <Row who="You" r={dailySolved} />
+        <div className="thread">
+          <p className="day-mark">Today&apos;s heart · you vs {partnerName}</p>
           <Row who={partnerName} r={partnerDaily} />
-          {dailySolved && partnerDaily && <p className="muted text-xs pt-1">{scoreLine(dailySolved, partnerDaily, partnerName)}</p>}
+          <Row who="You" r={dailySolved} mine />
+          {dailySolved && partnerDaily && <p className="day-mark">{scoreLine(dailySolved, partnerDaily, partnerName)}</p>}
         </div>
       )}
     </div>
@@ -251,17 +251,19 @@ export default function ArrowsGame({
 function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <span className="label !mb-0">{label}</span>
-      <div className="font-display text-2xl leading-none tabular-nums">{value}</div>
+      <div className="display text-2xl leading-none tabular-nums">{value}</div>
+      <div className="text-muted text-[13px] mt-1">{label}</div>
     </div>
   );
 }
-function Row({ who, r }: { who: string; r: Result }) {
+function Row({ who, r, mine }: { who: string; r: Result; mine?: boolean }) {
   return (
-    <div className="flex justify-between text-sm">
-      <span>{who}</span>
-      <span className="muted">{r ? `${r.moves} moves · ${fmtTime(r.timeMs)}` : "not yet"}</span>
-    </div>
+    <>
+      <p className={`bubble ${mine ? "bubble-me" : "bubble-them"} ${r ? "font-semibold" : ""}`}>
+        {r ? `${r.moves} moves · ${fmtTime(r.timeMs)}` : "Not solved yet"}
+      </p>
+      <span className={`stamp ${mine ? "self-end" : ""}`}>{who}</span>
+    </>
   );
 }
 function scoreLine(me: NonNullable<Result>, them: NonNullable<Result>, partnerName: string): string {

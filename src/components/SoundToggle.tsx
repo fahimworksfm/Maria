@@ -15,12 +15,12 @@ export default function SoundToggle() {
   }
 
   return (
-    <label className="flex items-center justify-between gap-3 cursor-pointer">
-      <span className="text-sm">
+    <label className="flex items-center justify-between gap-3 min-h-[44px] cursor-pointer">
+      <span className="text-[15px] font-semibold">
         Soft sounds
-        <span className="muted block text-xs">A gentle tone on pulses and celebrations. Off by default.</span>
+        <span className="block text-[13px] font-normal text-muted">A gentle tone on pulses and celebrations. Off by default.</span>
       </span>
-      <input type="checkbox" checked={on} onChange={toggle} className="w-5 h-5 shrink-0" />
+      <input type="checkbox" checked={on} onChange={toggle} className="w-6 h-6 shrink-0 accent-[rgb(var(--c-prim-bg))]" />
     </label>
   );
 }

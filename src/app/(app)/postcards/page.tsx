@@ -59,42 +59,56 @@ export default async function PostcardsPage() {
         <p className="muted">A note from wherever you are. Save them up.</p>
       </header>
 
-      <form action={add} className="card p-4 space-y-2" encType="multipart/form-data">
-        <input className="input" name="location" placeholder="Where are you? (e.g. Tokyo, the back garden)" />
-        <input className="input" name="photo" type="file" accept="image/*" />
-        <textarea className="input" name="note" rows={4} placeholder="Wish you were here..." required />
+      <form action={add} className="card p-3.5 space-y-2.5" encType="multipart/form-data">
+        <div>
+          <label className="label" htmlFor="postcard-location">Where are you?</label>
+          <input id="postcard-location" className="input" name="location" placeholder="e.g. Tokyo, the back garden" />
+        </div>
+        <div>
+          <label className="label" htmlFor="postcard-photo">Photo (optional)</label>
+          <input id="postcard-photo" className="input" name="photo" type="file" accept="image/*" />
+        </div>
+        <div>
+          <label className="label" htmlFor="postcard-note">Your note</label>
+          <textarea id="postcard-note" className="input" name="note" rows={4} placeholder="Wish you were here..." required />
+        </div>
         <SubmitButton className="btn btn-primary w-full">Send postcard</SubmitButton>
       </form>
 
-      <section className="space-y-4">
-        {items.map((p) => (
-          <article key={p.id} className="card p-0 overflow-hidden">
-            <div className="grid grid-cols-1 sm:grid-cols-2">
-              <div className="relative bg-panel2 min-h-[180px]">
-                {p.signed ? (
-                  <img src={p.signed} alt="" className="w-full h-full object-cover" />
-                ) : (
-                  <div className="absolute inset-0 flex items-center justify-center text-muted opacity-40"><Mail size={48} aria-hidden /></div>
+      {/* Each postcard is a message: the picture, where it was sent from, the note. */}
+      <section className="thread" aria-label="Postcards">
+        {items.map((p) => {
+          const mine = p.author_id === me.userId;
+          return (
+            <div key={p.id} className="contents">
+              <article className={`bubble ${mine ? "bubble-me" : "bubble-them"} ${p.signed ? "!p-1.5 w-[80%] space-y-1.5" : ""}`}>
+                {p.signed && <img src={p.signed} alt="" className="rounded-2xl w-full max-h-96 object-cover" />}
+                <div className={p.signed ? "px-2 pb-1.5 pt-0.5 space-y-1" : "space-y-1"}>
+                  <p className="flex items-center gap-1.5 text-[13px] font-semibold"><Mail size={13} aria-hidden /> From {p.location || "somewhere"}</p>
+                  <p className="whitespace-pre-wrap">{p.note}</p>
+                </div>
+              </article>
+              <div className={`stamp flex items-center gap-1.5 flex-wrap mb-2 ${mine ? "self-end justify-end" : ""}`}>
+                <span>{mine ? "You" : "Partner"}</span>
+                <span aria-hidden>·</span>
+                <span>{p.sent_on}</span>
+                {mine && (
+                  <form action={remove} className="inline-flex">
+                    <input type="hidden" name="id" value={p.id} />
+                    <button className="underline underline-offset-2 hover:text-ink min-h-[32px] px-1" type="submit">Delete</button>
+                  </form>
                 )}
               </div>
-              <div className="p-4 relative">
-                <div className="absolute top-3 right-3 border border-line rounded-md px-2 py-1 text-[10px] uppercase tracking-widest text-muted rotate-[3deg]">
-                  {p.sent_on}
-                </div>
-                <div className="muted text-xs">From</div>
-                <div className="font-medium">{p.location || "Somewhere"}</div>
-                <p className="font-display text-lg leading-snug mt-3 whitespace-pre-wrap">{p.note}</p>
-                <div className="flex justify-between items-center mt-4">
-                  <span className="muted text-xs">{p.author_id === me.userId ? "by you" : "by partner"}</span>
-                  {p.author_id === me.userId && (
-                    <form action={remove}><input type="hidden" name="id" value={p.id} /><button className="btn btn-ghost text-xs" type="submit">Delete</button></form>
-                  )}
-                </div>
-              </div>
             </div>
-          </article>
-        ))}
-        {items.length === 0 && <p className="muted">No postcards yet.</p>}
+          );
+        })}
+        {items.length === 0 && (
+          <div className="card p-5 text-center space-y-1">
+            <div className="mark-box"><Mail size={20} aria-hidden /></div>
+            <p className="font-bold pt-2">No postcards yet.</p>
+            <p className="muted">Send one from wherever you are.</p>
+          </div>
+        )}
       </section>
     </div>
   );

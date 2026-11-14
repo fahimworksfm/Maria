@@ -58,10 +58,10 @@ export default async function WatchlistPage() {
       </header>
 
       <form action={suggest} className="card p-4 space-y-2">
-        <h3 className="label">Tonight?</h3>
+        <h3 className="label">Ask Tether · tonight?</h3>
         <div className="grid grid-cols-2 gap-2">
-          <input className="input" name="mood" placeholder="Mood (cozy, funny)" />
-          <input className="input" name="max_min" type="number" placeholder="Max minutes" />
+          <input className="input" name="mood" placeholder="Mood (cozy, funny)" aria-label="Mood" />
+          <input className="input" name="max_min" type="number" placeholder="Max minutes" aria-label="Max minutes" />
         </div>
         <SubmitButton className="btn w-full" disabled={!aiEnabled()} pendingLabel="Generating…">
           {aiEnabled() ? "AI: pick from our list" : "Set GROQ_API_KEY to enable"}

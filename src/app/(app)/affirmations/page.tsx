@@ -1,3 +1,4 @@
+import { Gem } from "lucide-react";
 import { revalidatePath } from "next/cache";
 import { requireCoupled } from "@/lib/couple";
 import { supabaseServer } from "@/lib/supabase/server";
@@ -78,9 +79,10 @@ export default async function AffirmationsPage() {
       <header><h1 className="h1">Affirmation Deck</h1><p className="muted">Shuffle. Draw. Send.</p></header>
 
       {list.length === 0 ? (
-        <div className="card p-4 space-y-2 text-center">
-          <p className="muted">The deck is empty.</p>
-          <div className="flex gap-2 justify-center">
+        <div className="card p-5 space-y-3 text-center">
+          <div className="mark-box"><Gem size={20} aria-hidden /></div>
+          <p className="font-bold">The deck is empty.</p>
+          <div className="flex gap-2 justify-center flex-wrap">
             <form action={seedDefaults}><SubmitButton className="btn">Seed with starters</SubmitButton></form>
             <form action={seedFromAI}><SubmitButton className="btn btn-primary" disabled={!aiEnabled()} pendingLabel="Generating…">{aiEnabled() ? "AI: write 8 cards" : "Set GROQ_API_KEY"}</SubmitButton></form>
           </div>
@@ -89,22 +91,22 @@ export default async function AffirmationsPage() {
         <AffirmationDeck cards={list} />
       )}
 
-      <form action={add} className="card p-4 space-y-2">
-        <h3 className="label">Add a card</h3>
-        <textarea className="input" name="text" rows={2} placeholder="Write something you'd want them to draw" required />
+      <form action={add} className="card p-3.5 space-y-2.5">
+        <label className="label" htmlFor="affirmation-text">Add a card</label>
+        <textarea id="affirmation-text" className="input" name="text" rows={2} placeholder="Write something you'd want them to draw" required />
         <SubmitButton className="btn w-full">Add to deck</SubmitButton>
       </form>
 
       <form action={seedFromAI}>
-        <SubmitButton className="btn btn-ghost w-full text-sm" disabled={!aiEnabled()} pendingLabel="Generating…">{aiEnabled() ? "AI: add 8 more" : ""}</SubmitButton>
+        <SubmitButton className="btn btn-ghost w-full" disabled={!aiEnabled()} pendingLabel="Generating…">{aiEnabled() ? "AI: add 8 more" : ""}</SubmitButton>
       </form>
 
-      <section className="space-y-1">
+      <section>
         <h3 className="label">All cards ({list.length})</h3>
         {list.map((c) => (
-          <div key={c.id} className="row flex justify-between items-center gap-2 text-sm">
+          <div key={c.id} className="row !py-2 flex justify-between items-center gap-2 text-[15px]">
             <span className="truncate">{c.text}</span>
-            <form action={remove}><input type="hidden" name="id" value={c.id} /><button className="btn btn-ghost text-xs" type="submit">×</button></form>
+            <form action={remove}><input type="hidden" name="id" value={c.id} /><button className="btn btn-ghost text-sm text-muted" type="submit" aria-label={`Remove card: ${c.text}`}>Remove</button></form>
           </div>
         ))}
       </section>
