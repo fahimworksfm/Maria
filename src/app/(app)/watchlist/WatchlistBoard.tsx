@@ -1,5 +1,6 @@
 "use client";
 
+import { sideClass, sideName, sideOf } from "@/lib/authorship";
 import { useEffect, useState } from "react";
 import { useCollection } from "@/lib/useCollection";
 import UndoToast from "@/components/UndoToast";
@@ -25,6 +26,7 @@ export type WatchItem = {
   year: number | null;
   overview: string | null;
   created_at: string;
+  author_id?: string | null;
 };
 
 // Unwatched first (watched_at null), then newest created first.
@@ -33,8 +35,11 @@ const sortWatch = (a: WatchItem, b: WatchItem) =>
   (a.created_at < b.created_at ? 1 : -1);
 
 export default function WatchlistBoard({
-  initial, coupleId, tmdbOn,
-}: { initial: WatchItem[]; coupleId: string; tmdbOn: boolean }) {
+  initial, coupleId, tmdbOn, meId, partnerName,
+}: { initial: WatchItem[]; coupleId: string; tmdbOn: boolean; meId: string; partnerName: string }) {
+  // Whose it is decides which side it sits on; rows with no author stay neutral.
+  const side = (a: unknown) => sideOf(a, meId);
+  const who = (a: unknown) => sideName(side(a), partnerName);
   const { items, add, update, removeWithUndo, undo, dismissUndo, removed } = useCollection<WatchItem>({
     table: "watchlist",
     initial,
@@ -94,7 +99,7 @@ export default function WatchlistBoard({
     };
     setQuery(""); setResults([]); setPicking(false);
     await add(payload, {
-      ...payload, watched_at: null, rating: null, created_at: new Date().toISOString(),
+      ...payload, watched_at: null, rating: null, created_at: new Date().toISOString(), author_id: meId,
     } as Omit<WatchItem, "id">);
   }
 
@@ -119,6 +124,7 @@ export default function WatchlistBoard({
         mood_tags: moodTags,
         watched_at: null,
         rating: null,
+        author_id: meId,
         tmdb_id: null,
         poster_path: null,
         year: null,
@@ -241,12 +247,13 @@ export default function WatchlistBoard({
         <h3 className="label">Unwatched ({unwatched.length})</h3>
         {unwatched.map((r) => (
           <SwipeRow key={r.id} onDelete={() => removeWithUndo(r.id)}>
-            <div className="collection-item card px-4 py-3 flex justify-between items-start gap-3">
+            <div className={`collection-item card px-4 py-3 flex justify-between items-start gap-3 ${sideClass(side(r.author_id))}`}>
               <div className="flex gap-4 min-w-0">
                 {r.poster_path && (
                   <img src={posterUrl(r.poster_path)} alt="" width={48} height={72} loading="lazy" className="w-12 h-[72px] object-cover rounded-lg shrink-0" />
                 )}
                 <div className="min-w-0">
+                {who(r.author_id) && <div className="text-xs text-muted mb-0.5">{who(r.author_id)}</div>}
                 <div className="font-semibold leading-snug">{r.title}{r.year ? ` (${r.year})` : ""}</div>
                 <div className="flex gap-1 mt-1.5 flex-wrap">
                   {r.kind && <span className="pill">{r.kind}</span>}
@@ -289,7 +296,7 @@ export default function WatchlistBoard({
       <section className="space-y-2">
         <h3 className="label">Watched ({watched.length})</h3>
         {watched.map((r) => (
-          <div key={r.id} className="collection-item card px-4 py-3 flex justify-between items-start gap-3 opacity-80">
+          <div key={r.id} className={`collection-item card px-4 py-3 flex justify-between items-start gap-3 opacity-80 ${sideClass(side(r.author_id))}`}>
             <div className="flex gap-4 min-w-0">
               {r.poster_path && (
                 <img src={posterUrl(r.poster_path)} alt="" width={32} height={48} loading="lazy" className="w-8 h-12 object-cover rounded-lg shrink-0" />

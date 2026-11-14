@@ -1,3 +1,4 @@
+import { insertAuthored, partnerNameFor, sideClass, sideName, sideOf } from "@/lib/authorship";
 import { revalidatePath } from "next/cache";
 import { requireCoupled } from "@/lib/couple";
 import { supabaseServer } from "@/lib/supabase/server";
@@ -11,7 +12,7 @@ export default async function TravelPage({ searchParams }: { searchParams: Promi
   const supabase = await supabaseServer();
   const { data: pins } = await supabase
     .from("travel_pins")
-    .select("id, name, lat, lng, visited, visited_on, notes, created_at")
+    .select("*") // includes author_id once migration 0014 has run
     .eq("couple_id", me.coupleId)
     .order("visited", { ascending: true })
     .order("created_at", { ascending: false });
@@ -37,13 +38,13 @@ export default async function TravelPage({ searchParams }: { searchParams: Promi
     const lat = Number(formData.get("lat") || 0);
     const lng = Number(formData.get("lng") || 0);
     if (!name || !Number.isFinite(lat) || !Number.isFinite(lng)) return;
-    await supabase.from("travel_pins").insert({
+    await insertAuthored(supabase, "travel_pins", {
       couple_id: me.coupleId,
       name,
       lat,
       lng,
       notes: String(formData.get("notes") || "").trim() || null,
-    });
+    }, me.userId);
     revalidatePath("/travel");
   }
 
@@ -57,6 +58,10 @@ export default async function TravelPage({ searchParams }: { searchParams: Promi
       .eq("id", id);
     revalidatePath("/travel");
   }
+
+  const partnerName = await partnerNameFor(supabase, me.userId);
+  const side = (a: unknown) => sideOf(a, me.userId);
+  const who = (a: unknown) => sideName(side(a), partnerName);
 
   return (
     <div className="space-y-6">
@@ -88,9 +93,10 @@ export default async function TravelPage({ searchParams }: { searchParams: Promi
       <section className="space-y-2">
         <h3 className="label">Pins ({pins?.length ?? 0})</h3>
         {(pins ?? []).map((p) => (
-          <div key={p.id} className="card px-4 py-3 flex justify-between items-center gap-3">
+          <div key={p.id} className={`card px-4 py-3 flex justify-between items-center gap-3 ${sideClass(side(p.author_id))}`}>
             <span className="grid place-items-center w-10 h-10 shrink-0 rounded-full bg-panel2 text-accentInk" aria-hidden><MapPin size={17} /></span>
             <div className="min-w-0 flex-1">
+              {who(p.author_id) && <div className="text-xs text-muted mb-0.5">{who(p.author_id)}</div>}
               <div className="font-semibold">{p.name}</div>
               <div className="text-muted text-[13px]">{p.lat.toFixed(3)}, {p.lng.toFixed(3)}{p.visited && p.visited_on ? ` · visited ${p.visited_on}` : ""}</div>
               {p.notes && <p className="text-[15px] leading-snug mt-1">{p.notes}</p>}

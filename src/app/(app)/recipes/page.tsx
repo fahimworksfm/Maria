@@ -1,3 +1,4 @@
+import { insertAuthored, partnerNameFor, sideClass, sideName, sideOf } from "@/lib/authorship";
 import { revalidatePath } from "next/cache";
 import { requireCoupled } from "@/lib/couple";
 import { supabaseServer } from "@/lib/supabase/server";
@@ -9,7 +10,7 @@ export default async function RecipesPage() {
   const supabase = await supabaseServer();
   const { data: rows } = await supabase
     .from("recipes")
-    .select("id, title, ingredients, steps, source_url, cooked_count, created_at")
+    .select("*") // includes author_id once migration 0014 has run
     .eq("couple_id", me.coupleId)
     .order("created_at", { ascending: false });
 
@@ -20,13 +21,13 @@ export default async function RecipesPage() {
     const title = String(formData.get("title") || "").trim();
     if (!title) return;
     const ingRaw = String(formData.get("ingredients") || "").trim();
-    await supabase.from("recipes").insert({
+    await insertAuthored(supabase, "recipes", {
       couple_id: me.coupleId,
       title,
       ingredients: ingRaw ? ingRaw.split("\n").map((s) => s.trim()).filter(Boolean) : null,
       steps: String(formData.get("steps") || "").trim() || null,
       source_url: String(formData.get("source_url") || "").trim() || null,
-    });
+    }, me.userId);
     revalidatePath("/recipes");
   }
 
@@ -61,6 +62,10 @@ export default async function RecipesPage() {
     revalidatePath("/recipes");
   }
 
+  const partnerName = await partnerNameFor(supabase, me.userId);
+  const side = (a: unknown) => sideOf(a, me.userId);
+  const who = (a: unknown) => sideName(side(a), partnerName);
+
   return (
     <div className="space-y-6">
       <header><h1 className="h1">Recipes</h1><p className="muted">What we cook together.</p></header>
@@ -81,7 +86,8 @@ export default async function RecipesPage() {
 
       <section className="space-y-3">
         {(rows ?? []).map((r) => (
-          <article key={r.id} className="card p-4 space-y-2">
+          <article key={r.id} className={`card p-4 space-y-2 ${sideClass(side(r.author_id))}`}>
+            {who(r.author_id) && <div className="text-xs text-muted mb-0.5">{who(r.author_id)}</div>}
             <div className="flex justify-between items-center gap-3">
               <h3 className="font-bold text-lg leading-snug">{r.title}</h3>
               <form action={cookedOnce}><input type="hidden" name="id" value={r.id} /><button className="btn btn-ghost text-sm" type="submit">Cooked ×{r.cooked_count}</button></form>

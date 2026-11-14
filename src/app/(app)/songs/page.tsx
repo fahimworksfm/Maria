@@ -1,3 +1,4 @@
+import { insertAuthored, partnerNameFor, sideClass, sideName, sideOf } from "@/lib/authorship";
 import { revalidatePath } from "next/cache";
 import { requireCoupled } from "@/lib/couple";
 import { supabaseServer } from "@/lib/supabase/server";
@@ -13,7 +14,7 @@ export default async function SongsPage({ searchParams }: { searchParams: Promis
   const supabase = await supabaseServer();
   const { data: rows } = await supabase
     .from("songs")
-    .select("id, title, artist, spotify_url, why, created_at")
+    .select("*") // includes author_id once migration 0014 has run
     .eq("couple_id", me.coupleId)
     .order("created_at", { ascending: false });
 
@@ -32,13 +33,13 @@ export default async function SongsPage({ searchParams }: { searchParams: Promis
     const supabase = await supabaseServer();
     const title = String(formData.get("title") || "").trim();
     if (!title) return;
-    await supabase.from("songs").insert({
+    await insertAuthored(supabase, "songs", {
       couple_id: me.coupleId,
       title,
       artist: String(formData.get("artist") || "").trim() || null,
       spotify_url: String(formData.get("spotify_url") || "").trim() || null,
       why: String(formData.get("why") || "").trim() || null,
-    });
+    }, me.userId);
     revalidatePath("/songs");
   }
 
@@ -55,13 +56,13 @@ export default async function SongsPage({ searchParams }: { searchParams: Promis
     if (!tok?.playlistId) return;
     await addToPlaylist(tok.accessToken, tok.playlistId, uri);
     const supabase = await supabaseServer();
-    await supabase.from("songs").insert({
+    await insertAuthored(supabase, "songs", {
       couple_id: me.coupleId,
       title,
       artist: artist || null,
       spotify_url: url || null,
       why: why || null,
-    });
+    }, me.userId);
     revalidatePath("/songs");
   }
 
@@ -72,6 +73,10 @@ export default async function SongsPage({ searchParams }: { searchParams: Promis
     await supabase.from("songs").delete().eq("id", id);
     revalidatePath("/songs");
   }
+
+  const partnerName = await partnerNameFor(supabase, me.userId);
+  const side = (a: unknown) => sideOf(a, me.userId);
+  const who = (a: unknown) => sideName(side(a), partnerName);
 
   return (
     <div className="space-y-6">
@@ -121,7 +126,8 @@ export default async function SongsPage({ searchParams }: { searchParams: Promis
 
       <section className="space-y-2">
         {(rows ?? []).map((s) => (
-          <div key={s.id} className="card px-4 py-3 space-y-1">
+          <div key={s.id} className={`card px-4 py-3 space-y-1 ${sideClass(side(s.author_id))}`}>
+            {who(s.author_id) && <div className="text-xs text-muted mb-0.5">{who(s.author_id)}</div>}
             <div className="flex justify-between items-center gap-3">
               <div className="flex items-center gap-3 min-w-0">
                 <span className="grid place-items-center w-10 h-10 shrink-0 rounded-full bg-panel2 text-accentInk" aria-hidden><Music size={17} /></span>

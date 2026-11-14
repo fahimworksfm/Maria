@@ -209,6 +209,17 @@ body {
     @apply font-semibold;
     box-shadow: inset 0 0 0 2px rgb(var(--c-prim-bg));
   }
+  /* A list item pulled to its author's side. Unlike a bubble it stays a card,
+     because list rows carry controls (ticks, ratings, delete) that need a
+     neutral surface; the side, the tail corner and a tint say whose it is. */
+  .side-me {
+    @apply ml-10 rounded-br-md;
+    background: color-mix(in srgb, rgb(var(--c-prim-bg)) 9%, rgb(var(--c-panel)));
+    border-color: color-mix(in srgb, rgb(var(--c-prim-bg)) 38%, rgb(var(--c-line)));
+  }
+  .side-them {
+    @apply mr-10 rounded-bl-md;
+  }
   /* Timestamp or status under a bubble; add self-end for your own side. */
   .stamp {
     @apply text-xs text-muted px-1.5;

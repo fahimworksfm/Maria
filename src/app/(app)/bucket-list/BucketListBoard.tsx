@@ -1,5 +1,6 @@
 "use client";
 
+import { sideClass, sideName, sideOf } from "@/lib/authorship";
 import { useState } from "react";
 import { Globe, X } from "lucide-react";
 import { useCollection } from "@/lib/useCollection";
@@ -14,6 +15,7 @@ export type BucketItem = {
   target_date: string | null;
   completed_at: string | null;
   created_at: string;
+  author_id?: string | null;
 };
 
 // Open first, then newest first within each group.
@@ -21,7 +23,10 @@ const sortItems = (a: BucketItem, b: BucketItem) =>
   Number(Boolean(a.completed_at)) - Number(Boolean(b.completed_at)) ||
   (a.created_at < b.created_at ? 1 : -1);
 
-export default function BucketListBoard({ initial, coupleId }: { initial: BucketItem[]; coupleId: string }) {
+export default function BucketListBoard({ initial, coupleId, meId, partnerName }: { initial: BucketItem[]; coupleId: string; meId: string; partnerName: string }) {
+  // Whose it is decides which side it sits on; rows with no author stay neutral.
+  const side = (a: unknown) => sideOf(a, meId);
+  const who = (a: unknown) => sideName(side(a), partnerName);
   const { items, add, update, removeWithUndo, undo, dismissUndo, removed } = useCollection<BucketItem>({
     table: "bucket_items",
     initial,
@@ -46,7 +51,7 @@ export default function BucketListBoard({ initial, coupleId }: { initial: Bucket
     setTitle(""); setNotes(""); setCategory(""); setTargetDate(""); setExpanded(false);
     await add(
       { title: t, notes: n, category: c, target_date: d },
-      { title: t, notes: n, category: c, target_date: d, completed_at: null, created_at: new Date().toISOString() }
+      { title: t, notes: n, category: c, target_date: d, completed_at: null, created_at: new Date().toISOString(), author_id: meId }
     );
   }
 
@@ -85,8 +90,9 @@ export default function BucketListBoard({ initial, coupleId }: { initial: Bucket
         <h3 className="label">Open ({open.length})</h3>
         {open.map((it) => (
           <SwipeRow key={it.id} onDelete={() => removeWithUndo(it.id)}>
-            <div className="collection-item card px-4 py-3 flex items-start justify-between gap-3">
+            <div className={`collection-item card px-4 py-3 flex items-start justify-between gap-3 ${sideClass(side(it.author_id))}`}>
               <div className="min-w-0">
+                {who(it.author_id) && <div className="text-xs text-muted mb-0.5">{who(it.author_id)}</div>}
                 <div className="font-semibold">{it.title}</div>
                 {it.notes && <p className="text-muted text-[13px] mt-1">{it.notes}</p>}
                 {(it.category || it.target_date) && (
@@ -121,9 +127,10 @@ export default function BucketListBoard({ initial, coupleId }: { initial: Bucket
       <section className="space-y-2">
         <h3 className="label">Done ({done.length})</h3>
         {done.map((it) => (
-          <div key={it.id} className="collection-item card px-4 py-3 flex items-start justify-between gap-3 opacity-60">
+          <div key={it.id} className={`collection-item card px-4 py-3 flex items-start justify-between gap-3 opacity-60 ${sideClass(side(it.author_id))}`}>
             <div className="min-w-0">
-              <div className="font-semibold">{it.title}</div>
+              {who(it.author_id) && <div className="text-xs text-muted mb-0.5">{who(it.author_id)}</div>}
+                <div className="font-semibold">{it.title}</div>
               {it.notes && <p className="text-muted text-[13px] mt-1">{it.notes}</p>}
               {(it.category || it.target_date) && (
                 <div className="flex gap-1 mt-1 flex-wrap">

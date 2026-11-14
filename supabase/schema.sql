@@ -101,6 +101,7 @@ create index if not exists date_ideas_couple_idx on date_ideas(couple_id);
 create table if not exists bucket_items (
   id uuid primary key default gen_random_uuid(),
   couple_id uuid not null references couples(id) on delete cascade,
+  author_id uuid references auth.users(id) on delete set null,
   title text not null,
   notes text,
   category text,
@@ -114,6 +115,7 @@ create index if not exists bucket_couple_idx on bucket_items(couple_id, complete
 create table if not exists watchlist (
   id uuid primary key default gen_random_uuid(),
   couple_id uuid not null references couples(id) on delete cascade,
+  author_id uuid references auth.users(id) on delete set null,
   title text not null,
   kind text check (kind in ('movie','show','other')) default 'movie',
   notes text,
@@ -131,6 +133,7 @@ create table if not exists watchlist (
 create table if not exists places (
   id uuid primary key default gen_random_uuid(),
   couple_id uuid not null references couples(id) on delete cascade,
+  author_id uuid references auth.users(id) on delete set null,
   name text not null,
   kind text,
   notes text,
@@ -144,6 +147,7 @@ create table if not exists places (
 create table if not exists songs (
   id uuid primary key default gen_random_uuid(),
   couple_id uuid not null references couples(id) on delete cascade,
+  author_id uuid references auth.users(id) on delete set null,
   title text not null,
   artist text,
   spotify_url text,
@@ -154,6 +158,7 @@ create table if not exists songs (
 create table if not exists travel_pins (
   id uuid primary key default gen_random_uuid(),
   couple_id uuid not null references couples(id) on delete cascade,
+  author_id uuid references auth.users(id) on delete set null,
   name text not null,
   lat double precision not null,
   lng double precision not null,
@@ -166,6 +171,7 @@ create table if not exists travel_pins (
 create table if not exists recipes (
   id uuid primary key default gen_random_uuid(),
   couple_id uuid not null references couples(id) on delete cascade,
+  author_id uuid references auth.users(id) on delete set null,
   title text not null,
   ingredients text[],
   steps text,

@@ -1,6 +1,7 @@
 import { revalidatePath } from "next/cache";
 import { requireCoupled } from "@/lib/couple";
 import { supabaseServer } from "@/lib/supabase/server";
+import { partnerNameFor } from "@/lib/authorship";
 import { aiEnabled, chatJson } from "@/lib/groq";
 import { tmdbEnabled } from "@/lib/tmdb";
 import SubmitButton from "@/components/SubmitButton";
@@ -11,7 +12,7 @@ export default async function WatchlistPage() {
   const supabase = await supabaseServer();
   const { data: rows } = await supabase
     .from("watchlist")
-    .select("id, title, kind, notes, runtime_min, mood_tags, watched_at, rating, tmdb_id, poster_path, year, overview, created_at")
+    .select("*") // includes author_id once migration 0014 has run
     .eq("couple_id", me.coupleId)
     .order("watched_at", { ascending: false, nullsFirst: true })
     .order("created_at", { ascending: false });
@@ -50,6 +51,8 @@ export default async function WatchlistPage() {
     revalidatePath("/watchlist");
   }
 
+  const partnerName = await partnerNameFor(supabase, me.userId);
+
   return (
     <div className="space-y-6">
       <header>
@@ -68,7 +71,7 @@ export default async function WatchlistPage() {
         </SubmitButton>
       </form>
 
-      <WatchlistBoard initial={(rows ?? []) as WatchItem[]} coupleId={me.coupleId} tmdbOn={tmdbEnabled()} />
+      <WatchlistBoard initial={(rows ?? []) as WatchItem[]} coupleId={me.coupleId} meId={me.userId} partnerName={partnerName} tmdbOn={tmdbEnabled()} />
     </div>
   );
 }
