@@ -1,4 +1,4 @@
-import "@fontsource-variable/fraunces";
+import "@fontsource-variable/figtree";
 import "./globals.css";
 import type { Metadata, Viewport } from "next";
 
@@ -19,8 +19,8 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#ede7da" },
-    { media: "(prefers-color-scheme: dark)", color: "#14130f" },
+    { media: "(prefers-color-scheme: light)", color: "#f7f8fa" },
+    { media: "(prefers-color-scheme: dark)", color: "#111318" },
   ],
   width: "device-width",
   initialScale: 1,
@@ -33,7 +33,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" data-mode="light" suppressHydrationWarning>
       <head>
         {/* Resolve the palette before first paint. Without this, a dark-mode
-            viewer gets a full flash of paper on every navigation. */}
+            viewer gets a full flash of the light ground on every navigation. */}
         <script
           dangerouslySetInnerHTML={{
             __html: `(function(){try{var m=localStorage.getItem('tether:mode')||'system';var d=m==='dark'||(m==='system'&&matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.setAttribute('data-mode',d?'dark':'light')}catch(e){}})()`,
@@ -41,7 +41,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body className="min-h-screen">
-        <div className="grain" aria-hidden />
         {children}
       </body>
     </html>

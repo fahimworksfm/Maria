@@ -20,17 +20,17 @@ const config: Config = {
         accentInk: "var(--c-accent-ink)",
       },
       fontFamily: {
-        sans: ['ui-sans-serif', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'sans-serif'],
-        display: ['"Fraunces Variable"', 'Fraunces', 'ui-serif', 'Georgia', 'serif'],
+        sans: ['"Figtree Variable"', 'Figtree', 'ui-sans-serif', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'sans-serif'],
+        // Headings share the body face; weight does the work a second family used to.
+        display: ['"Figtree Variable"', 'Figtree', 'ui-sans-serif', 'system-ui', 'sans-serif'],
       },
       boxShadow: {
-        // Paper barely lifts. Just enough to separate the leading card.
         soft: "0 1px 2px rgb(0 0 0 / 0.05), 0 10px 24px -18px rgb(0 0 0 / 0.25)",
         lift: "0 2px 4px rgb(0 0 0 / 0.06), 0 18px 40px -22px rgb(0 0 0 / 0.35)",
       },
       borderRadius: {
-        xl2: "4px",
-        xl3: "8px",
+        xl2: "14px",
+        xl3: "20px",
       },
     },
   },

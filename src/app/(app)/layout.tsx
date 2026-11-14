@@ -24,15 +24,23 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   return (
     <div id="app-shell" className="min-h-screen flex flex-col" style={themeVars(theme) as React.CSSProperties}>
-      <header className="sticky top-0 z-20 bg-bg/90 backdrop-blur border-b-2 border-ink/85">
-        <div className="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Link href="/home" className="font-display text-xl">Tether</Link>
-            <PartnerPresence coupleId={me.coupleId} myUserId={me.userId} partnerName={partnerName} />
-          </div>
-          {/* "Me" and sign-out both lived here, duplicating the bottom nav's Me
-              tab and giving a once-a-year action permanent prime space. Sign-out
-              now sits at the bottom of /profile, where you go to manage yourself. */}
+      {/* The header is the top of a conversation: who it's with, and whether
+          they are here right now. */}
+      <header className="sticky top-0 z-20 bg-panel/95 backdrop-blur border-b border-line">
+        <div className="max-w-3xl mx-auto px-4 py-2.5">
+          <Link href="/home" className="flex items-center gap-3 min-h-[44px]">
+            <span
+              className="grid place-items-center w-10 h-10 shrink-0 rounded-full text-base font-bold"
+              style={{ background: "rgb(var(--c-prim-bg))", color: "rgb(var(--c-prim-fg))" }}
+              aria-hidden
+            >
+              {partnerName.trim().charAt(0).toUpperCase() || "T"}
+            </span>
+            <span className="min-w-0 flex flex-col">
+              <span className="font-bold leading-tight truncate">You &amp; {partnerName}</span>
+              <PartnerPresence coupleId={me.coupleId} myUserId={me.userId} partnerName={partnerName} />
+            </span>
+          </Link>
         </div>
       </header>
       <main className="flex-1 max-w-3xl w-full mx-auto px-4 pt-4 pb-nav">

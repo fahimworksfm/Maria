@@ -6,6 +6,7 @@ import PulseClient from "./PulseClient";
 import PulseButton from "./PulseButton";
 import LocalTime from "@/components/LocalTime";
 import RealtimeRefresh from "@/components/RealtimeRefresh";
+import { Heart } from "lucide-react";
 
 export default async function PulsePage() {
   const me = await requireCoupled();
@@ -65,8 +66,12 @@ export default async function PulsePage() {
 
   const partnerName = partner?.display_name ?? "your partner";
 
+  // Oldest first, so the newest message sits just above the composer.
+  const thread = [...(recent ?? [])].slice(0, 30).reverse();
+  const unreadIds = new Set(unread.map((n) => n.id));
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <RealtimeRefresh table="nudges" coupleId={me.coupleId} />
       <header>
         <h1 className="h1">Pulse</h1>
@@ -75,40 +80,47 @@ export default async function PulsePage() {
 
       <PulseClient publicKey={process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ?? ""} pushConfigured={pushEnabled()} />
 
-      <form action={sendPulse} className="card p-6 space-y-4 text-center">
-        <p className="muted">Send a pulse to {partnerName}.</p>
-        <PulseButton />
-        <input
-          className="input text-center"
-          name="message"
-          placeholder="Add a tiny message (optional)"
-          maxLength={60}
-        />
-        <p className="muted text-xs">Tap the heart. Their phone will buzz.</p>
-      </form>
-
-      <section className="space-y-2">
-        <h3 className="label">Recent</h3>
-        {(recent ?? []).map((n) => (
-          <div key={n.id} className="row flex justify-between items-start gap-2">
-            <div className="min-w-0">
-              <div className="text-sm">
-                {n.from_user === me.userId ? "You sent a pulse" : `${partnerName} sent a pulse`}
-                {n.from_user === me.userId && !n.read_at && <span className="pill ml-2">unread</span>}
+      <section className="thread" aria-label="Recent pulses">
+        {thread.map((n) => {
+          const mine = n.from_user === me.userId;
+          const isNew = unreadIds.has(n.id);
+          return (
+            <div key={n.id} className="contents">
+              <div className={`bubble flex items-center gap-2 ${mine ? "bubble-me" : "bubble-them"} ${isNew ? "bubble-new" : ""}`}>
+                <Heart size={15} fill="currentColor" className="shrink-0" aria-hidden />
+                <span>{n.message ?? "Pulse"}</span>
               </div>
-              {n.message && <p className="muted text-sm">{n.message}</p>}
+              <span className={`stamp ${mine ? "self-end" : ""}`}>
+                <span className="sr-only">{mine ? "You, " : `${partnerName}, `}</span>
+                <LocalTime iso={n.created_at} mode="relative" />
+                {mine && (n.read_at ? " · seen" : " · not seen yet")}
+                {isNew && " · new"}
+              </span>
             </div>
-            <span className="muted text-xs"><LocalTime iso={n.created_at} mode="relative" /></span>
-          </div>
-        ))}
-        {(recent ?? []).length === 0 && (
+          );
+        })}
+        {thread.length === 0 && (
           <div className="card p-5 text-center space-y-1">
-            <div className="text-3xl">💗</div>
-            <p className="font-display text-base">Send your first pulse.</p>
-            <p className="muted text-sm">Tap the heart above. Their phone will buzz.</p>
+            <span className="mark-box"><Heart size={20} aria-hidden /></span>
+            <p className="font-bold pt-2">Send your first pulse.</p>
+            <p className="muted">Tap the button below. Their phone will buzz.</p>
           </div>
         )}
       </section>
+
+      {/* The composer: an optional few words, and the one big send. */}
+      <form action={sendPulse} className="card p-3.5 space-y-2.5">
+        <label htmlFor="pulse-message" className="sr-only">A few words (optional)</label>
+        <input
+          id="pulse-message"
+          className="input !rounded-full"
+          name="message"
+          placeholder="Add a few words (optional)"
+          maxLength={60}
+        />
+        <PulseButton />
+        <p className="muted text-xs text-center">Goes to {partnerName}. Their phone will buzz.</p>
+      </form>
     </div>
   );
 }
