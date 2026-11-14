@@ -74,51 +74,53 @@ export default async function RepairLogPage() {
 
       <RepairFlow action={addEntry} aiEnabled={aiEnabled()} />
 
-      <section className="space-y-1">
+      <section className="space-y-2">
         <h3 className="label">Your repairs</h3>
         {entries.length === 0 ? (
           <div className="card p-5 text-center space-y-1">
             <div className="mark-box"><HeartHandshake size={22} aria-hidden /></div>
-            <p className="font-display text-base">Nothing here yet — and that&apos;s okay.</p>
-            <p className="muted text-sm">When something stings, walk through the four steps above.</p>
+            <p className="font-bold pt-2">Nothing here yet — and that&apos;s okay.</p>
+            <p className="muted">When something stings, walk through the four steps above.</p>
           </div>
         ) : (
-          <ol className="relative ml-3 border-l border-line">
-            {entries.map((e) => (
-              <li key={e.id} className="relative pl-6 pb-6">
-                <span className="absolute -left-[5px] top-1.5 w-2.5 h-2.5 rounded-full bg-accent" />
-                <div className="card p-4 space-y-3">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="muted text-xs">
-                      <LocalTime iso={e.created_at} mode="relative" /> · {e.author_id === me.userId ? "you" : partnerName}
-                    </span>
-                    {e.author_id === me.userId && (
-                      <form action={remove}>
+          <div className="thread">
+            {entries.map((e) => {
+              const mine = e.author_id === me.userId;
+              return (
+                <div key={e.id} className="contents">
+                  <article className={`bubble w-[88%] space-y-2.5 ${mine ? "bubble-me" : "bubble-them"}`}>
+                    <Line label="What set it off" value={e.trigger} />
+                    <Line label="The feeling" value={e.feeling} />
+                    <Line label="The need" value={e.need} />
+                    <Line label="One small repair" value={e.repair} strong />
+                  </article>
+                  <div className={`stamp flex items-center gap-1.5 flex-wrap mb-2 ${mine ? "self-end justify-end" : ""}`}>
+                    <span>{mine ? "You" : partnerName} · <LocalTime iso={e.created_at} mode="relative" /></span>
+                    {mine && (
+                      <form action={remove} className="inline-flex">
                         <input type="hidden" name="id" value={e.id} />
-                        <DeleteButton confirmText="Delete this repair? It can't be undone." />
+                        <DeleteButton className="underline underline-offset-2 hover:text-ink min-h-[32px] px-1" confirmText="Delete this repair? It can't be undone." />
                       </form>
                     )}
                   </div>
-                  <Line label="What set it off" value={e.trigger} />
-                  <Line label="The feeling" value={e.feeling} />
-                  <Line label="The need" value={e.need} />
-                  <Line label="One small repair" value={e.repair} accent />
                 </div>
-              </li>
-            ))}
-          </ol>
+              );
+            })}
+          </div>
         )}
       </section>
     </div>
   );
 }
 
-function Line({ label, value, accent }: { label: string; value: string | null; accent?: boolean }) {
+// Labels inherit the bubble's own text colour at reduced strength, so they stay
+// legible on both the grey and the accent bubble.
+function Line({ label, value, strong }: { label: string; value: string | null; strong?: boolean }) {
   if (!value) return null;
   return (
     <div>
-      <div className="muted text-[11px] uppercase tracking-wider">{label}</div>
-      <p className={`text-sm whitespace-pre-wrap ${accent ? "text-ink" : ""}`}>{value}</p>
+      <div className="text-[13px] font-semibold opacity-80">{label}</div>
+      <p className={`whitespace-pre-wrap ${strong ? "font-semibold" : ""}`}>{value}</p>
     </div>
   );
 }

@@ -7,7 +7,7 @@ import AmbientVideo from "@/components/AmbientVideo";
 export default function Celebration({ names }: { names: string[] }) {
   const router = useRouter();
   const [reduced, setReduced] = useState(false);
-  // The bloom is only visible in Ink, so on Paper it should not be downloaded.
+  // The bloom only shows in dark mode, so in light mode it should not be downloaded.
   const [inkMode, setInkMode] = useState(false);
 
   useEffect(() => {
@@ -37,51 +37,16 @@ export default function Celebration({ names }: { names: string[] }) {
     >
       {inkMode && <AmbientVideo src="/media/welcome-bloom.mp4" className="celebrate-bloom" loop={false} />}
 
-      <svg viewBox="0 0 512 512" aria-hidden className="cord-glow">
-        <defs>
-          <linearGradient id="cordGrad" x1="0%" y1="100%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="var(--c-accent-ink)" />
-            <stop offset="55%" stopColor="var(--c-accent-ink)" />
-            <stop offset="100%" stopColor="rgb(var(--c-ink))" />
-          </linearGradient>
-          <radialGradient id="knotA" cx="35%" cy="35%" r="70%">
-            <stop offset="0%" stopColor="var(--c-accent-ink)" />
-            <stop offset="100%" stopColor="var(--c-accent-ink)" />
-          </radialGradient>
-          <radialGradient id="knotB" cx="35%" cy="35%" r="70%">
-            <stop offset="0%" stopColor="rgb(var(--c-ink))" />
-            <stop offset="100%" stopColor="rgb(var(--c-ink))" />
-          </radialGradient>
-        </defs>
-
-        {/* the tether being drawn between two knots */}
-        <path
-          className="cord"
-          pathLength={1}
-          d="M 152 360 C 180 248, 220 220, 256 256 C 292 292, 332 264, 360 152"
-          fill="none"
-          stroke="url(#cordGrad)"
-          strokeWidth={36}
-          strokeLinecap="round"
-        />
-        {/* shine sweep */}
-        <path
-          className="shine"
-          pathLength={1}
-          d="M 152 360 C 180 248, 220 220, 256 256 C 292 292, 332 264, 360 152"
-          fill="none"
-          stroke="rgb(var(--c-surface))"
-          strokeOpacity={0.55}
-          strokeWidth={10}
-          strokeLinecap="round"
-        />
-        <circle className="knot knot-a" cx="152" cy="360" r="46" fill="url(#knotA)" />
-        <circle className="knot knot-b" cx="360" cy="152" r="46" fill="url(#knotB)" />
-      </svg>
+      {/* Two messages meeting: theirs from the left, yours from the right,
+          then the line that says the thread is open. */}
+      <div className="celebrate-thread" aria-hidden>
+        <div className="bubble bubble-them tether-left">{names[0] ?? "One of you"}</div>
+        <div className="bubble bubble-me tether-right">{names[1] ?? "The other"}</div>
+      </div>
 
       <div>
-        <h1 className="names font-display text-3xl sm:text-4xl">{label}</h1>
-        <p className="kicker muted mt-2 text-sm">You&apos;re tethered. Welcome to your space.</p>
+        <h1 className="names text-3xl sm:text-4xl font-bold tracking-[-0.02em]">{label}</h1>
+        <p className="kicker text-muted mt-2 text-[15px]">You&apos;re tethered. Welcome to your space.</p>
       </div>
     </main>
   );

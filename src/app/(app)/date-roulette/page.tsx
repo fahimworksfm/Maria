@@ -96,18 +96,18 @@ export default async function DateRoulettePage() {
       </header>
 
       {spun && (
-        <section className="card p-5 text-center space-y-2">
-          <div className="label">Tonight, maybe...</div>
+        <section className="card p-4 space-y-2">
+          <div className="label !mb-0">Tether suggests · tonight, maybe</div>
           <h2 className="h2">{spun.title}</h2>
           {spun.description && <p className="muted">{spun.description}</p>}
-          <div className="flex justify-center gap-2 pt-2">
+          <div className="flex gap-1.5 flex-wrap pt-1">
             {spun.budget && <span className="pill">{spun.budget}</span>}
             {spun.effort && <span className="pill">{spun.effort}</span>}
             {spun.weather && <span className="pill">{spun.weather}</span>}
           </div>
-          <form action={toggleDone} className="pt-3">
+          <form action={toggleDone} className="pt-2">
             <input type="hidden" name="id" value={spun.id} />
-            <button className="btn btn-primary" type="submit">We did it</button>
+            <button className="btn btn-primary w-full" type="submit">We did it</button>
           </form>
         </section>
       )}
@@ -115,20 +115,20 @@ export default async function DateRoulettePage() {
       <section className="card p-4 space-y-3">
         <h3 className="label">Generate ideas with AI</h3>
         <form action={generateIdeas} className="grid grid-cols-3 gap-2">
-          <select className="input" name="budget" defaultValue="any">
+          <select className="input" name="budget" aria-label="Budget" defaultValue="any">
             <option value="any">Any budget</option>
             <option value="free">Free</option>
             <option value="low">Low</option>
             <option value="medium">Medium</option>
             <option value="high">High</option>
           </select>
-          <select className="input" name="effort" defaultValue="any">
+          <select className="input" name="effort" aria-label="Effort" defaultValue="any">
             <option value="any">Any effort</option>
             <option value="low">Low</option>
             <option value="medium">Medium</option>
             <option value="high">High</option>
           </select>
-          <select className="input" name="weather" defaultValue="any">
+          <select className="input" name="weather" aria-label="Weather" defaultValue="any">
             <option value="any">Any weather</option>
             <option value="indoor">Indoor</option>
             <option value="outdoor">Outdoor</option>
@@ -142,12 +142,12 @@ export default async function DateRoulettePage() {
       <section className="card p-4 space-y-3">
         <h3 className="label">Add your own</h3>
         <form action={addIdea} className="space-y-2">
-          <input className="input" name="title" placeholder="Idea title" required />
-          <textarea className="input" name="description" placeholder="Details (optional)" rows={2} />
+          <input className="input" name="title" placeholder="Idea title" aria-label="Idea title" required />
+          <textarea className="input" name="description" placeholder="Details (optional)" aria-label="Details" rows={2} />
           <div className="grid grid-cols-3 gap-2">
-            <select className="input" name="budget" defaultValue=""><option value="">Budget</option><option>free</option><option>low</option><option>medium</option><option>high</option></select>
-            <select className="input" name="effort" defaultValue=""><option value="">Effort</option><option>low</option><option>medium</option><option>high</option></select>
-            <select className="input" name="weather" defaultValue=""><option value="">Weather</option><option>indoor</option><option>outdoor</option></select>
+            <select className="input" name="budget" aria-label="Budget" defaultValue=""><option value="">Budget</option><option>free</option><option>low</option><option>medium</option><option>high</option></select>
+            <select className="input" name="effort" aria-label="Effort" defaultValue=""><option value="">Effort</option><option>low</option><option>medium</option><option>high</option></select>
+            <select className="input" name="weather" aria-label="Weather" defaultValue=""><option value="">Weather</option><option>indoor</option><option>outdoor</option></select>
           </div>
           <SubmitButton className="btn w-full">Add idea</SubmitButton>
         </form>
@@ -157,11 +157,11 @@ export default async function DateRoulettePage() {
         <h3 className="label">All ideas</h3>
         <ul className="space-y-2">
           {(ideas ?? []).map((i) => (
-            <li key={i.id} className={`row flex items-start justify-between gap-3 ${i.done ? "opacity-60" : ""}`}>
+            <li key={i.id} className={`card px-4 py-3 flex items-start justify-between gap-3 ${i.done ? "opacity-60" : ""}`}>
               <div className="min-w-0">
-                <div className="font-medium truncate">{i.title}</div>
-                {i.description && <p className="muted text-xs">{i.description}</p>}
-                <div className="flex gap-1 mt-1">
+                <div className="font-semibold leading-snug">{i.title}</div>
+                {i.description && <p className="text-muted text-[13px]">{i.description}</p>}
+                <div className="flex gap-1 mt-1.5 flex-wrap">
                   {i.budget && <span className="pill">{i.budget}</span>}
                   {i.effort && <span className="pill">{i.effort}</span>}
                   {i.weather && <span className="pill">{i.weather}</span>}
@@ -170,15 +170,15 @@ export default async function DateRoulettePage() {
               </div>
               <form action={toggleDone}>
                 <input type="hidden" name="id" value={i.id} />
-                <button className="btn btn-ghost text-xs" type="submit">{i.done ? "Undo" : "Done"}</button>
+                <button className="btn btn-ghost text-sm" type="submit">{i.done ? "Undo" : "Done"}</button>
               </form>
             </li>
           ))}
           {ideas && ideas.length === 0 && (
             <div className="card p-5 text-center space-y-1">
               <div className="mark-box"><Dices size={22} aria-hidden /></div>
-              <p className="font-display text-base">Spin nothing? No fun.</p>
-              <p className="muted text-sm">Generate five with AI above, or drop your own idea in.</p>
+              <p className="font-bold text-lg pt-2">Spin nothing? No fun.</p>
+              <p className="muted">Generate five with AI above, or drop your own idea in.</p>
             </div>
           )}
         </ul>

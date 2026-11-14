@@ -17,7 +17,7 @@ export default async function WorksheetsIndex() {
         <h1 className="h1">Worksheets</h1>
         <p className="muted">A few exercises you can do together. Take them with curiosity, not certainty.</p>
       </header>
-      <div className="space-y-3">
+      <div className="card px-4">
         {WORKSHEETS.map((w) => {
           const mine = (responses ?? []).find((r) => r.worksheet_id === w.id && r.user_id === me.userId);
           const partner = (responses ?? []).find((r) => r.worksheet_id === w.id && r.user_id !== me.userId);
@@ -25,9 +25,9 @@ export default async function WorksheetsIndex() {
           const partnerStatus = partner?.completed_at ? "Done" : "Not done";
           return (
             <Link key={w.id} href={`/worksheets/${w.id}`} className="row-link">
-              <h3 className="font-medium">{w.title}</h3>
-              <p className="muted text-sm mt-1">{w.intro.split(".")[0]}.</p>
-              <div className="flex gap-2 mt-2">
+              <h3 className="font-semibold">{w.title}</h3>
+              <p className="text-muted text-[15px] leading-snug mt-0.5">{w.intro.split(".")[0]}.</p>
+              <div className="flex flex-wrap gap-2 mt-2">
                 <span className="pill">You: {meStatus}</span>
                 <span className="pill">Partner: {partnerStatus}</span>
               </div>

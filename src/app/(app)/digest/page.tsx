@@ -91,20 +91,26 @@ export default async function DigestPage({ searchParams }: { searchParams: Promi
         <p className="muted">Week of {startISO}.</p>
       </header>
 
-      <div className="grid grid-cols-3 gap-2 text-center">
-        <Stat label="Memories" value={counts.memories} />
-        <Stat label="Journal" value={counts.journal} />
-        <Stat label="Mood logs" value={counts.mood} />
-        <Stat label="Bucket done" value={counts.bucket} />
-        <Stat label="Dates done" value={counts.dates} />
-        <Stat label="Gratitudes" value={counts.gratitudes} />
-      </div>
+      <section className="card p-4 space-y-3">
+        <p className="label !mb-0">This week, counted</p>
+        <div className="grid grid-cols-3 gap-x-3 gap-y-4">
+          <Stat label="Memories" value={counts.memories} />
+          <Stat label="Journal" value={counts.journal} />
+          <Stat label="Mood logs" value={counts.mood} />
+          <Stat label="Bucket done" value={counts.bucket} />
+          <Stat label="Dates done" value={counts.dates} />
+          <Stat label="Gratitudes" value={counts.gratitudes} />
+        </div>
+      </section>
 
       {narrative ? (
         <>
-          <article className="card p-5 whitespace-pre-wrap text-sm leading-relaxed">{narrative}</article>
+          <article className="card p-4 space-y-2">
+            <p className="label !mb-0">Tether · your week</p>
+            <p className="whitespace-pre-wrap text-[15px] leading-relaxed">{narrative}</p>
+          </article>
           <form action={clear}>
-            <button className="btn btn-ghost w-full text-xs" type="submit">Regenerate</button>
+            <button className="btn btn-ghost w-full" type="submit">Regenerate</button>
           </form>
         </>
       ) : (
@@ -120,9 +126,9 @@ export default async function DigestPage({ searchParams }: { searchParams: Promi
 
 function Stat({ label, value }: { label: string; value: number }) {
   return (
-    <div className="card p-3">
-      <div className="text-xl font-display">{value}</div>
-      <div className="muted text-xs">{label}</div>
+    <div>
+      <div className="display text-[1.9rem] leading-none tabular-nums">{value}</div>
+      <div className="text-muted text-[13px] mt-1">{label}</div>
     </div>
   );
 }

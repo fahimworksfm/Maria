@@ -75,16 +75,16 @@ export default async function AnniversariesPage() {
       <header><h1 className="h1">Anniversary Compass</h1><p className="muted">Every date that matters, with the days left.</p></header>
 
       <form action={add} className="card p-4 space-y-2">
-        <input className="input" name="name" placeholder="What is it? (e.g. our first kiss)" required />
+        <input className="input" name="name" placeholder="What is it? (e.g. our first kiss)" aria-label="What is it?" required />
         <div className="grid grid-cols-2 gap-2">
-          <input className="input" name="on_date" type="date" required />
-          <select className="input" name="kind" defaultValue="anniversary">
+          <input className="input" name="on_date" type="date" aria-label="Date" required />
+          <select className="input" name="kind" aria-label="Kind" defaultValue="anniversary">
             <option value="anniversary">Anniversary</option>
             <option value="milestone">Milestone</option>
             <option value="custom">Other</option>
           </select>
         </div>
-        <label className="flex items-center gap-2 text-sm">
+        <label className="flex items-center gap-2 text-[15px] min-h-[44px]">
           <input type="checkbox" name="recurring" defaultChecked /> Repeats every year
         </label>
         <SubmitButton className="btn btn-primary w-full">Add</SubmitButton>
@@ -95,15 +95,15 @@ export default async function AnniversariesPage() {
           const d = daysUntil(r._next);
           const tone = d === 0 ? "Today" : d === 1 ? "Tomorrow" : d < 0 ? `${-d} days ago` : `${d} days`;
           return (
-            <div key={r.id} className="row flex items-center justify-between gap-3">
+            <div key={r.id} className="card px-4 py-3 flex items-center justify-between gap-3">
               <div>
-                <div className="font-medium">{r.name}</div>
-                <div className="muted text-xs">{r._next.toDateString()} · <span className="pill">{r.kind}</span></div>
+                <div className="font-semibold">{r.name}</div>
+                <div className="text-muted text-[13px] flex items-center gap-1.5 flex-wrap mt-0.5">{r._next.toDateString()} <span className="pill">{r.kind}</span></div>
               </div>
-              <div className="text-right">
-                <div className={`font-display text-2xl ${d === 0 ? "headline-gradient" : ""}`}>{tone}</div>
+              <div className="text-right shrink-0">
+                <div className={`font-bold text-xl tabular-nums ${d === 0 ? "text-accentInk" : ""}`}>{tone}</div>
                 {!r.id.startsWith("bday-") && (
-                  <form action={remove}><input type="hidden" name="id" value={r.id} /><button className="btn btn-ghost text-xs" type="submit">Delete</button></form>
+                  <form action={remove}><input type="hidden" name="id" value={r.id} /><button className="btn btn-ghost text-sm" type="submit">Delete</button></form>
                 )}
               </div>
             </div>

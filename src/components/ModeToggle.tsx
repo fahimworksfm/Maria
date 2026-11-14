@@ -56,7 +56,7 @@ export default function ModeToggle() {
   }
 
   return (
-    <div className="inline-flex border border-line rounded-xl2 overflow-hidden" role="group" aria-label="Appearance">
+    <div className="inline-flex gap-1 p-1 rounded-full bg-panel2" role="group" aria-label="Appearance">
       {OPTIONS.map(({ value, label, Icon }) => {
         const active = mode === value;
         return (
@@ -65,11 +65,11 @@ export default function ModeToggle() {
             type="button"
             onClick={() => choose(value)}
             aria-pressed={active}
-            className={`flex items-center gap-1.5 px-3 py-2 text-[11px] uppercase tracking-[0.1em] font-semibold border-r border-line last:border-r-0 transition ${
-              active ? "bg-ink text-bg" : "text-muted hover:bg-ink/5"
+            className={`flex items-center gap-1.5 min-h-[44px] px-3 rounded-full text-sm font-semibold transition ${
+              active ? "bg-panel text-ink shadow-soft" : "text-muted hover:text-ink"
             }`}
           >
-            <Icon size={13} aria-hidden />
+            <Icon size={15} aria-hidden />
             {label}
           </button>
         );

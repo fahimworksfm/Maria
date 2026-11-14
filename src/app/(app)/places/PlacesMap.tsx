@@ -61,5 +61,5 @@ export default function PlacesMap({ pins }: { pins: Pin[] }) {
     if (pins.length > 1) map.fitBounds(bounds, { padding: 48, maxZoom: 14, duration: 600 });
   }, [pins]);
 
-  return <div ref={containerRef} className="rounded-xl2 overflow-hidden border border-line" style={{ height: 220 }} />;
+  return <div ref={containerRef} className="rounded-xl3 overflow-hidden border border-line" style={{ height: 220 }} />;
 }

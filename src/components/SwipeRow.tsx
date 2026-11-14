@@ -44,7 +44,13 @@ export default function SwipeRow({
 
   return (
     <div className="relative">
-      <div className="absolute inset-0 flex items-center justify-end pr-4 rounded-xl2 bg-accent/20 text-accent text-sm pointer-events-none">
+      {/* Only painted while the row is actually being dragged, so nothing shows
+          through a row that has no background of its own. */}
+      <div
+        className="absolute inset-0 flex items-center justify-end pr-4 rounded-xl3 bg-panel2 text-ink text-sm font-semibold pointer-events-none"
+        style={{ opacity: dx < 0 ? 1 : 0 }}
+        aria-hidden
+      >
         Release to delete
       </div>
       <div

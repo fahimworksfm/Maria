@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
-import { MapPin } from "lucide-react";
+import { MapPin, X } from "lucide-react";
 import { useCollection } from "@/lib/useCollection";
 import UndoToast from "@/components/UndoToast";
 import SwipeRow from "@/components/SwipeRow";
@@ -90,32 +90,33 @@ export default function PlacesBoard({ initial, coupleId }: { initial: Place[]; c
         <input
           className="input"
           placeholder="Add a place…"
+          aria-label="Add a place"
           value={name}
           onChange={(e) => { setName(e.target.value); setCoords(null); }}
           onFocus={() => suggestions.length && setOpen(true)}
           autoComplete="off"
         />
         {open && suggestions.length > 0 && (
-          <ul className="absolute z-20 left-4 right-4 top-16 bg-panel2 border border-line rounded-lg overflow-hidden shadow-soft max-h-60 overflow-y-auto">
+          <ul className="absolute z-20 left-4 right-4 top-16 bg-panel border border-line rounded-xl2 overflow-hidden shadow-lift max-h-60 overflow-y-auto">
             {suggestions.map((s, i) => (
               <li key={i}>
-                <button type="button" onClick={() => pick(s)} className="w-full text-left px-3 py-2 hover:bg-panel text-sm border-b border-line last:border-0">
-                  <span className="font-medium">{s.name}</span>
+                <button type="button" onClick={() => pick(s)} className="w-full text-left px-3.5 py-2.5 min-h-[44px] hover:bg-panel2 text-[15px] border-b border-line last:border-0">
+                  <span className="font-semibold">{s.name}</span>
                   <span className="muted block text-xs truncate">{s.label}</span>
                 </button>
               </li>
             ))}
           </ul>
         )}
-        {coords && <p className="muted text-xs inline-flex items-center gap-1"><MapPin size={16} className="text-accent" aria-hidden /> location attached</p>}
+        {coords && <p className="text-muted text-[13px] inline-flex items-center gap-1"><MapPin size={16} className="text-accentInk" aria-hidden /> location attached</p>}
         {expanded && (
           <div className="space-y-2">
-            <input className="input" placeholder="Type (cafe, dinner, park)" value={kind} onChange={(e) => setKind(e.target.value)} />
-            <textarea className="input" placeholder="Why this one?" rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} />
+            <input className="input" placeholder="Type (cafe, dinner, park)" aria-label="Type" value={kind} onChange={(e) => setKind(e.target.value)} />
+            <textarea className="input" placeholder="Why this one?" aria-label="Why this one?" rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} />
           </div>
         )}
         <div className="flex gap-2">
-          <button type="button" className="btn text-sm" onClick={() => setExpanded((v) => !v)}>
+          <button type="button" className="btn" onClick={() => setExpanded((v) => !v)}>
             {expanded ? "Less" : "Details"}
           </button>
           <button type="submit" className="btn btn-primary flex-1" disabled={!name.trim()}>Add</button>
@@ -128,21 +129,21 @@ export default function PlacesBoard({ initial, coupleId }: { initial: Place[]; c
         <h3 className="label">Want to go ({toGo.length})</h3>
         {toGo.map((p) => (
           <SwipeRow key={p.id} onDelete={() => removeWithUndo(p.id)}>
-            <div className="collection-item row flex justify-between items-start gap-3">
+            <div className="collection-item card px-4 py-3 flex justify-between items-start gap-3">
               <div className="min-w-0">
-                <div className="font-medium leading-snug">{p.name}</div>
+                <div className="font-semibold leading-snug">{p.name}</div>
                 <div className="flex gap-1.5 mt-1.5 flex-wrap items-center">
                   {p.kind && <span className="pill">{p.kind}</span>}
                   {p.lat != null && p.lng != null && (
-                    <a className="muted text-xs underline" target="_blank" rel="noreferrer"
+                    <a className="text-accentInk text-[13px] font-semibold underline underline-offset-2" target="_blank" rel="noreferrer"
                        href={`https://www.google.com/maps/search/?api=1&query=${p.lat},${p.lng}`}>Open in Maps</a>
                   )}
                 </div>
-                {p.notes && <p className="muted text-xs mt-1.5 leading-relaxed">{p.notes}</p>}
+                {p.notes && <p className="text-muted text-[13px] mt-1.5 leading-relaxed">{p.notes}</p>}
               </div>
               <div className="flex items-center gap-1 shrink-0">
                 <select
-                  className="input text-xs py-1"
+                  className="input !w-auto text-sm"
                   aria-label="Rating"
                   defaultValue=""
                   onChange={(e) => update(p.id, { visited: true, rating: Number(e.target.value) || null } as Partial<Place>)}
@@ -150,7 +151,7 @@ export default function PlacesBoard({ initial, coupleId }: { initial: Place[]; c
                   <option value="">Been…</option>
                   {[1, 2, 3, 4, 5].map((n) => <option key={n} value={n}>{"★".repeat(n)}</option>)}
                 </select>
-                <button className="btn btn-ghost text-xs" onClick={() => removeWithUndo(p.id)} aria-label="Delete">×</button>
+                <button type="button" className="grid place-items-center w-11 h-11 shrink-0 rounded-full text-muted hover:bg-panel2 hover:text-ink transition" onClick={() => removeWithUndo(p.id)} aria-label="Delete"><X size={16} aria-hidden /></button>
               </div>
             </div>
           </SwipeRow>
@@ -161,12 +162,12 @@ export default function PlacesBoard({ initial, coupleId }: { initial: Place[]; c
       <section className="space-y-2">
         <h3 className="label">Been ({been.length})</h3>
         {been.map((p) => (
-          <div key={p.id} className="collection-item row flex justify-between items-start gap-3 opacity-90">
+          <div key={p.id} className="collection-item card px-4 py-3 flex justify-between items-start gap-3 opacity-90">
             <div className="min-w-0">
-              <div className="font-medium">{p.name} {p.rating ? `· ${"★".repeat(p.rating)}` : ""}</div>
-              {p.notes && <p className="muted text-xs mt-1 leading-relaxed">{p.notes}</p>}
+              <div className="font-semibold">{p.name} {p.rating ? `· ${"★".repeat(p.rating)}` : ""}</div>
+              {p.notes && <p className="text-muted text-[13px] mt-1 leading-relaxed">{p.notes}</p>}
             </div>
-            <button className="btn btn-ghost text-xs shrink-0" onClick={() => removeWithUndo(p.id)} aria-label="Delete">×</button>
+            <button type="button" className="grid place-items-center w-11 h-11 shrink-0 rounded-full text-muted hover:bg-panel2 hover:text-ink transition" onClick={() => removeWithUndo(p.id)} aria-label="Delete"><X size={16} aria-hidden /></button>
           </div>
         ))}
       </section>

@@ -23,13 +23,13 @@ export default function AffirmationDeck({ cards }: { cards: Card[] }) {
   const card = cards[idx];
 
   return (
-    <div className="card p-6 space-y-4 text-center">
-      <div className="muted text-xs">A card for now</div>
+    <div className="card p-5 space-y-4 text-center">
+      <p className="label !mb-0">A card for now</p>
       <div
         className="mx-auto select-none"
         style={{
           width: "100%",
-          maxWidth: 360,
+          maxWidth: 320,
           aspectRatio: "5 / 7",
           perspective: 1000,
         }}
@@ -48,8 +48,8 @@ export default function AffirmationDeck({ cards }: { cards: Card[] }) {
           <CardFace back text={card?.text ?? ""} />
         </div>
       </div>
-      <button className="btn btn-primary cta-glow" onClick={draw}>Draw another</button>
-      <div className="muted text-xs">{cards.length} cards in the deck</div>
+      <button type="button" className="btn btn-primary w-full" onClick={draw}>Draw another</button>
+      <p className="text-muted text-[13px]">{cards.length} cards in the deck</p>
     </div>
   );
 }
@@ -63,16 +63,17 @@ function CardFace({ text, back = false }: { text: string; back?: boolean }) {
         backfaceVisibility: "hidden",
         transform: back ? "rotateY(180deg)" : "rotateY(0deg)",
         borderRadius: 20,
-        background: "linear-gradient(160deg, rgba(249,115,115,0.18), rgba(168,123,255,0.18))",
-        border: "1px solid rgba(255,255,255,0.08)",
-        boxShadow: "0 20px 40px -10px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.05)",
+        // The drawn card is the one message on this screen, so it takes the
+        // accent the way your own bubbles do.
+        background: "rgb(var(--c-prim-bg))",
+        color: "rgb(var(--c-prim-fg))",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        padding: 32,
+        padding: 28,
       }}
     >
-      <p className="font-display text-2xl leading-snug">{text}</p>
+      <p className="font-bold text-2xl leading-snug tracking-[-0.01em]">{text}</p>
     </div>
   );
 }

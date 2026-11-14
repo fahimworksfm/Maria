@@ -166,58 +166,54 @@ export default async function TimelinePage() {
           <div className="mark-box">
             <Inbox size={22} aria-hidden />
           </div>
-          <p className="font-display text-lg">Your story starts here.</p>
-          <p className="muted text-sm">Add a memory, answer a prompt, or plant a gratitude — it&apos;ll all gather on this thread.</p>
+          <p className="font-bold text-lg pt-1">Your story starts here.</p>
+          <p className="muted">Add a memory, answer a prompt, or plant a gratitude — it&apos;ll all gather on this thread.</p>
         </div>
       ) : (
         groups.map((group) => (
-          <section key={group.ym} className="space-y-2">
-            <h2 className="font-display text-lg font-semibold sticky top-[57px] bg-bg py-2 z-10 border-b-2 border-ink/80 tracking-[-0.01em]">
+          <section key={group.ym} className="thread">
+            {/* The month is a day-mark in the thread, pinned while its entries scroll. */}
+            <h2 className="self-center sticky top-[72px] z-10 pill !bg-panel border border-line !text-ink !px-3 !py-1 my-1">
               {monthLabel(group.ym)}
             </h2>
-            <ol>
+            <ol className="contents">
               {group.items.map((it) => {
                 const Icon = KIND_ICON[it.kind];
-                if (it.photo) {
+
+                // Dates you set rather than things either of you wrote: a quiet
+                // centred mark, the way a thread notes an event.
+                if (it.kind === "anniversary") {
                   return (
-                    <li key={it.id}>
-                      <Link href={it.href} className="block group border-b border-line pb-4">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={it.photo}
-                          alt={it.title}
-                          className="w-full max-h-72 object-cover border border-line"
-                        />
-                        <div className="pt-3">
-                          <div className="flex items-baseline justify-between gap-2">
-                            <span className="label !mb-0 inline-flex items-center gap-1.5">
-                              <Icon size={16} className="text-accent" aria-hidden />
-                              {it.label}
-                            </span>
-                            <span className="muted text-xs shrink-0">{it.dayLabel}</span>
-                          </div>
-                          <p className="font-medium mt-1 break-words">{it.title}</p>
-                          {it.snippet && <p className="muted text-sm mt-0.5 break-words">{it.snippet}</p>}
-                        </div>
+                    <li key={it.id} className="self-center">
+                      <Link href={it.href} className="stamp inline-flex items-center gap-1.5 min-h-[44px] hover:text-ink">
+                        <Icon size={14} className="text-accentInk" aria-hidden />
+                        <span>{it.label} · <span className="text-ink font-semibold">{it.title}</span> · {it.dayLabel}</span>
                       </Link>
                     </li>
                   );
                 }
+
                 return (
-                  <li key={it.id}>
-                    <Link href={it.href} className="flex gap-3 items-start border-b border-line py-3.5 transition-colors hover:bg-panel2">
-                      <span className="text-accent leading-none mt-0.5" aria-hidden>
-                        <Icon size={20} />
-                      </span>
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-baseline justify-between gap-2">
-                          <span className="label !mb-0">{it.label}</span>
-                          <span className="muted text-xs shrink-0">{it.dayLabel}</span>
+                  <li key={it.id} className="contents">
+                    <Link
+                      href={it.href}
+                      className={`card card-hover block w-full overflow-hidden ${it.photo ? "p-1.5" : "p-3.5"}`}
+                    >
+                      {it.photo && (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={it.photo} alt={it.title} className="w-full max-h-72 object-cover rounded-2xl" />
+                      )}
+                      <div className={`flex gap-3 items-start ${it.photo ? "px-2 pt-2.5 pb-2" : ""}`}>
+                        <span className="grid place-items-center w-9 h-9 shrink-0 rounded-full bg-panel2 text-accentInk" aria-hidden>
+                          <Icon size={17} />
+                        </span>
+                        <div className="min-w-0 flex-1">
+                          <p className="font-semibold leading-snug break-words">{it.title}</p>
+                          {it.snippet && <p className="text-muted text-[15px] leading-snug mt-0.5 break-words">{it.snippet}</p>}
                         </div>
-                        <p className="font-medium mt-1 break-words">{it.title}</p>
-                        {it.snippet && <p className="muted text-sm mt-0.5 break-words">{it.snippet}</p>}
                       </div>
                     </Link>
+                    <span className="stamp mb-1.5">{it.label} · {it.dayLabel}</span>
                   </li>
                 );
               })}
