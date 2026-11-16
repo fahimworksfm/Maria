@@ -1,4 +1,5 @@
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { requireCoupled } from "@/lib/couple";
 import { supabaseServer } from "@/lib/supabase/server";
 import { THEMES, DEFAULT_THEME } from "@/lib/themes";
@@ -14,7 +15,8 @@ type Prefs = {
   allergies?: string;
 };
 
-export default async function ProfilePage() {
+export default async function ProfilePage({ searchParams }: { searchParams: Promise<{ pw?: string; pwError?: string }> }) {
+  const sp = await searchParams;
   const me = await requireCoupled();
   const supabase = await supabaseServer();
   const { data: own } = await supabase
@@ -43,6 +45,22 @@ export default async function ProfilePage() {
     .neq("user_id", me.userId)
     .limit(1)
     .maybeSingle();
+
+  // Changes the signed-in user's own password. There is no email reset flow, so
+  // this is the only self-serve way to set one.
+  async function changePassword(formData: FormData) {
+    "use server";
+    await requireCoupled();
+    const password = String(formData.get("password") || "");
+    const confirm = String(formData.get("confirm") || "");
+    const fail = (msg: string) => redirect(`/profile?pwError=${encodeURIComponent(msg)}#password`);
+    if (password.length < 8) fail("Use at least 8 characters.");
+    if (password !== confirm) fail("The two passwords don't match.");
+    const supabase = await supabaseServer();
+    const { error } = await supabase.auth.updateUser({ password });
+    if (error) fail(error.message);
+    redirect("/profile?pw=changed#password");
+  }
 
   async function save(formData: FormData) {
     "use server";
@@ -137,6 +155,24 @@ export default async function ProfilePage() {
         <Field title="Allergies / dislikes" value={theirPrefs.allergies} />
         {!partner && <p className="muted">Your partner hasn&apos;t signed up yet.</p>}
       </section>
+
+      <form id="password" action={changePassword} className="card p-4 space-y-3 scroll-mt-24">
+        <div>
+          <h3 className="label">Change password</h3>
+          <p className="muted">Sets a new password for your own account. You stay signed in on this device.</p>
+        </div>
+        <div>
+          <label className="label" htmlFor="pw-new">New password</label>
+          <input id="pw-new" className="input" name="password" type="password" autoComplete="new-password" required minLength={8} />
+        </div>
+        <div>
+          <label className="label" htmlFor="pw-confirm">Type it again</label>
+          <input id="pw-confirm" className="input" name="confirm" type="password" autoComplete="new-password" required minLength={8} />
+        </div>
+        {sp.pwError && <p className="text-accentInk text-sm font-semibold" role="alert">{sp.pwError}</p>}
+        {sp.pw === "changed" && <p className="text-sm font-semibold" role="status">Password changed.</p>}
+        <SubmitButton className="btn w-full">Change password</SubmitButton>
+      </form>
 
       <form action="/auth/signout" method="post" className="pt-2 text-center">
         <button className="btn btn-ghost text-muted" type="submit">Sign out</button>
