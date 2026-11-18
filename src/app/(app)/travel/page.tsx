@@ -1,9 +1,10 @@
-import { insertAuthored, partnerNameFor, sideClass, sideName, sideOf } from "@/lib/authorship";
+import PinSearch from "./PinSearch";
+import { ClaimForm } from "@/components/ClaimButtons";
+import { claimRow, insertAuthored, isClaimWho, partnerNameFor, sideClass, sideName, sideOf } from "@/lib/authorship";
 import { revalidatePath } from "next/cache";
 import { requireCoupled } from "@/lib/couple";
 import { supabaseServer } from "@/lib/supabase/server";
 import { aiEnabled, chat } from "@/lib/groq";
-import SubmitButton from "@/components/SubmitButton";
 import { MapPin } from "lucide-react";
 
 export default async function TravelPage({ searchParams }: { searchParams: Promise<{ plan_for?: string }> }) {
@@ -35,9 +36,12 @@ export default async function TravelPage({ searchParams }: { searchParams: Promi
     const me = await requireCoupled();
     const supabase = await supabaseServer();
     const name = String(formData.get("name") || "").trim();
-    const lat = Number(formData.get("lat") || 0);
-    const lng = Number(formData.get("lng") || 0);
-    if (!name || !Number.isFinite(lat) || !Number.isFinite(lng)) return;
+    // Blank coordinates mean nothing was picked: don't file the pin at 0,0.
+    const latRaw = String(formData.get("lat") ?? "").trim();
+    const lngRaw = String(formData.get("lng") ?? "").trim();
+    const lat = Number(latRaw);
+    const lng = Number(lngRaw);
+    if (!name || !latRaw || !lngRaw || !Number.isFinite(lat) || !Number.isFinite(lng)) return;
     await insertAuthored(supabase, "travel_pins", {
       couple_id: me.coupleId,
       name,
@@ -59,6 +63,16 @@ export default async function TravelPage({ searchParams }: { searchParams: Promi
     revalidatePath("/travel");
   }
 
+  async function claim(formData: FormData) {
+    "use server";
+    const me = await requireCoupled();
+    const who = formData.get("who");
+    if (!isClaimWho(who)) return;
+    const supabase = await supabaseServer();
+    await claimRow(supabase, "travel_pins", String(formData.get("id") || ""), who, me);
+    revalidatePath("/travel");
+  }
+
   const partnerName = await partnerNameFor(supabase, me.userId);
   const side = (a: unknown) => sideOf(a, me.userId);
   const who = (a: unknown) => sideName(side(a), partnerName);
@@ -67,16 +81,7 @@ export default async function TravelPage({ searchParams }: { searchParams: Promi
     <div className="space-y-6">
       <header><h1 className="h1">Travel</h1><p className="muted">Pins for now and someday.</p></header>
 
-      <form action={add} className="card p-4 space-y-2">
-        <input className="input" name="name" placeholder="Place name" aria-label="Place name" required />
-        <div className="grid grid-cols-2 gap-2">
-          <input className="input" name="lat" type="number" step="any" placeholder="Latitude" aria-label="Latitude" required />
-          <input className="input" name="lng" type="number" step="any" placeholder="Longitude" aria-label="Longitude" required />
-        </div>
-        <textarea className="input" name="notes" rows={2} placeholder="Why here?" aria-label="Why here?" />
-        <p className="text-muted text-[13px]">Tip: in Google/Apple Maps, long-press a place to copy its coordinates.</p>
-        <SubmitButton className="btn btn-primary w-full">Add pin</SubmitButton>
-      </form>
+      <PinSearch action={add} />
 
       <form className="card p-4 space-y-2">
         <h3 className="label">Plan a day</h3>
@@ -100,12 +105,21 @@ export default async function TravelPage({ searchParams }: { searchParams: Promi
               <div className="font-semibold">{p.name}</div>
               <div className="text-muted text-[13px]">{p.lat.toFixed(3)}, {p.lng.toFixed(3)}{p.visited && p.visited_on ? ` · visited ${p.visited_on}` : ""}</div>
               {p.notes && <p className="text-[15px] leading-snug mt-1">{p.notes}</p>}
+              {!p.author_id && <ClaimForm action={claim} id={p.id} partnerName={partnerName} />}
             </div>
             {!p.visited && (
               <form action={visit}><input type="hidden" name="id" value={p.id} /><button className="btn btn-ghost text-sm" type="submit">Been</button></form>
             )}
           </div>
         ))}
+        {pins && pins.length === 0 && (
+          <div className="card p-5 text-center space-y-1">
+            <div className="mark-box"><MapPin size={22} aria-hidden /></div>
+            <p className="font-bold text-lg pt-2">No pins yet.</p>
+            <p className="muted">Search for a place in the box at the top and tap Add pin.</p>
+            <p className="text-muted text-[13px]">For example: the city you keep saying you&apos;ll visit together.</p>
+          </div>
+        )}
       </section>
     </div>
   );

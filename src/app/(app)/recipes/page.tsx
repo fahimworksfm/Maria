@@ -1,4 +1,6 @@
-import { insertAuthored, partnerNameFor, sideClass, sideName, sideOf } from "@/lib/authorship";
+import { ClaimForm } from "@/components/ClaimButtons";
+import { ChefHat } from "lucide-react";
+import { claimRow, insertAuthored, isClaimWho, partnerNameFor, sideClass, sideName, sideOf } from "@/lib/authorship";
 import { revalidatePath } from "next/cache";
 import { requireCoupled } from "@/lib/couple";
 import { supabaseServer } from "@/lib/supabase/server";
@@ -62,6 +64,37 @@ export default async function RecipesPage() {
     revalidatePath("/recipes");
   }
 
+  async function update(formData: FormData) {
+    "use server";
+    const me = await requireCoupled();
+    const id = String(formData.get("id") || "");
+    const title = String(formData.get("title") || "").trim();
+    if (!id || !title) return;
+    const ingRaw = String(formData.get("ingredients") || "").trim();
+    const supabase = await supabaseServer();
+    await supabase
+      .from("recipes")
+      .update({
+        title,
+        ingredients: ingRaw ? ingRaw.split("\n").map((s) => s.trim()).filter(Boolean) : null,
+        steps: String(formData.get("steps") || "").trim() || null,
+        source_url: String(formData.get("source_url") || "").trim() || null,
+      })
+      .eq("id", id)
+      .eq("couple_id", me.coupleId);
+    revalidatePath("/recipes");
+  }
+
+  async function claim(formData: FormData) {
+    "use server";
+    const me = await requireCoupled();
+    const who = formData.get("who");
+    if (!isClaimWho(who)) return;
+    const supabase = await supabaseServer();
+    await claimRow(supabase, "recipes", String(formData.get("id") || ""), who, me);
+    revalidatePath("/recipes");
+  }
+
   const partnerName = await partnerNameFor(supabase, me.userId);
   const side = (a: unknown) => sideOf(a, me.userId);
   const who = (a: unknown) => sideName(side(a), partnerName);
@@ -99,9 +132,40 @@ export default async function RecipesPage() {
             )}
             {r.steps && <p className="whitespace-pre-wrap text-[15px] leading-snug">{r.steps}</p>}
             {r.source_url && <a className="text-accentInk text-[13px] font-semibold underline underline-offset-2" href={r.source_url} target="_blank" rel="noreferrer">Source</a>}
+            {!r.author_id && <ClaimForm action={claim} id={r.id} partnerName={partnerName} />}
+            <details>
+              <summary className="inline-flex items-center min-h-[44px] px-1 text-[13px] font-semibold text-muted cursor-pointer select-none hover:text-ink">Edit</summary>
+              <form action={update} className="space-y-2 pb-1">
+                <input type="hidden" name="id" value={r.id} />
+                <div>
+                  <label className="label" htmlFor={`rec-title-${r.id}`}>Recipe title</label>
+                  <input id={`rec-title-${r.id}`} className="input" name="title" defaultValue={r.title} required />
+                </div>
+                <div>
+                  <label className="label" htmlFor={`rec-ing-${r.id}`}>Ingredients, one per line</label>
+                  <textarea id={`rec-ing-${r.id}`} className="input" name="ingredients" rows={5} defaultValue={(r.ingredients ?? []).join("\n")} />
+                </div>
+                <div>
+                  <label className="label" htmlFor={`rec-steps-${r.id}`}>Steps</label>
+                  <textarea id={`rec-steps-${r.id}`} className="input" name="steps" rows={5} defaultValue={r.steps ?? ""} />
+                </div>
+                <div>
+                  <label className="label" htmlFor={`rec-src-${r.id}`}>Source URL</label>
+                  <input id={`rec-src-${r.id}`} className="input" name="source_url" defaultValue={r.source_url ?? ""} />
+                </div>
+                <SubmitButton className="btn w-full">Save changes</SubmitButton>
+              </form>
+            </details>
           </article>
         ))}
-        {rows && rows.length === 0 && <p className="muted">No recipes yet.</p>}
+        {rows && rows.length === 0 && (
+          <div className="card p-5 text-center space-y-1">
+            <div className="mark-box"><ChefHat size={22} aria-hidden /></div>
+            <p className="font-bold text-lg pt-2">No recipes yet.</p>
+            <p className="muted">Write one in the form above and tap Save, or ask Tether to suggest one from what&apos;s in the pantry.</p>
+            <p className="text-muted text-[13px]">For example: the pasta you always end up making on Sundays.</p>
+          </div>
+        )}
       </section>
     </div>
   );

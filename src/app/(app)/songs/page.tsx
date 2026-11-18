@@ -1,4 +1,5 @@
-import { insertAuthored, partnerNameFor, sideClass, sideName, sideOf } from "@/lib/authorship";
+import { ClaimForm } from "@/components/ClaimButtons";
+import { claimRow, insertAuthored, isClaimWho, partnerNameFor, sideClass, sideName, sideOf } from "@/lib/authorship";
 import { revalidatePath } from "next/cache";
 import { requireCoupled } from "@/lib/couple";
 import { supabaseServer } from "@/lib/supabase/server";
@@ -74,6 +75,36 @@ export default async function SongsPage({ searchParams }: { searchParams: Promis
     revalidatePath("/songs");
   }
 
+  async function updateSong(formData: FormData) {
+    "use server";
+    const me = await requireCoupled();
+    const id = String(formData.get("id") || "");
+    const title = String(formData.get("title") || "").trim();
+    if (!id || !title) return;
+    const supabase = await supabaseServer();
+    await supabase
+      .from("songs")
+      .update({
+        title,
+        artist: String(formData.get("artist") || "").trim() || null,
+        spotify_url: String(formData.get("spotify_url") || "").trim() || null,
+        why: String(formData.get("why") || "").trim() || null,
+      })
+      .eq("id", id)
+      .eq("couple_id", me.coupleId);
+    revalidatePath("/songs");
+  }
+
+  async function claim(formData: FormData) {
+    "use server";
+    const me = await requireCoupled();
+    const who = formData.get("who");
+    if (!isClaimWho(who)) return;
+    const supabase = await supabaseServer();
+    await claimRow(supabase, "songs", String(formData.get("id") || ""), who, me);
+    revalidatePath("/songs");
+  }
+
   const partnerName = await partnerNameFor(supabase, me.userId);
   const side = (a: unknown) => sideOf(a, me.userId);
   const who = (a: unknown) => sideName(side(a), partnerName);
@@ -142,13 +173,40 @@ export default async function SongsPage({ searchParams }: { searchParams: Promis
               </div>
             </div>
             {s.why && <p className="text-[15px] leading-snug pl-[52px]">{s.why}</p>}
+            <div className="pl-[52px]">
+              {!s.author_id && <ClaimForm action={claim} id={s.id} partnerName={partnerName} />}
+              <details>
+                <summary className="inline-flex items-center min-h-[44px] px-1 text-[13px] font-semibold text-muted cursor-pointer select-none hover:text-ink">Edit</summary>
+                <form action={updateSong} className="space-y-2 pb-1">
+                  <input type="hidden" name="id" value={s.id} />
+                  <div>
+                    <label className="label" htmlFor={`song-title-${s.id}`}>Song title</label>
+                    <input id={`song-title-${s.id}`} className="input" name="title" defaultValue={s.title} required />
+                  </div>
+                  <div>
+                    <label className="label" htmlFor={`song-artist-${s.id}`}>Artist</label>
+                    <input id={`song-artist-${s.id}`} className="input" name="artist" defaultValue={s.artist ?? ""} />
+                  </div>
+                  <div>
+                    <label className="label" htmlFor={`song-why-${s.id}`}>Why it made it in</label>
+                    <textarea id={`song-why-${s.id}`} className="input" name="why" rows={2} defaultValue={s.why ?? ""} />
+                  </div>
+                  <div>
+                    <label className="label" htmlFor={`song-url-${s.id}`}>Spotify URL</label>
+                    <input id={`song-url-${s.id}`} className="input" name="spotify_url" defaultValue={s.spotify_url ?? ""} />
+                  </div>
+                  <SubmitButton className="btn w-full">Save changes</SubmitButton>
+                </form>
+              </details>
+            </div>
           </div>
         ))}
         {rows && rows.length === 0 && (
           <div className="card p-5 text-center space-y-1">
             <div className="mark-box"><Music size={20} aria-hidden /></div>
             <p className="font-bold text-lg pt-2">No songs yet.</p>
-            <p className="muted">Add the first one, and say why it made it in.</p>
+            <p className="muted">Add the first one in the form above, and say why it made it in.</p>
+            <p className="text-muted text-[13px]">For example: the song that was playing on your first drive together.</p>
           </div>
         )}
       </section>

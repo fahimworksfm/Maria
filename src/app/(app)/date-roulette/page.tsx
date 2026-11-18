@@ -183,8 +183,9 @@ export default async function DateRoulettePage() {
           {ideas && ideas.length === 0 && (
             <div className="card p-5 text-center space-y-1">
               <div className="mark-box"><Dices size={22} aria-hidden /></div>
-              <p className="font-bold text-lg pt-2">Spin nothing? No fun.</p>
-              <p className="muted">Generate five with AI above, or drop your own idea in.</p>
+              <p className="font-bold text-lg pt-2">No date ideas yet.</p>
+              <p className="muted">Generate five with AI above, or add your own in the &ldquo;Add idea&rdquo; form above.</p>
+              <p className="text-muted text-[13px]">For example: a picnic and a film projected on the wall.</p>
             </div>
           )}
         </ul>
