@@ -79,19 +79,29 @@ Open http://localhost:3000.
 
 ## Lost password
 
-There is no in-app password reset, and Supabase's built-in email service does
-not reliably deliver to addresses outside the project's org members — so the
-dashboard's "send recovery link" will appear to work and never arrive. Set the
-password directly instead:
+There is a self-serve reset: **Forgot password?** on `/login` goes to `/forgot`,
+which emails a link; the link lands on `/auth/callback`, which signs the user
+in and sends them to `/reset` to choose a new password. Signed-in users can
+also change their password at the bottom of **Me**.
+
+The emailed link only works once Supabase is set up to send it:
+
+1. **Authentication → Emails → SMTP** — configure custom SMTP. Supabase's
+   built-in email service does not reliably deliver to addresses outside the
+   project's org members, so without this the email never arrives.
+2. **Authentication → URL Configuration** — set **Site URL** to your deployed
+   address, and add `<site>/auth/callback` to **Redirect URLs** (add
+   `http://localhost:3000/auth/callback` too for local development).
+3. Optionally set `NEXT_PUBLIC_SITE_URL` to the deployed address. If unset, the
+   link uses the host the request arrived on.
+
+Fallback, if email is not set up or the link does not arrive — set the
+password directly:
 
 ```bash
 node scripts/set-password.mjs her@email.com
 # prompts for the new password; needs SUPABASE_SERVICE_ROLE_KEY in .env.local
 ```
-
-A real self-serve reset flow needs custom SMTP configured in Supabase
-(Authentication → Emails → SMTP) plus a `/forgot` page and an `/auth/callback`
-route to consume the recovery token. None of those exist yet.
 
 ## Gift Vault
 

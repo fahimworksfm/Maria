@@ -168,8 +168,9 @@ body {
      an edge rule. */
   .card-lead {
   }
+  /* 16px text: anything smaller makes iOS zoom the page on focus. */
   .input {
-    @apply w-full bg-bg border border-line rounded-xl2 px-3.5 py-2.5 text-ink text-[15px] placeholder:text-muted focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/25 transition;
+    @apply w-full bg-bg border border-line rounded-xl2 px-3.5 py-2.5 text-ink text-base placeholder:text-muted focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/25 transition;
   }
   .btn {
     @apply inline-flex items-center justify-center whitespace-nowrap min-h-[44px] px-4 py-2.5 rounded-xl2 border border-line bg-panel text-ink text-[15px] font-semibold transition hover:bg-panel2 disabled:opacity-45 disabled:cursor-not-allowed;

@@ -5,7 +5,10 @@ import { aiEnabled, chat } from "@/lib/groq";
 import Confetti from "@/components/Confetti";
 import RealtimeRefresh from "@/components/RealtimeRefresh";
 import StreakLine from "@/components/StreakLine";
-import { Lock } from "lucide-react";
+import { Lock, NotebookPen } from "lucide-react";
+import { partnerNameFor } from "@/lib/authorship";
+import { friendlyDate, relativeDate } from "@/lib/dates";
+import { sendToUser, pushEnabled } from "@/lib/push";
 import { getTogetherStreak } from "@/lib/streak";
 
 export default async function JournalPage() {
@@ -44,7 +47,17 @@ export default async function JournalPage() {
     const body = String(formData.get("body") || "").trim();
     const promptText = String(formData.get("prompt") || "").trim();
     if (!body || !promptText) return;
-    await supabase
+    const day = new Date().toISOString().slice(0, 10);
+    // Who has answered already, so we know whether this save is a first answer
+    // (worth telling your partner about) or an edit (not).
+    const { data: before } = await supabase
+      .from("journal_entries")
+      .select("author_id")
+      .eq("couple_id", me.coupleId)
+      .eq("prompt_date", day);
+    const firstTime = !(before ?? []).some((e) => e.author_id === me.userId);
+    const partnerAnswered = (before ?? []).some((e) => e.author_id !== me.userId);
+    const { error: saveError } = await supabase
       .from("journal_entries")
       .upsert(
         {
@@ -56,8 +69,29 @@ export default async function JournalPage() {
         },
         { onConflict: "couple_id,prompt_date,author_id" }
       );
+    // Nudge your partner. The answer itself never goes in a notification, and
+    // a push failure must never get in the way of saving.
+    if (!saveError && firstTime) {
+      try {
+        if (pushEnabled()) {
+          const { data: p } = await supabase.from("profiles").select("user_id").neq("user_id", me.userId).limit(1).maybeSingle();
+          if (p?.user_id) {
+            const name = me.displayName ?? "Your partner";
+            await sendToUser(p.user_id, {
+              title: `${name} answered today's prompt`,
+              body: partnerAnswered ? "Both answers are in — tap to read them." : "Your turn — answer to reveal both.",
+              url: "/journal",
+            });
+          }
+        }
+      } catch {
+        /* notification is best-effort */
+      }
+    }
     revalidatePath("/journal");
   }
+
+  const partnerName = await partnerNameFor(supabase, me.userId);
 
   return (
     <div className="space-y-6">
@@ -71,7 +105,7 @@ export default async function JournalPage() {
       </header>
 
       <section className="thread" aria-label="Today">
-        <p className="day-mark">Today</p>
+        <p className="day-mark">Today · {friendlyDate(today)}</p>
         <div className="card p-4 space-y-2">
           <p className="label !mb-0">Tether asks you both</p>
           <h2 className="h2">{prompt}</h2>
@@ -80,18 +114,18 @@ export default async function JournalPage() {
         {/* Their side. Sealed until yours is in, so neither answer leans on the other. */}
         {partnerEntry && !myEntry && (
           <>
-            <div className="bubble bubble-them w-[70%] space-y-2" aria-label="Your partner has answered. Hidden until you answer.">
+            <div className="bubble bubble-them w-[70%] space-y-2" aria-label={`${partnerName} has answered. Hidden until you answer.`}>
               <span className="block h-2.5 rounded-full bg-ink/15" />
               <span className="block h-2.5 w-[85%] rounded-full bg-ink/15" />
               <span className="block h-2.5 w-[55%] rounded-full bg-ink/15" />
             </div>
-            <span className="stamp flex items-center gap-1.5"><Lock size={12} aria-hidden /> Partner answered · hidden until yours is in</span>
+            <span className="stamp flex items-center gap-1.5"><Lock size={12} aria-hidden /> {partnerName} answered · hidden until yours is in</span>
           </>
         )}
         {bothAnswered && (
           <>
             <div className="bubble bubble-them">{partnerEntry!.body}</div>
-            <span className="stamp">Partner</span>
+            <span className="stamp">{partnerName}</span>
           </>
         )}
 
@@ -99,7 +133,16 @@ export default async function JournalPage() {
         {myEntry && (
           <>
             <div className="bubble bubble-me">{myEntry.body}</div>
-            <span className="stamp self-end">{bothAnswered ? "You · both revealed" : "You · waiting on your partner"}</span>
+            <span className="stamp self-end">{bothAnswered ? "You · both revealed" : `You · waiting on ${partnerName}`}</span>
+            <details className="self-end w-full max-w-[85%]">
+              <summary className="stamp cursor-pointer underline underline-offset-2 hover:text-ink min-h-[44px] flex items-center justify-end">Edit my answer</summary>
+              <form action={saveEntry} className="card p-3.5 space-y-2.5 mt-1">
+                <input type="hidden" name="prompt" value={prompt} />
+                <label htmlFor="journal-edit" className="label">Your answer</label>
+                <textarea id="journal-edit" className="input" name="body" rows={4} defaultValue={myEntry.body} required />
+                <button className="btn btn-primary w-full" type="submit">Save changes</button>
+              </form>
+            </details>
           </>
         )}
       </section>
@@ -108,7 +151,7 @@ export default async function JournalPage() {
         <form action={saveEntry} className="card p-3.5 space-y-2.5">
           <input type="hidden" name="prompt" value={prompt} />
           <label htmlFor="journal-body" className="sr-only">Your answer</label>
-          <textarea id="journal-body" className="input" name="body" rows={4} placeholder="Start anywhere. Only your partner will read this." required />
+          <textarea id="journal-body" className="input" name="body" rows={4} placeholder={`Start anywhere. Only ${partnerName} will read this.`} required />
           <button className="btn btn-primary w-full" type="submit">Lock in my answer</button>
         </form>
       )}
@@ -121,19 +164,25 @@ export default async function JournalPage() {
           <div className="space-y-3">
             {Object.entries(groupByDate(history)).map(([date, entries]) => (
               <div key={date} className="thread">
-                <p className="day-mark">{date}</p>
+                <p className="day-mark">{relativeDate(date)}</p>
                 <div className="card px-4 py-3 font-semibold text-[15px] leading-snug">{entries[0]!.prompt}</div>
-                {entries.map((e, i) => (
-                  <div key={i} className={`bubble ${e.author_id === me.userId ? "bubble-me" : "bubble-them"}`}>{e.body}</div>
-                ))}
+                {entries.map((e, i) => {
+                  const mine = e.author_id === me.userId;
+                  return (
+                    <div key={i} className="contents">
+                      <div className={`bubble ${mine ? "bubble-me" : "bubble-them"}`}>{e.body}</div>
+                      <span className={`stamp ${mine ? "self-end" : ""}`}>{mine ? "You" : partnerName}</span>
+                    </div>
+                  );
+                })}
               </div>
             ))}
           </div>
         ) : (
-          <div className="card p-8 text-center space-y-3">
-            <span className="ink-art mx-auto w-32 aspect-[7/12]" style={{ ["--art" as string]: "url(/media/empty-book.png)" }} aria-hidden />
-            <p className="font-bold text-lg">Nothing written down yet.</p>
-            <p className="muted">Answer today&apos;s prompt and it starts here — one page for every day you both showed up.</p>
+          <div className="card p-6 text-center space-y-2">
+            <span className="mark-box"><NotebookPen size={20} aria-hidden /></span>
+            <p className="font-bold text-lg pt-1">No earlier days yet.</p>
+            <p className="muted">Answer today&apos;s prompt above, even in one line, like &ldquo;The coffee you left out for me.&rdquo; Each day you both answer is kept here.</p>
           </div>
         )}
       </section>

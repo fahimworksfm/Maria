@@ -7,6 +7,9 @@ import ThemePicker from "@/components/ThemePicker";
 import SoundToggle from "@/components/SoundToggle";
 import SubmitButton from "@/components/SubmitButton";
 import ModeToggle from "@/components/ModeToggle";
+import PulseClient from "../pulse/PulseClient";
+import { pushEnabled } from "@/lib/push";
+import { isTempUnit, tempUnitFor } from "@/lib/weather";
 
 type Prefs = {
   wishlist?: string;
@@ -15,13 +18,27 @@ type Prefs = {
   allergies?: string;
 };
 
+// Every write to prefs goes through here: read, merge, write. A plain helper,
+// not a server action, so it can only be reached through the actions below.
+// Callers pass the signed-in user's own id. Other features
+// keep their own keys in the same JSON, and none of them may be wiped.
+async function mergePrefs(userId: string, patch: Record<string, unknown>, extra: Record<string, unknown> = {}) {
+  const supabase = await supabaseServer();
+  const { data: prof } = await supabase.from("profiles").select("prefs").eq("user_id", userId).single();
+  const current = prof?.prefs && typeof prof.prefs === "object" && !Array.isArray(prof.prefs) ? (prof.prefs as Record<string, unknown>) : {};
+  await supabase
+    .from("profiles")
+    .update({ ...extra, prefs: { ...current, ...patch }, updated_at: new Date().toISOString() })
+    .eq("user_id", userId);
+}
+
 export default async function ProfilePage({ searchParams }: { searchParams: Promise<{ pw?: string; pwError?: string }> }) {
   const sp = await searchParams;
   const me = await requireCoupled();
   const supabase = await supabaseServer();
   const { data: own } = await supabase
     .from("profiles")
-    .select("display_name, birthday, prefs")
+    .select("display_name, birthday, prefs, timezone")
     .eq("user_id", me.userId)
     .single();
   const { data: couple } = await supabase
@@ -62,37 +79,38 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
     redirect("/profile?pw=changed#password");
   }
 
+  async function setTempUnit(formData: FormData) {
+    "use server";
+    const me = await requireCoupled();
+    const unit = formData.get("unit");
+    if (!isTempUnit(unit)) return;
+    await mergePrefs(me.userId, { tempUnit: unit });
+    revalidatePath("/profile");
+    revalidatePath("/together");
+  }
+
   async function save(formData: FormData) {
     "use server";
     const me = await requireCoupled();
-    const supabase = await supabaseServer();
-    // Merge into existing prefs so we don't clobber other keys (e.g. mood_signal).
-    const { data: prof } = await supabase
-      .from("profiles")
-      .select("prefs")
-      .eq("user_id", me.userId)
-      .single();
-    const prefs = {
-      ...((prof?.prefs as Record<string, unknown>) ?? {}),
-      wishlist: String(formData.get("wishlist") || "").trim(),
-      sizes: String(formData.get("sizes") || "").trim(),
-      favorites: String(formData.get("favorites") || "").trim(),
-      allergies: String(formData.get("allergies") || "").trim(),
-    };
-    await supabase
-      .from("profiles")
-      .update({
+    await mergePrefs(
+      me.userId,
+      {
+        wishlist: String(formData.get("wishlist") || "").trim(),
+        sizes: String(formData.get("sizes") || "").trim(),
+        favorites: String(formData.get("favorites") || "").trim(),
+        allergies: String(formData.get("allergies") || "").trim(),
+      },
+      {
         display_name: String(formData.get("display_name") || "").trim() || null,
         birthday: String(formData.get("birthday") || "") || null,
-        prefs,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("user_id", me.userId);
+      }
+    );
     revalidatePath("/profile");
   }
 
   const myPrefs = (own?.prefs ?? {}) as Prefs;
   const theirPrefs = (partner?.prefs ?? {}) as Prefs;
+  const tempUnit = tempUnitFor(own?.prefs, own?.timezone);
 
   return (
     <div className="space-y-6">
@@ -117,6 +135,31 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
         <div className="row !py-3">
           <SoundToggle />
         </div>
+        <form action={setTempUnit} className="row flex items-center justify-between gap-3 !py-3">
+          <span className="text-[15px] font-semibold" id="temp-unit-label">Temperature</span>
+          <span className="flex gap-1.5" role="group" aria-labelledby="temp-unit-label">
+            {(["C", "F"] as const).map((u) => (
+              <button
+                key={u}
+                type="submit"
+                name="unit"
+                value={u}
+                aria-pressed={tempUnit === u}
+                className={`btn min-w-[52px] ${tempUnit === u ? "btn-primary" : ""}`}
+              >
+                °{u}
+              </button>
+            ))}
+          </span>
+        </form>
+      </section>
+
+      <section id="notifications" className="space-y-2 scroll-mt-24">
+        <div>
+          <h3 className="label">Notifications</h3>
+          <p className="text-muted text-[13px]">Lets a pulse or an answered prompt reach this device. Set it on each phone you use.</p>
+        </div>
+        <PulseClient publicKey={process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ?? ""} pushConfigured={pushEnabled()} />
       </section>
 
       <form action={save} className="card p-4 space-y-3">

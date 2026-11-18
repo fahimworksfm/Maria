@@ -1,5 +1,6 @@
 // Current conditions from Open-Meteo (open-meteo.com) — no API key, free for
-// non-commercial use. Fahrenheit to match the miles used elsewhere in Together.
+// non-commercial use. Fetched in Fahrenheit; shown in whichever unit the viewer
+// prefers (see formatTemp).
 
 export type Weather = {
   tempF: number;
@@ -54,4 +55,26 @@ export async function fetchWeather(lat: number | null, lng: number | null): Prom
   } catch {
     return null;
   }
+}
+
+export type TempUnit = "F" | "C";
+
+export function isTempUnit(v: unknown): v is TempUnit {
+  return v === "F" || v === "C";
+}
+
+/** The unit to use when someone has not chosen: Fahrenheit in the Americas' zones, Celsius elsewhere. */
+export function defaultTempUnit(timezone: string | null | undefined): TempUnit {
+  return timezone && timezone.startsWith("America/") ? "F" : "C";
+}
+
+/** A viewer's unit: their saved choice, else the default for their timezone. */
+export function tempUnitFor(prefs: unknown, timezone: string | null | undefined): TempUnit {
+  const saved = prefs && typeof prefs === "object" ? (prefs as { tempUnit?: unknown }).tempUnit : undefined;
+  return isTempUnit(saved) ? saved : defaultTempUnit(timezone);
+}
+
+/** A Fahrenheit reading as a whole number in the given unit. */
+export function tempIn(tempF: number, unit: TempUnit): number {
+  return unit === "C" ? Math.round(((tempF - 32) * 5) / 9) : Math.round(tempF);
 }

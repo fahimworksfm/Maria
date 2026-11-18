@@ -48,3 +48,55 @@ export async function partnerNameFor(supabase: SupabaseClient, myUserId: string)
   const { data } = await supabase.from("profiles").select("display_name").neq("user_id", myUserId).limit(1).maybeSingle();
   return data?.display_name ?? "Partner";
 }
+
+// ---------------------------------------------------------------------------
+// Claiming rows that predate the author column
+// ---------------------------------------------------------------------------
+
+/** Tables whose author-less rows either partner may claim. */
+export const CLAIMABLE = new Set(["bucket_items", "watchlist", "places", "songs", "travel_pins", "recipes", "anniversaries"]);
+
+export type ClaimWho = "me" | "partner";
+
+export function isClaimWho(v: unknown): v is ClaimWho {
+  return v === "me" || v === "partner";
+}
+
+/**
+ * Say whose an author-less row is. The caller only ever says "me" or
+ * "partner"; the user id is resolved here, never taken from the client. The
+ * write is limited to rows in this couple that have no author yet, so a claim
+ * can never overwrite who actually added something. Returns the updated row,
+ * or null when nothing was claimed (already claimed, not yours, or the column
+ * isn't there yet) — callers treat that as a quiet no-op.
+ */
+export async function claimRow(
+  supabase: SupabaseClient,
+  table: string,
+  id: string,
+  who: ClaimWho,
+  me: { userId: string; coupleId: string },
+): Promise<Row | null> {
+  if (!CLAIMABLE.has(table) || !id) return null;
+  let authorId = me.userId;
+  if (who === "partner") {
+    const { data: partner } = await supabase
+      .from("profiles")
+      .select("user_id")
+      .eq("couple_id", me.coupleId)
+      .neq("user_id", me.userId)
+      .limit(1)
+      .maybeSingle();
+    if (!partner?.user_id) return null;
+    authorId = partner.user_id as string;
+  }
+  const { data, error } = await supabase
+    .from(table)
+    .update({ author_id: authorId })
+    .eq("id", id)
+    .eq("couple_id", me.coupleId)
+    .is("author_id", null)
+    .select();
+  if (error || !data || data.length === 0) return null;
+  return data[0] as Row;
+}

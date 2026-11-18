@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { requireCoupled } from "@/lib/couple";
 import { supabaseServer } from "@/lib/supabase/server";
 import { collectionConfig } from "@/lib/collections";
-import { insertAuthored } from "@/lib/authorship";
+import { claimRow, insertAuthored, isClaimWho } from "@/lib/authorship";
 
 export const dynamic = "force-dynamic";
 
@@ -40,7 +40,19 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ ta
   if (!cfg?.updatable) return NextResponse.json({ error: "Not updatable" }, { status: 400 });
 
   const me = await requireCoupled();
-  const body = (await req.json().catch(() => null)) as { id?: string; fields?: Record<string, unknown> } | null;
+  const body = (await req.json().catch(() => null)) as { id?: string; fields?: Record<string, unknown>; claim?: unknown } | null;
+
+  // Claiming an author-less row. The client only says "me" or "partner"; the
+  // id is resolved server-side and the write only lands on an unclaimed row.
+  if (body?.claim !== undefined) {
+    if (!body.id || !isClaimWho(body.claim) || !cfg.setAuthor || cfg.scope !== "couple") {
+      return NextResponse.json({ error: "Bad claim" }, { status: 400 });
+    }
+    const supabase = await supabaseServer();
+    const row = await claimRow(supabase, table, body.id, body.claim, me);
+    if (!row) return NextResponse.json({ error: "Nothing to claim" }, { status: 409 });
+    return NextResponse.json({ row });
+  }
   if (!body?.id || !body.fields) return NextResponse.json({ error: "Missing id/fields" }, { status: 400 });
 
   const fields: Record<string, unknown> = {};

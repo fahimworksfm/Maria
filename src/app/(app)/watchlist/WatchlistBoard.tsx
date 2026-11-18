@@ -1,12 +1,13 @@
 "use client";
 
+import { ClaimButtons } from "@/components/ClaimButtons";
 import { sideClass, sideName, sideOf } from "@/lib/authorship";
 import { useEffect, useState } from "react";
 import { useCollection } from "@/lib/useCollection";
 import UndoToast from "@/components/UndoToast";
 import SwipeRow from "@/components/SwipeRow";
 import type { TmdbResult, WatchKind } from "@/lib/tmdb";
-import { X } from "lucide-react";
+import { Clapperboard, X } from "lucide-react";
 
 // Built here rather than imported so the server-only tmdb module (and its key
 // handling) never gets pulled into the client bundle.
@@ -40,7 +41,7 @@ export default function WatchlistBoard({
   // Whose it is decides which side it sits on; rows with no author stay neutral.
   const side = (a: unknown) => sideOf(a, meId);
   const who = (a: unknown) => sideName(side(a), partnerName);
-  const { items, add, update, removeWithUndo, undo, dismissUndo, removed } = useCollection<WatchItem>({
+  const { items, add, update, claim, removeWithUndo, undo, dismissUndo, removed } = useCollection<WatchItem>({
     table: "watchlist",
     initial,
     coupleId,
@@ -262,6 +263,9 @@ export default function WatchlistBoard({
                 </div>
                 {r.notes && <p className="text-muted text-[13px] mt-1.5 leading-relaxed">{r.notes}</p>}
                 {!r.notes && r.overview && <p className="text-muted text-[13px] mt-1.5 leading-relaxed line-clamp-2">{r.overview}</p>}
+                {!r.author_id && !String(r.id).startsWith("temp-") && (
+                  <ClaimButtons partnerName={partnerName} onClaim={(w) => claim(r.id, w, w === "me" ? meId : "partner")} />
+                )}
                 </div>
               </div>
               <div className="flex items-center gap-1 shrink-0">
@@ -285,10 +289,11 @@ export default function WatchlistBoard({
           </SwipeRow>
         ))}
         {unwatched.length === 0 && (
-          <div className="card p-8 text-center space-y-3">
-            <span className="ink-art mx-auto w-32 aspect-[7/12]" style={{ ["--art" as string]: "url(/media/empty-chair.png)" }} aria-hidden />
-            <p className="font-bold text-lg">Nothing queued yet.</p>
-            <p className="muted">Search for something above, or add it by hand. Saturday will come around either way.</p>
+          <div className="card p-5 text-center space-y-1">
+            <div className="mark-box"><Clapperboard size={22} aria-hidden /></div>
+            <p className="font-bold text-lg pt-2">Nothing queued yet.</p>
+            <p className="muted">{tmdbOn ? "Search for a title above, or add one by hand in the form above." : "Add a title in the form above."}</p>
+            <p className="text-muted text-[13px]">For example: the film you keep saying you&apos;ll watch together.</p>
           </div>
         )}
       </section>
@@ -304,6 +309,7 @@ export default function WatchlistBoard({
               <div className="min-w-0">
               <div className="font-semibold">{r.title} {r.rating ? `· ${"★".repeat(r.rating)}` : ""}</div>
               {r.notes && <p className="text-muted text-[13px] mt-1 leading-relaxed">{r.notes}</p>}
+              {!r.author_id && <ClaimButtons partnerName={partnerName} onClaim={(w) => claim(r.id, w, w === "me" ? meId : "partner")} />}
               </div>
             </div>
             <button type="button" className="grid place-items-center w-11 h-11 shrink-0 rounded-full text-muted hover:bg-panel2 hover:text-ink transition" onClick={() => removeWithUndo(r.id)} aria-label="Delete"><X size={16} aria-hidden /></button>

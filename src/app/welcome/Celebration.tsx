@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import AmbientVideo from "@/components/AmbientVideo";
 
 export default function Celebration({ names }: { names: string[] }) {
@@ -21,8 +22,9 @@ export default function Celebration({ names }: { names: string[] }) {
     setInkMode(document.documentElement.getAttribute("data-mode") === "dark");
     // 4.2s rather than 3s: the bloom runs 4.01s and its tail — settling back to
     // dark — is what makes the moment land instead of cutting. Reduced motion
-    // plays no video and keeps the short advance. A tap still skips either way.
-    const t = setTimeout(() => router.replace("/home"), reducedNow ? 1400 : 4200);
+    // plays no video. The advance now waits well past that, so there is time to
+    // choose "Turn on notifications"; a tap anywhere still skips.
+    const t = setTimeout(() => router.replace("/home"), reducedNow ? 6000 : 8000);
     return () => clearTimeout(t);
   }, [router]);
 
@@ -32,8 +34,6 @@ export default function Celebration({ names }: { names: string[] }) {
     <main
       className={`celebrate ${reduced ? "reduced" : ""}`}
       onClick={() => router.replace("/home")}
-      role="button"
-      aria-label="Continue to your space"
     >
       {inkMode && <AmbientVideo src="/media/welcome-bloom.mp4" className="celebrate-bloom" loop={false} />}
 
@@ -47,6 +47,12 @@ export default function Celebration({ names }: { names: string[] }) {
       <div>
         <h1 className="names text-3xl sm:text-4xl font-bold tracking-[-0.02em]">{label}</h1>
         <p className="kicker text-muted mt-2 text-[15px]">You&apos;re tethered. Welcome to your space.</p>
+        {/* Tapping anywhere continues; these two are the same choices for
+            keyboards and screen readers, plus the one setup step worth doing first. */}
+        <div className="kicker mt-5 flex flex-col items-center gap-1" onClick={(e) => e.stopPropagation()}>
+          <Link href="/profile#notifications" className="btn btn-primary">Turn on notifications</Link>
+          <button type="button" className="btn btn-ghost text-muted" onClick={() => router.replace("/home")}>Continue to your space</button>
+        </div>
       </div>
     </main>
   );
