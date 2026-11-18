@@ -270,10 +270,12 @@ body {
   .collection-item { animation: collEnter 0.35s ease both; }
   .toast-in { animation: toastIn 0.25s ease both; }
   /* Gentle per-route settle. */
-  .page-enter { animation: pageEnter 0.42s cubic-bezier(0.25, 0.6, 0.3, 1) both; }
+  /* Short on purpose: the screen has already waited for its data, so a long
+     fade only adds to the delay you feel. */
+  .page-enter { animation: pageEnter 0.18s ease-out both; }
 }
 @keyframes pageEnter {
-  from { opacity: 0; transform: translateY(8px); }
+  from { opacity: 0; transform: translateY(4px); }
   to { opacity: 1; transform: none; }
 }
 
@@ -417,4 +419,17 @@ input[type="search"]::-webkit-search-decoration {
 .row + .row,
 .row-link + .row-link {
   margin-top: 0 !important;
+}
+
+/* Navigation progress bar (NavProgress). It eases most of the way across and
+   waits there until the next screen arrives, then fades out. With reduced
+   motion it simply appears full width. */
+.nav-progress-bar { width: 0; }
+.nav-progress-bar.is-running { width: 85%; }
+@media (prefers-reduced-motion: no-preference) {
+  .nav-progress-bar.is-running { animation: navProgress 2.4s cubic-bezier(0.1, 0.6, 0.2, 1) both; }
+}
+@keyframes navProgress {
+  from { width: 8%; }
+  to { width: 85%; }
 }

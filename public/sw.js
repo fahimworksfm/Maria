@@ -5,7 +5,8 @@
 // HTML like "/". Only GET is touched — POST (server actions, writes) always
 // hits the network.
 
-const CACHE = "tether-v7";
+// v8: stop caching page-data (RSC) requests; bumping the name clears them.
+const CACHE = "tether-v8";
 // Static, non-redirecting assets only. NOT "/", which redirects when signed in.
 const SHELL = ["/manifest.webmanifest", "/icon.svg"];
 
@@ -69,6 +70,10 @@ self.addEventListener("fetch", (event) => {
   // back a cached whole-file 200 in answer to a Range request is exactly what
   // Safari refuses — playback stalls with no error worth reading.
   if (/\.(mp4|webm|mov|m4v|ogg|oga|mp3|wav)$/i.test(url.pathname)) return;
+  // Page data for in-app navigation (a tab tap, a prefetch). It is per-user and
+  // changes constantly; serving a cached copy showed stale screens and made taps
+  // look like they did nothing. Always straight to the network.
+  if (url.searchParams.has("_rsc") || req.headers.get("RSC") === "1" || req.headers.get("Next-Router-Prefetch")) return;
 
   if (req.mode === "navigate") {
     event.respondWith(handleNavigation(req));

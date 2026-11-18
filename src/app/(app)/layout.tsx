@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { Suspense } from "react";
+import NavProgress from "@/components/NavProgress";
 import { requireMe } from "@/lib/couple";
 import { redirect } from "next/navigation";
 import { supabaseServer } from "@/lib/supabase/server";
@@ -51,6 +53,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         <span>·</span>
         <Link href="/privacy" className="hover:text-ink">Privacy</Link>
       </footer>
+      <Suspense fallback={null}>
+        <NavProgress />
+      </Suspense>
       <BottomNav />
       <PWAInstaller />
       <PushRegistration vapidKey={process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ?? ""} />
