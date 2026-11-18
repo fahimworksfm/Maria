@@ -1,5 +1,6 @@
 "use client";
 
+import { ClaimButtons } from "@/components/ClaimButtons";
 import { sideClass, sideName, sideOf } from "@/lib/authorship";
 import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
@@ -32,7 +33,7 @@ export default function PlacesBoard({ initial, coupleId, meId, partnerName }: { 
   // Whose it is decides which side it sits on; rows with no author stay neutral.
   const side = (a: unknown) => sideOf(a, meId);
   const who = (a: unknown) => sideName(side(a), partnerName);
-  const { items, add, update, removeWithUndo, undo, dismissUndo, removed } = useCollection<Place>({
+  const { items, add, update, claim, removeWithUndo, undo, dismissUndo, removed } = useCollection<Place>({
     table: "places",
     initial,
     coupleId,
@@ -146,6 +147,9 @@ export default function PlacesBoard({ initial, coupleId, meId, partnerName }: { 
                   )}
                 </div>
                 {p.notes && <p className="text-muted text-[13px] mt-1.5 leading-relaxed">{p.notes}</p>}
+                {!p.author_id && !String(p.id).startsWith("temp-") && (
+                  <ClaimButtons partnerName={partnerName} onClaim={(w) => claim(p.id, w, w === "me" ? meId : "partner")} />
+                )}
               </div>
               <div className="flex items-center gap-1 shrink-0">
                 <select
@@ -162,7 +166,15 @@ export default function PlacesBoard({ initial, coupleId, meId, partnerName }: { 
             </div>
           </SwipeRow>
         ))}
-        {toGo.length === 0 && <p className="muted">Nothing on the list yet — add one above.</p>}
+        {toGo.length === 0 && been.length === 0 && (
+          <div className="card p-5 text-center space-y-1">
+            <div className="mark-box"><MapPin size={22} aria-hidden /></div>
+            <p className="font-bold text-lg pt-2">Nowhere saved yet.</p>
+            <p className="muted">Search for a spot in the box above and tap Add. It lands on the map too.</p>
+            <p className="text-muted text-[13px]">For example: the ramen place one of you keeps mentioning.</p>
+          </div>
+        )}
+        {toGo.length === 0 && been.length > 0 && <p className="muted">You&apos;ve been everywhere on the list. Add the next one above.</p>}
       </section>
 
       <section className="space-y-2">

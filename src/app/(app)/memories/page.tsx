@@ -4,7 +4,8 @@ import { supabaseServer } from "@/lib/supabase/server";
 import { BUCKET, signedUrl, userScopedPath } from "@/lib/media";
 import DeleteButton from "@/components/DeleteButton";
 import SubmitButton from "@/components/SubmitButton";
-import { MapPin } from "lucide-react";
+import { Images, MapPin } from "lucide-react";
+import { relativeDate } from "@/lib/dates";
 import MemoryJarPanel from "./MemoryJarPanel";
 
 type Memory = {
@@ -80,6 +81,27 @@ export default async function MemoriesPage() {
     revalidatePath("/memories");
   }
 
+  // Edits the words around a memory (not its photo or recording). Scoped to
+  // rows you wrote, so you can never rewrite your partner's memory.
+  async function editMemory(formData: FormData) {
+    "use server";
+    const me = await requireCoupled();
+    const id = String(formData.get("id") || "");
+    if (!id) return;
+    const supabase = await supabaseServer();
+    await supabase
+      .from("memories")
+      .update({
+        title: String(formData.get("title") || "").trim() || null,
+        body: String(formData.get("body") || "").trim() || null,
+        happened_on: String(formData.get("happened_on") || "") || null,
+        location_name: String(formData.get("location_name") || "").trim() || null,
+      })
+      .eq("id", id)
+      .eq("author_id", me.userId);
+    revalidatePath("/memories");
+  }
+
   async function deleteMemory(formData: FormData) {
     "use server";
     const id = String(formData.get("id") || "");
@@ -96,23 +118,35 @@ export default async function MemoriesPage() {
         <p className="muted">Drop in a moment whenever it happens.</p>
       </header>
 
-      <form action={addMemory} className="card p-4 space-y-3" encType="multipart/form-data">
-        <input className="input" name="title" placeholder="Title (optional)" />
-        <textarea className="input" name="body" placeholder="What happened?" rows={3} />
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="label">Date</label>
-            <input className="input" name="happened_on" type="date" />
-          </div>
-          <div>
-            <label className="label">Place</label>
-            <input className="input" name="location_name" placeholder="e.g. our kitchen" />
-          </div>
-        </div>
+      {/* The composer: say it, optionally attach something, save. Everything
+          else is behind "More details" so the memories themselves come first. */}
+      <form action={addMemory} className="card p-3.5 space-y-2.5" encType="multipart/form-data">
+        <label htmlFor="memory-body" className="sr-only">What happened?</label>
+        <textarea id="memory-body" className="input" name="body" placeholder="Drop a memory…" rows={2} />
         <div>
-          <label className="label">Photo, audio or video (optional)</label>
-          <input className="input" name="media" type="file" accept="image/*,audio/*,video/*" />
+          <label className="label" htmlFor="memory-media">Photo, audio or video (optional)</label>
+          <input id="memory-media" className="input min-h-[44px]" name="media" type="file" accept="image/*,audio/*,video/*" />
         </div>
+        <details>
+          <summary className="cursor-pointer text-sm font-semibold text-accentInk min-h-[44px] inline-flex items-center">More details</summary>
+          <div className="space-y-3 pt-1">
+            <div>
+              <label className="label" htmlFor="memory-title">Title</label>
+              <input id="memory-title" className="input" name="title" placeholder="Give it a name (optional)" />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="label" htmlFor="memory-date">Date</label>
+                <input id="memory-date" className="input" name="happened_on" type="date" />
+              </div>
+              <div>
+                <label className="label" htmlFor="memory-place">Place</label>
+                <input id="memory-place" className="input" name="location_name" placeholder="e.g. our kitchen" />
+              </div>
+            </div>
+            <p className="muted text-xs">Leave the date empty and it&apos;s saved as today.</p>
+          </div>
+        </details>
         <SubmitButton className="btn btn-primary w-full">Save memory</SubmitButton>
       </form>
 
@@ -127,10 +161,10 @@ export default async function MemoriesPage() {
           newest first so the one you just dropped in is right under the form. */}
       <section className="thread" aria-label="Memories">
         {items.length === 0 && (
-          <div className="card p-8 text-center space-y-3">
-            <span className="ink-art mx-auto w-36 aspect-[7/12]" style={{ ["--art" as string]: "url(/media/empty-jar.png)" }} aria-hidden />
-            <p className="font-bold text-lg">Drop your first moment.</p>
-            <p className="muted">A photo, a voice note, a sentence — anything you&apos;d want to remember.</p>
+          <div className="card p-6 text-center space-y-2">
+            <span className="mark-box"><Images size={20} aria-hidden /></span>
+            <p className="font-bold text-lg pt-1">The jar is empty.</p>
+            <p className="muted">Type one line above and save it. For example: &ldquo;You laughed so hard at dinner you cried.&rdquo;</p>
           </div>
         )}
         {items.map((m) => {
@@ -159,7 +193,7 @@ export default async function MemoriesPage() {
               <div className={`stamp flex items-center gap-1.5 flex-wrap mb-2 ${mine ? "self-end justify-end" : ""}`}>
                 <span>{mine ? "You" : partnerName}</span>
                 <span aria-hidden>·</span>
-                <span>{when}</span>
+                <span>{relativeDate(when)}</span>
                 {m.location_name && (
                   <>
                     <span aria-hidden>·</span>
@@ -169,10 +203,37 @@ export default async function MemoriesPage() {
                 {mine && (
                   <form action={deleteMemory} className="inline-flex">
                     <input type="hidden" name="id" value={m.id} />
-                    <DeleteButton className="underline underline-offset-2 hover:text-ink min-h-[32px] px-1" confirmText="Delete this memory? It can't be undone." />
+                    <DeleteButton className="underline underline-offset-2 hover:text-ink min-h-[44px] px-1" confirmText="Delete this memory? It can't be undone." />
                   </form>
                 )}
               </div>
+              {mine && (
+                <details className="self-end w-full max-w-[85%] -mt-2 mb-2">
+                  <summary className="stamp cursor-pointer underline underline-offset-2 hover:text-ink min-h-[44px] flex items-center justify-end">Edit</summary>
+                  <form action={editMemory} className="card p-3.5 space-y-2.5 mt-1">
+                    <input type="hidden" name="id" value={m.id} />
+                    <div>
+                      <label className="label" htmlFor={`edit-title-${m.id}`}>Title</label>
+                      <input id={`edit-title-${m.id}`} className="input" name="title" defaultValue={m.title ?? ""} />
+                    </div>
+                    <div>
+                      <label className="label" htmlFor={`edit-body-${m.id}`}>What happened</label>
+                      <textarea id={`edit-body-${m.id}`} className="input" name="body" rows={3} defaultValue={m.body ?? ""} />
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="label" htmlFor={`edit-date-${m.id}`}>Date</label>
+                        <input id={`edit-date-${m.id}`} className="input" name="happened_on" type="date" defaultValue={m.happened_on ?? ""} />
+                      </div>
+                      <div>
+                        <label className="label" htmlFor={`edit-place-${m.id}`}>Place</label>
+                        <input id={`edit-place-${m.id}`} className="input" name="location_name" defaultValue={m.location_name ?? ""} />
+                      </div>
+                    </div>
+                    <SubmitButton className="btn btn-primary w-full">Save changes</SubmitButton>
+                  </form>
+                </details>
+              )}
             </div>
           );
         })}

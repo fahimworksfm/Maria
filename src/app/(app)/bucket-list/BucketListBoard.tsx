@@ -1,5 +1,6 @@
 "use client";
 
+import { ClaimButtons } from "@/components/ClaimButtons";
 import { sideClass, sideName, sideOf } from "@/lib/authorship";
 import { useState } from "react";
 import { Globe, X } from "lucide-react";
@@ -27,7 +28,7 @@ export default function BucketListBoard({ initial, coupleId, meId, partnerName }
   // Whose it is decides which side it sits on; rows with no author stay neutral.
   const side = (a: unknown) => sideOf(a, meId);
   const who = (a: unknown) => sideName(side(a), partnerName);
-  const { items, add, update, removeWithUndo, undo, dismissUndo, removed } = useCollection<BucketItem>({
+  const { items, add, update, claim, removeWithUndo, undo, dismissUndo, removed } = useCollection<BucketItem>({
     table: "bucket_items",
     initial,
     coupleId,
@@ -101,6 +102,9 @@ export default function BucketListBoard({ initial, coupleId, meId, partnerName }
                     {it.target_date && <span className="pill">by {it.target_date}</span>}
                   </div>
                 )}
+                {!it.author_id && !String(it.id).startsWith("temp-") && (
+                  <ClaimButtons partnerName={partnerName} onClaim={(w) => claim(it.id, w, w === "me" ? meId : "partner")} />
+                )}
               </div>
               <div className="flex items-center gap-1 shrink-0">
                 <button
@@ -118,7 +122,8 @@ export default function BucketListBoard({ initial, coupleId, meId, partnerName }
           <div className="card p-5 text-center space-y-1">
             <div className="mark-box"><Globe size={22} aria-hidden /></div>
             <p className="font-bold text-lg">What&apos;s the first dream?</p>
-            <p className="muted">A trip, a project, a habit, a quiet plan. Add one above.</p>
+            <p className="muted">A trip, a project, a habit, a quiet plan. Type it in the box above and tap Add.</p>
+            <p className="text-muted text-[13px]">For example: &ldquo;See the northern lights together&rdquo;.</p>
           </div>
         )}
         {open.length === 0 && done.length > 0 && <p className="muted">All caught up.</p>}

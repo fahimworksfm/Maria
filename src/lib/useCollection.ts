@@ -75,6 +75,34 @@ export function useCollection<T extends Row>(opts: Opts<T>) {
     [opts.table, resort]
   );
 
+  // Say whose an author-less row is. Only "me" / "partner" goes over the wire;
+  // `optimisticAuthorId` is just what to show until the server answers (your
+  // own id, or any placeholder for your partner).
+  const claim = useCallback(
+    async (id: string, who: "me" | "partner", optimisticAuthorId: string) => {
+      let prevSnapshot: T | undefined;
+      setItems((prev) => {
+        prevSnapshot = prev.find((i) => i.id === id);
+        return prev.map((i) => (i.id === id ? ({ ...i, author_id: optimisticAuthorId } as T) : i));
+      });
+      try {
+        const res = await fetch(`/api/collection/${opts.table}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id, claim: who }),
+        });
+        const data = (await res.json().catch(() => null)) as { row?: T } | null;
+        if (!res.ok || !data?.row) throw new Error("Claim failed");
+        setItems((prev) => resort(prev.map((i) => (i.id === id ? (data.row as T) : i))));
+        return true;
+      } catch {
+        if (prevSnapshot) setItems((prev) => prev.map((i) => (i.id === id ? (prevSnapshot as T) : i)));
+        return false;
+      }
+    },
+    [opts.table, resort]
+  );
+
   const removeWithUndo = useCallback((id: string) => {
     setItems((prev) => {
       const index = prev.findIndex((i) => i.id === id);
@@ -139,5 +167,5 @@ export function useCollection<T extends Row>(opts: Opts<T>) {
     return () => { active = false; if (channel) supabase.removeChannel(channel); };
   }, [opts.realtime, opts.coupleId, opts.table, resort]);
 
-  return { items, add, update, removeWithUndo, undo, dismissUndo, removed };
+  return { items, add, update, claim, removeWithUndo, undo, dismissUndo, removed };
 }
