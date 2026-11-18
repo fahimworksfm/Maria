@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { supabaseServer } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 
@@ -9,7 +10,9 @@ export type Me = {
   hasVaultPin: boolean;
 };
 
-export async function getMe(): Promise<Me | null> {
+// Memoised per request: the layout and the page both ask who you are, and each
+// call was a separate round trip to Supabase Auth plus a profile query.
+export const getMe = cache(async function getMe(): Promise<Me | null> {
   const supabase = await supabaseServer();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return null;
@@ -25,7 +28,7 @@ export async function getMe(): Promise<Me | null> {
     displayName: profile?.display_name ?? null,
     hasVaultPin: Boolean(profile?.vault_pin_hash),
   };
-}
+});
 
 export async function requireMe(): Promise<Me> {
   const me = await getMe();

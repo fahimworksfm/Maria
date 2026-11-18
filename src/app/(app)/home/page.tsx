@@ -26,16 +26,8 @@ export default async function Home() {
   const supabase = await supabaseServer();
   const today = new Date().toISOString().slice(0, 10);
 
-  const [
-    { count: memoriesCount },
-    { data: todaysJournal },
-    { count: bucketOpen },
-    { count: unreadPulses },
-    { data: annivs },
-    { data: partner },
-    { data: partnerSignal },
-    { data: recentPulses },
-  ] = await Promise.all([
+  // Started, not awaited: it runs alongside the second batch below.
+  const firstBatch = Promise.all([
     supabase.from("memories").select("id", { count: "exact", head: true }).eq("couple_id", me.coupleId),
     supabase.from("journal_entries").select("author_id").eq("couple_id", me.coupleId).eq("prompt_date", today),
     supabase.from("bucket_items").select("id", { count: "exact", head: true }).eq("couple_id", me.coupleId).is("completed_at", null),
@@ -61,7 +53,7 @@ export default async function Home() {
     }
   };
 
-  const [latestPairs, { data: myProfile }, { data: coupleRow }, { count: myMemories }, { count: myEntries }] = await Promise.all([
+  const secondBatch = Promise.all([
     Promise.all([
       newestFromPartner("memories", "/memories"),
       newestFromPartner("gratitudes", "/gratitude"),
@@ -82,7 +74,21 @@ export default async function Home() {
     supabase.from("couples").select("next_visit_at").eq("id", me.coupleId).maybeSingle(),
     supabase.from("memories").select("id", { count: "exact", head: true }).eq("couple_id", me.coupleId).eq("author_id", me.userId),
     supabase.from("journal_entries").select("id", { count: "exact", head: true }).eq("couple_id", me.coupleId).eq("author_id", me.userId),
+    getTogetherStreak(supabase, me.coupleId),
   ]);
+
+  const [
+    [    { count: memoriesCount },
+    { data: todaysJournal },
+    { count: bucketOpen },
+    { count: unreadPulses },
+    { data: annivs },
+    { data: partner },
+    { data: partnerSignal },
+    { data: recentPulses },
+    ],
+    [latestPairs, { data: myProfile }, { data: coupleRow }, { count: myMemories }, { count: myEntries }, streak],
+  ] = await Promise.all([firstBatch, secondBatch]);
   const latest: Record<string, string> = {};
   for (const [href, at] of latestPairs) if (at) latest[href] = at;
 
@@ -93,7 +99,6 @@ export default async function Home() {
     prompt: (myEntries ?? 0) > 0,
   };
 
-  const streak = await getTogetherStreak(supabase, me.coupleId);
   const journalAnswered = todaysJournal?.length ?? 0;
   const youAnswered = (todaysJournal ?? []).some((e) => e.author_id === me.userId);
   const partnerName = partner?.display_name ?? "your partner";
