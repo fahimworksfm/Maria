@@ -67,6 +67,9 @@ async function LoginInner({ searchParamsP }: { searchParamsP: Promise<{ redirect
         </div>
         {sp.error && <p className="text-accentInk text-sm font-semibold" role="alert">{sp.error}</p>}
         <button className="btn btn-primary w-full" type="submit">Sign in</button>
+        <p className="text-center">
+          <Link className="text-muted text-sm underline underline-offset-2 inline-flex items-center min-h-[44px] hover:text-ink" href="/forgot">Forgot password?</Link>
+        </p>
       </form>
     </AuthShell>
   );

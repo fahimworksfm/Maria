@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { requireCoupled } from "@/lib/couple";
 import { supabaseServer } from "@/lib/supabase/server";
 import { coordsForCity, zonedToUtcISO, isValidTimeZone } from "@/lib/presence";
-import { fetchWeather } from "@/lib/weather";
+import { fetchWeather, tempUnitFor } from "@/lib/weather";
 import TogetherView, { type Person } from "./TogetherView";
 
 // Best-effort geocode for any city that isn't in the seed list. The app already
@@ -37,7 +37,7 @@ export default async function TogetherPage() {
     supabase.from("couples").select("next_visit_at, next_visit_label, next_visit_traveler").eq("id", me.coupleId).single(),
     supabase
       .from("profiles")
-      .select("user_id, display_name, home_city, home_lat, home_lng, timezone, wake_hour, sleep_hour, work_start_hour, work_end_hour, last_active_at")
+      .select("user_id, display_name, home_city, home_lat, home_lng, timezone, wake_hour, sleep_hour, work_start_hour, work_end_hour, last_active_at, prefs")
       .eq("couple_id", me.coupleId),
   ]);
 
@@ -59,7 +59,8 @@ export default async function TogetherPage() {
         }
       : null;
 
-  const mine = toPerson((profiles ?? []).find((p) => p.user_id === me.userId));
+  const myRow = (profiles ?? []).find((p) => p.user_id === me.userId);
+  const mine = toPerson(myRow);
   if (!mine) redirect("/profile"); // no profile row yet — shouldn't happen past requireCoupled
   const partner = toPerson((profiles ?? []).find((p) => p.user_id !== me.userId) ?? null);
 
@@ -135,6 +136,7 @@ export default async function TogetherPage() {
           traveler: couple?.next_visit_traveler ?? null,
         }}
         weather={{ me: myWeather, partner: partnerWeather }}
+        tempUnit={tempUnitFor(myRow?.prefs, mine.timezone)}
         saveVisit={saveVisit}
         saveRhythm={saveRhythm}
       />

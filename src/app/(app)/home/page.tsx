@@ -7,6 +7,8 @@ import RealtimeRefresh from "@/components/RealtimeRefresh";
 import StreakLine from "@/components/StreakLine";
 import LocalTime from "@/components/LocalTime";
 import ModuleDirectory from "./ModuleDirectory";
+import FirstWeek from "./FirstWeek";
+import QuickPulse from "@/components/QuickPulse";
 import { getTogetherStreak } from "@/lib/streak";
 
 const MOOD_EMOJI = ["😞", "😕", "🙂", "😊", "🤩"];
@@ -44,6 +46,52 @@ export default async function Home() {
     // The last day of pulses, both ways: these are the messages in the thread.
     supabase.from("nudges").select("id, from_user, message, read_at, created_at").eq("couple_id", me.coupleId).gte("created_at", new Date(Date.now() - 86_400_000).toISOString()).order("created_at", { ascending: false }).limit(4),
   ]);
+
+  // Newest thing your partner added to each space, for the "new" dots in the
+  // directory. Each lookup stands alone: an older database without an author
+  // column on a list just yields nothing for that space.
+  const newestFromPartner = async (table: string, href: string): Promise<[string, string | null]> => {
+    try {
+      const q = supabase.from(table).select("created_at").eq("couple_id", me.coupleId);
+      const scoped = table === "nudges" ? q.eq("to_user", me.userId) : q.neq("author_id", me.userId);
+      const { data, error } = await scoped.order("created_at", { ascending: false }).limit(1).maybeSingle();
+      return [href, error ? null : ((data as { created_at?: string } | null)?.created_at ?? null)];
+    } catch {
+      return [href, null];
+    }
+  };
+
+  const [latestPairs, { data: myProfile }, { data: coupleRow }, { count: myMemories }, { count: myEntries }] = await Promise.all([
+    Promise.all([
+      newestFromPartner("memories", "/memories"),
+      newestFromPartner("gratitudes", "/gratitude"),
+      newestFromPartner("postcards", "/postcards"),
+      newestFromPartner("voice_letters", "/voice-letters"),
+      newestFromPartner("journal_entries", "/journal"),
+      newestFromPartner("date_ideas", "/date-roulette"),
+      newestFromPartner("nudges", "/pulse"),
+      newestFromPartner("bucket_items", "/bucket-list"),
+      newestFromPartner("watchlist", "/watchlist"),
+      newestFromPartner("places", "/places"),
+      newestFromPartner("songs", "/songs"),
+      newestFromPartner("travel_pins", "/travel"),
+      newestFromPartner("recipes", "/recipes"),
+    ]),
+    // What the getting-started list needs to know.
+    supabase.from("profiles").select("home_city, timezone").eq("user_id", me.userId).maybeSingle(),
+    supabase.from("couples").select("next_visit_at").eq("id", me.coupleId).maybeSingle(),
+    supabase.from("memories").select("id", { count: "exact", head: true }).eq("couple_id", me.coupleId).eq("author_id", me.userId),
+    supabase.from("journal_entries").select("id", { count: "exact", head: true }).eq("couple_id", me.coupleId).eq("author_id", me.userId),
+  ]);
+  const latest: Record<string, string> = {};
+  for (const [href, at] of latestPairs) if (at) latest[href] = at;
+
+  const firstWeek = {
+    city: Boolean(myProfile?.home_city),
+    visit: Boolean(coupleRow?.next_visit_at),
+    memory: (myMemories ?? 0) > 0,
+    prompt: (myEntries ?? 0) > 0,
+  };
 
   const streak = await getTogetherStreak(supabase, me.coupleId);
   const journalAnswered = todaysJournal?.length ?? 0;
@@ -118,14 +166,16 @@ export default async function Home() {
 
       {/* What you can send back, where a composer would sit. */}
       <nav aria-label="Quick actions" className="flex gap-2 overflow-x-auto -mx-4 px-4 pb-1">
-        <Link href="/pulse" className="chip"><HeartPulse size={15} aria-hidden /> Send a pulse</Link>
+        <QuickPulse />
         <Link href="/memories" className="chip"><Images size={15} aria-hidden /> Add a memory</Link>
         <Link href="/date-roulette" className="chip"><Dices size={15} aria-hidden /> Spin a date</Link>
       </nav>
 
+      <FirstWeek done={firstWeek} />
+
       <section className="space-y-3">
         <h2 className="h2">Spaces</h2>
-        <ModuleDirectory />
+        <ModuleDirectory latest={latest} />
       </section>
     </div>
   );

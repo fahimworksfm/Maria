@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { MapPin, Plane, Heart, Moon } from "lucide-react";
 import SubmitButton from "@/components/SubmitButton";
-import type { Weather } from "@/lib/weather";
+import { tempIn, type TempUnit, type Weather } from "@/lib/weather";
 
 // MapLibre is ~270KB gzipped, so it loads only when there is actually a globe
 // to draw — the same treatment PlacesMap gets.
@@ -46,12 +46,14 @@ const HOURS = Array.from({ length: 24 }, (_, h) => h);
 const TZS = ["America/New_York", "America/Chicago", "America/Denver", "America/Los_Angeles", "America/Phoenix", "Europe/London"];
 
 export default function TogetherView({
-  me, partner, nextVisit, weather, saveVisit, saveRhythm,
+  me, partner, nextVisit, weather, tempUnit, saveVisit, saveRhythm,
 }: {
   me: Person;
   partner: Person | null;
   nextVisit: { at: string | null; label: string | null; traveler: string | null };
   weather: { me: Weather | null; partner: Weather | null };
+  // The viewer's unit: both cards are shown in it, wherever each person lives.
+  tempUnit: TempUnit;
   saveVisit: Action;
   saveRhythm: Action;
 }) {
@@ -117,8 +119,8 @@ export default function TogetherView({
           <p className="day-mark text-center">Set both your cities below to see the distance between you.</p>
         )}
         <div className={`grid gap-2.5 ${partner ? "grid-cols-2" : "grid-cols-1"}`}>
-          {partner && <PersonCard person={partner} rhythm={rhythmOf(partner)} now={now} lastActive={activity.partner} labelOverride={partnerName} weather={weather.partner} />}
-          <PersonCard person={me} rhythm={myRhythm} now={now} lastActive={activity.me} labelOverride={myName} weather={weather.me} isMe />
+          {partner && <PersonCard person={partner} rhythm={rhythmOf(partner)} now={now} lastActive={activity.partner} labelOverride={partnerName} weather={weather.partner} tempUnit={tempUnit} />}
+          <PersonCard person={me} rhythm={myRhythm} now={now} lastActive={activity.me} labelOverride={myName} weather={weather.me} tempUnit={tempUnit} isMe />
         </div>
         {!partner && <p className="muted text-center">{partnerName} hasn&apos;t joined yet — presence will light up once they&apos;re in.</p>}
       </section>
@@ -186,15 +188,10 @@ export default function TogetherView({
         <form action={saveRhythm} className="space-y-3 mt-3">
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="label">Your city</label>
-              <input className="input" name="city" defaultValue={me.city ?? "Charlotte, NC"} placeholder="City" />
+              <label className="label" htmlFor="rhythm-city">Your city</label>
+              <input id="rhythm-city" className="input" name="city" defaultValue={me.city ?? ""} placeholder="e.g. Lisbon" autoComplete="address-level2" />
             </div>
-            <div>
-              <label className="label">Timezone</label>
-              <select className="input" name="timezone" defaultValue={me.timezone ?? DEFAULT_RHYTHM.timezone}>
-                {TZS.map((tz) => <option key={tz} value={tz}>{tz.replace("America/", "").replace("Europe/", "").replace("_", " ")}</option>)}
-              </select>
-            </div>
+            <TimezoneField saved={me.timezone} />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <HourSelect name="wake_hour" label="Usually wake" value={me.wakeHour ?? DEFAULT_RHYTHM.wakeHour} />
@@ -210,10 +207,10 @@ export default function TogetherView({
 }
 
 function PersonCard({
-  person, rhythm, now, lastActive, labelOverride, weather, isMe,
+  person, rhythm, now, lastActive, labelOverride, weather, tempUnit, isMe,
 }: {
   person: Person; rhythm: Rhythm; now: Date; lastActive: string | null; labelOverride: string;
-  weather: Weather | null; isMe?: boolean;
+  weather: Weather | null; tempUnit: TempUnit; isMe?: boolean;
 }) {
   const status = inferStatus(now, rhythm);
   const online = activeNow(lastActive, now);
@@ -239,8 +236,8 @@ function PersonCard({
         {weather && (
           <>
             {person.city ? " · " : ""}
-            <span aria-label={`${weather.label}, ${weather.tempF} degrees`}>
-              <span aria-hidden>{weather.emoji}</span> {weather.tempF}°
+            <span aria-label={`${weather.label}, ${tempIn(weather.tempF, tempUnit)} degrees ${tempUnit === "C" ? "Celsius" : "Fahrenheit"}`}>
+              <span aria-hidden>{weather.emoji}</span> {tempIn(weather.tempF, tempUnit)}°{tempUnit}
             </span>
           </>
         )}
@@ -249,6 +246,51 @@ function PersonCard({
       <p className={`text-xs ${soft}`} suppressHydrationWarning>
         {online ? "Here now" : lastSeenLabel(lastActive, now)}
       </p>
+    </div>
+  );
+}
+
+// The timezone picker. Starts with a short list so it renders on the server,
+// then swaps in every zone the device knows about. With nothing saved it
+// preselects the device's own zone, which is right far more often than a
+// fixed default.
+function TimezoneField({ saved }: { saved: string | null }) {
+  const [zones, setZones] = useState<string[]>(() => (saved && !TZS.includes(saved) ? [saved, ...TZS] : TZS));
+  const [value, setValue] = useState<string>(saved ?? DEFAULT_RHYTHM.timezone);
+  const [device, setDevice] = useState<string | null>(null);
+
+  useEffect(() => {
+    let dev: string | null = null;
+    try {
+      dev = Intl.DateTimeFormat().resolvedOptions().timeZone || null;
+    } catch {
+      dev = null;
+    }
+    let all: string[] = TZS;
+    try {
+      const supported = (Intl as unknown as { supportedValuesOf?: (k: string) => string[] }).supportedValuesOf?.("timeZone");
+      if (supported && supported.length > 0) all = supported;
+    } catch {
+      all = TZS;
+    }
+    // Keep the saved and device zones selectable even if the list lacks them.
+    const extra = [saved, dev].filter((z): z is string => Boolean(z) && !all.includes(z as string));
+    setZones([...extra, ...all]);
+    setDevice(dev);
+    if (!saved && dev) setValue(dev);
+  }, [saved]);
+
+  return (
+    <div>
+      <label className="label" htmlFor="rhythm-timezone">Timezone</label>
+      <select id="rhythm-timezone" className="input" name="timezone" value={value} onChange={(e) => setValue(e.target.value)}>
+        {zones.map((tz) => <option key={tz} value={tz}>{tz.replace(/_/g, " ")}</option>)}
+      </select>
+      {device && device !== value && (
+        <button type="button" className="text-accentInk text-[13px] font-semibold underline underline-offset-2 min-h-[44px] text-left" onClick={() => setValue(device)}>
+          Use this device&apos;s timezone
+        </button>
+      )}
     </div>
   );
 }

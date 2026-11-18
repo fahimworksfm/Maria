@@ -22,10 +22,10 @@ export const viewport: Viewport = {
     { media: "(prefers-color-scheme: light)", color: "#f7f8fa" },
     { media: "(prefers-color-scheme: dark)", color: "#111318" },
   ],
+  // No maximumScale / userScalable: pinch-zoom stays available for anyone who
+  // needs larger text.
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
