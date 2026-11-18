@@ -309,6 +309,7 @@ export default function WatchlistBoard({
               <div className="min-w-0">
               <div className="font-semibold">{r.title} {r.rating ? `· ${"★".repeat(r.rating)}` : ""}</div>
               {r.notes && <p className="text-muted text-[13px] mt-1 leading-relaxed">{r.notes}</p>}
+              {!r.author_id && <ClaimButtons partnerName={partnerName} onClaim={(w) => claim(r.id, w, w === "me" ? meId : "partner")} />}
               </div>
             </div>
             <button type="button" className="grid place-items-center w-11 h-11 shrink-0 rounded-full text-muted hover:bg-panel2 hover:text-ink transition" onClick={() => removeWithUndo(r.id)} aria-label="Delete"><X size={16} aria-hidden /></button>

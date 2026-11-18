@@ -143,6 +143,7 @@ export default function BucketListBoard({ initial, coupleId, meId, partnerName }
                   {it.target_date && <span className="pill">by {it.target_date}</span>}
                 </div>
               )}
+              {!it.author_id && <ClaimButtons partnerName={partnerName} onClaim={(w) => claim(it.id, w, w === "me" ? meId : "partner")} />}
             </div>
             <div className="flex items-center gap-1 shrink-0">
               <button className="btn btn-ghost text-sm" onClick={() => update(it.id, { completed_at: null })}>Reopen</button>

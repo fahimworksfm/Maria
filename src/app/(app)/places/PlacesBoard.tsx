@@ -185,6 +185,7 @@ export default function PlacesBoard({ initial, coupleId, meId, partnerName }: { 
               {who(p.author_id) && <div className="text-xs text-muted mb-0.5">{who(p.author_id)}</div>}
                 <div className="font-semibold">{p.name} {p.rating ? `· ${"★".repeat(p.rating)}` : ""}</div>
               {p.notes && <p className="text-muted text-[13px] mt-1 leading-relaxed">{p.notes}</p>}
+              {!p.author_id && <ClaimButtons partnerName={partnerName} onClaim={(w) => claim(p.id, w, w === "me" ? meId : "partner")} />}
             </div>
             <button type="button" className="grid place-items-center w-11 h-11 shrink-0 rounded-full text-muted hover:bg-panel2 hover:text-ink transition" onClick={() => removeWithUndo(p.id)} aria-label="Delete"><X size={16} aria-hidden /></button>
           </div>
